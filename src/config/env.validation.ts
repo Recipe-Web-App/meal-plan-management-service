@@ -8,11 +8,12 @@ export const validationSchema = Joi.object({
 
   // Database
   DATABASE_URL: Joi.string().required(),
-  DATABASE_HOST: Joi.string().default('localhost'),
-  DATABASE_PORT: Joi.number().default(5432),
-  DATABASE_NAME: Joi.string().required(),
-  DATABASE_USERNAME: Joi.string().required(),
-  DATABASE_PASSWORD: Joi.string().required(),
+  POSTGRES_HOST: Joi.string().default('localhost'),
+  POSTGRES_PORT: Joi.number().default(5432),
+  POSTGRES_DB: Joi.string().required(),
+  POSTGRES_SCHEMA: Joi.string().default('public'),
+  MEAL_PLAN_MANAGEMENT_DB_USER: Joi.string().required(),
+  MEAL_PLAN_MANAGEMENT_DB_PASSWORD: Joi.string().required(),
 
   // JWT
   JWT_SECRET: Joi.string().required(),

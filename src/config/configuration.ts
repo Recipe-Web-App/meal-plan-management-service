@@ -45,11 +45,11 @@ export default () => ({
 
   database: {
     url: process.env.DATABASE_URL!,
-    host: process.env.DATABASE_HOST ?? 'localhost',
-    port: parseInt(process.env.DATABASE_PORT!, 10) || 5432,
-    database: process.env.DATABASE_NAME!,
-    username: process.env.DATABASE_USERNAME!,
-    password: process.env.DATABASE_PASSWORD!,
+    host: process.env.POSTGRES_HOST ?? 'localhost',
+    port: parseInt(process.env.POSTGRES_PORT!, 10) || 5432,
+    database: process.env.POSTGRES_DB!,
+    username: process.env.MEAL_PLAN_MANAGEMENT_DB_USER!,
+    password: process.env.MEAL_PLAN_MANAGEMENT_DB_PASSWORD!,
   } as DatabaseConfig,
 
   jwt: {

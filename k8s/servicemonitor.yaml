@@ -1,0 +1,25 @@
+---
+# k8s/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: meal-plan-management-service-monitor
+  namespace: meal-plan-management
+  labels:
+    app: meal-plan-management-service
+    version: v1
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: meal-plan-management-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http
+      honorLabels: true
+  namespaceSelector:
+    matchNames:
+      - meal-plan-management
