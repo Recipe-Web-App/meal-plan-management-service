@@ -1,0 +1,51 @@
+# Markdownlint configuration
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Default state for all rules
+default: true
+
+# Disable line length rule
+MD013:
+  # Line length
+  line_length: 120
+  # Number of characters
+  heading_line_length: 80
+  # Number of characters
+  code_block_line_length: 120
+  # Include code blocks
+  code_blocks: false
+  # Include tables
+  tables: false
+  # Include headings
+  headings: true
+  # Strict length checking
+  strict: false
+
+# Allow duplicate headings in different sections
+MD024:
+  # Multiple headings with the same content
+  siblings_only: true
+
+# Allow inline HTML for necessary cases
+MD033:
+  # Inline HTML
+  allowed_elements: ['br', 'sub', 'sup', 'kbd', 'img']
+
+# Customize unordered list style
+MD004:
+  # Unordered list style
+  style: dash
+
+# Allow bare URLs
+MD034: false
+
+# Customize ordered list style
+MD029:
+  # Ordered list item prefix
+  style: ordered
+
+# First line in file should be a top level heading
+MD041: false
+
+# Allow emphasis used instead of a heading
+MD036: false

@@ -1,0 +1,181 @@
+repos:
+  # Core formatting and linting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1024']
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-executables-have-shebangs
+
+  # JavaScript/TypeScript formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: \.(js|ts|jsx|tsx|json|css|scss|md|yaml|yml)$
+        exclude: |
+          (?x)(
+              package-lock\.json|
+              \.min\.js$|
+              node_modules/
+          )
+
+  # TypeScript/JavaScript linting
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --fix
+        language: node
+        types: [javascript, ts]
+        files: \.(js|ts|jsx|tsx)$
+        exclude: node_modules/
+
+  # TypeScript type checking
+  - repo: local
+    hooks:
+      - id: tsc
+        name: TypeScript Compiler
+        entry: npx tsc --noEmit
+        language: node
+        types: [ts]
+        exclude: node_modules/
+        pass_filenames: false
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yaml]
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.13.1-beta
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        args: [-e, SC1091]
+
+  # Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)(
+              package-lock\.json|
+              \.secrets\.baseline|
+              node_modules/
+          )
+
+  # Advanced secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+
+  # Static analysis security
+  - repo: https://github.com/semgrep/semgrep
+    rev: v1.89.0
+    hooks:
+      - id: semgrep
+        args: [--config=auto, --severity=ERROR]
+        types: [javascript, ts]
+        exclude: node_modules/
+
+  # Kubernetes YAML validation (for future use)
+  - repo: local
+    hooks:
+      - id: kube-score
+        name: kube-score
+        entry: >
+          sh -c 'find k8s -name "*.yaml" -o -name "*.yml" -type f 2>/dev/null | xargs
+           -r kube-score score || echo "No k8s files found, skipping kube-score"'
+        language: system
+        files: k8s/.*\.ya?ml$
+        pass_filenames: false
+
+  # Docker Compose validation
+  - repo: local
+    hooks:
+      - id: docker-compose-check
+        name: Docker Compose Check
+        entry: docker-compose config -q
+        language: system
+        files: docker-compose.*\.ya?ml$
+        pass_filenames: false
+
+  # Prisma formatting
+  - repo: local
+    hooks:
+      - id: prisma-format
+        name: Prisma Format
+        entry: npx prisma format
+        language: node
+        files: schema\.prisma$
+        pass_filenames: false
+
+  # Node.js dependency security audit
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: NPM Security Audit
+        entry: npm audit --audit-level moderate
+        language: node
+        files: package(-lock)?\.json$
+        pass_filenames: false
+
+  # Commit message validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.8.3
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # License compliance check
+  - repo: local
+    hooks:
+      - id: license-check
+        name: License Check
+        entry: npm run license:check
+        language: node
+        files: package\.json$
+        pass_filenames: false
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [npm-audit, license-check, tsc]
+  submodules: false

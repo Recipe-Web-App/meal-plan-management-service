@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "firsttris.vscode-jest-runner",
+    "rangav.vscode-thunder-client",
+    "nestjs.nestjs-files",
+    "vivaxy.vscode-conventional-commits",
+    "Prisma.prisma",
+    "github.vscode-pull-request-github",
+    "eamodio.gitlens",
+    "donjayamanne.githistory",
+    "DavidAnson.vscode-markdownlint",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "oderwat.indent-rainbow",
+    "usernamehw.errorlens"
+  ]
+}
