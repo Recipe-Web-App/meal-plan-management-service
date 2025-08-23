@@ -2,6 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
+import { RequestContextService, RequestContext } from '@/shared/services/request-context.service';
 
 interface RequestWithCorrelationId extends Request {
   correlationId: string;
@@ -18,6 +19,23 @@ export class CorrelationIdInterceptor implements NestInterceptor {
     request.correlationId = correlationId;
     response.setHeader('x-correlation-id', correlationId);
 
-    return next.handle();
+    // Create request context with correlation ID and other useful data
+    const requestContext: RequestContext = {
+      correlationId,
+      ip: request.ip ?? request.socket.remoteAddress,
+      userAgent: request.headers['user-agent'],
+    };
+
+    // Run the request handler within the context
+    return new Observable((subscriber) => {
+      RequestContextService.run(requestContext, () => {
+        const handleResult = next.handle();
+        handleResult.subscribe({
+          next: (value) => subscriber.next(value),
+          error: (error) => subscriber.error(error),
+          complete: () => subscriber.complete(),
+        });
+      });
+    });
   }
 }

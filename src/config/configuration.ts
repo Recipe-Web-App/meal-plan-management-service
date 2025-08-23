@@ -25,6 +25,16 @@ export interface AppConfig {
   logLevel: string;
 }
 
+export interface LoggingConfig {
+  level: string;
+  consoleFormat: 'pretty' | 'json';
+  fileEnabled: boolean;
+  filePath: string;
+  fileMaxSize: string;
+  fileMaxFiles: string;
+  fileDatePattern: string;
+}
+
 export interface RateLimitConfig {
   ttl: number;
   limit: number;
@@ -67,6 +77,16 @@ export default () => ({
     ttl: parseInt(process.env.RATE_LIMIT_TTL!, 10) ?? 60,
     limit: parseInt(process.env.RATE_LIMIT_MAX!, 10) ?? 100,
   } as RateLimitConfig,
+
+  logging: {
+    level: process.env.LOG_LEVEL ?? process.env.MEAL_PLAN_SERVICE_LOGGING_LEVEL ?? 'info',
+    consoleFormat: (process.env.LOG_CONSOLE_FORMAT ?? 'pretty') as 'pretty' | 'json',
+    fileEnabled: process.env.LOG_FILE_ENABLED === 'true' || process.env.NODE_ENV === 'production',
+    filePath: process.env.LOG_FILE_PATH ?? 'logs',
+    fileMaxSize: process.env.LOG_FILE_MAX_SIZE ?? '20m',
+    fileMaxFiles: process.env.LOG_FILE_MAX_FILES ?? '14d',
+    fileDatePattern: process.env.LOG_FILE_DATE_PATTERN ?? 'YYYY-MM-DD',
+  } as LoggingConfig,
 
   externalServices: {
     recipeServiceUrl: process.env.RECIPE_SERVICE_URL,

@@ -37,4 +37,13 @@ export const validationSchema = Joi.object({
 
   // Logging
   LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'debug', 'verbose').default('info'),
+  MEAL_PLAN_SERVICE_LOGGING_LEVEL: Joi.string()
+    .valid('error', 'warn', 'info', 'debug', 'verbose')
+    .optional(),
+  LOG_CONSOLE_FORMAT: Joi.string().valid('pretty', 'json').default('pretty'),
+  LOG_FILE_ENABLED: Joi.string().valid('true', 'false').optional(),
+  LOG_FILE_PATH: Joi.string().default('logs'),
+  LOG_FILE_MAX_SIZE: Joi.string().default('20m'),
+  LOG_FILE_MAX_FILES: Joi.string().default('14d'),
+  LOG_FILE_DATE_PATTERN: Joi.string().default('YYYY-MM-DD'),
 });
