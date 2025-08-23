@@ -1,0 +1,45 @@
+# YAML Linting Configuration
+extends: default
+
+rules:
+  # Allow longer lines for URLs and complex configurations
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Allow trailing spaces in comments
+  trailing-spaces: enable
+
+  # More flexible indentation rules
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Allow empty values
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Relax document start requirement
+  document-start: disable
+
+  # Allow comments without space after #
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: false
+
+  # Allow truthy values common in configuration
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+
+  # Brackets spacing
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Braces spacing
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
