@@ -9,6 +9,7 @@ import { validationSchema } from '@/config/env.validation';
 import { PrismaService } from '@/config/database.config';
 import { createWinstonLogger } from '@/config/logger.config';
 import { HealthModule } from '@/modules/health/health.module';
+import { RequestContextService, LoggerService } from '@/shared';
 
 @Module({
   imports: [
@@ -45,7 +46,7 @@ import { HealthModule } from '@/modules/health/health.module';
     HealthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
-  exports: [PrismaService],
+  providers: [AppService, PrismaService, RequestContextService, LoggerService],
+  exports: [PrismaService, RequestContextService, LoggerService],
 })
 export class AppModule {}
