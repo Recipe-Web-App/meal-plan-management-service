@@ -53,6 +53,30 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## 🤖 Automated Dependency Management
+
+This project uses **GitHub Dependabot** to automatically keep dependencies up to date. Dependabot will:
+
+- 📦 Monitor npm dependencies daily
+- 🐳 Check Docker base images weekly
+- 🔄 Group related dependencies for easier management
+- 🏷️ Create well-labeled pull requests
+- 🔒 Prioritize security updates
+
+For more details, see [`.github/DEPENDABOT.md`](.github/DEPENDABOT.md).
+
+## ⚡ GitHub Actions & Workflows
+
+This project includes a comprehensive CI/CD pipeline with automated workflows for:
+
+- 🔍 **Security Scanning**: CodeQL, secret detection, vulnerability scanning
+- 🧪 **Testing & Quality**: Automated tests, code coverage, performance testing
+- 📦 **Build & Deploy**: Docker builds, semantic releases, environment deployments
+- 📊 **Monitoring**: Database migrations, health checks, performance metrics
+- 🤖 **Automation**: Issue management, auto-labeling, dependency updates
+
+For complete workflow documentation, see [`.github/WORKFLOWS.md`](.github/WORKFLOWS.md).
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it

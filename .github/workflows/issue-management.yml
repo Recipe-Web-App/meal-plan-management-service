@@ -1,0 +1,183 @@
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, labeled]
+  pull_request:
+    types: [opened, closed, labeled]
+  schedule:
+    # Run weekly on Sundays at 1 AM UTC for stale issue cleanup
+    - cron: '0 1 * * 0'
+
+jobs:
+  auto-label:
+    name: Auto Label Issues and PRs
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Auto-label based on title/content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { title, body } = context.payload.issue || context.payload.pull_request;
+            const labels = [];
+
+            // Auto-label based on keywords in title/body
+            const text = (title + ' ' + body).toLowerCase();
+
+            if (text.includes('bug') || text.includes('error') || text.includes('fix')) {
+              labels.push('bug');
+            }
+            if (text.includes('feature') || text.includes('enhancement')) {
+              labels.push('enhancement');
+            }
+            if (text.includes('doc') || text.includes('readme')) {
+              labels.push('documentation');
+            }
+            if (text.includes('test') || text.includes('spec')) {
+              labels.push('testing');
+            }
+            if (text.includes('security') || text.includes('vulnerability')) {
+              labels.push('security');
+            }
+            if (text.includes('performance') || text.includes('slow')) {
+              labels.push('performance');
+            }
+            if (text.includes('database') || text.includes('prisma') || text.includes('migration')) {
+              labels.push('database');
+            }
+            if (text.includes('api') || text.includes('endpoint')) {
+              labels.push('api');
+            }
+
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue?.number || context.payload.pull_request?.number,
+                labels: labels
+              });
+            }
+
+  assign-reviewer:
+    name: Auto Assign Reviewers
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' && github.event.pull_request
+    steps:
+      - name: Auto-assign reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Don't assign if PR is from dependabot
+            if (context.payload.pull_request.user.login === 'dependabot[bot]') {
+              return;
+            }
+
+            const reviewers = ['jsamuelsen11']; // Add team members here
+            const author = context.payload.pull_request.user.login;
+
+            // Remove author from reviewers list
+            const filteredReviewers = reviewers.filter(reviewer => reviewer !== author);
+
+            if (filteredReviewers.length > 0) {
+              github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                reviewers: filteredReviewers
+              });
+            }
+
+  stale-issues:
+    name: Close Stale Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs. Thank you for your contributions.
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs. Thank you for your contributions.
+          close-issue-message: |
+            This issue was closed because it has been stalled for 7 days with no activity.
+          close-pr-message: |
+            This pull request was closed because it has been stalled for 7 days with no activity.
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,enhancement'
+          exempt-pr-labels: 'pinned,security'
+
+  welcome-message:
+    name: Welcome New Contributors
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Welcome first-time contributors
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Check if this is the user's first contribution
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              creator: context.payload.pull_request?.user.login || context.payload.issue?.user.login
+            });
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              creator: context.payload.pull_request?.user.login || context.payload.issue?.user.login
+            });
+
+            const totalContributions = pullRequests.length + issues.length;
+
+            if (totalContributions === 1) {
+              const welcomePR = "👋 Welcome @" + context.payload.pull_request.user.login +
+                "! Thanks for your first pull request to the Meal Plan Management Service! 🍽️\n\n" +
+                "Please make sure you've:\n- Read our contributing guidelines\n- Added tests for your changes\n" +
+                "- Updated documentation if needed\n- Ensured all CI checks pass\n\n" +
+                "A maintainer will review your PR soon. Thanks for contributing! 🎉";
+
+              const welcomeIssue = "👋 Welcome @" + context.payload.issue.user.login +
+                "! Thanks for opening your first issue!\n\n" +
+                "We appreciate you taking the time to report this. A maintainer will take a look soon. 🍽️";
+
+              const message = context.payload.pull_request ? welcomePR : welcomeIssue;
+
+              github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue?.number || context.payload.pull_request?.number,
+                body: message
+              });
+            }
+
+  project-automation:
+    name: Project Board Automation
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'closed'
+    steps:
+      - name: Add to project board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add issues/PRs to project board
+            // This requires a project board to be set up first
+            const projectNumber = 1; // Replace with your project number
+
+            try {
+              // You can customize this based on your project board setup
+              console.log('Project automation would run here');
+              // Implementation depends on your specific project board structure
+            } catch (error) {
+              console.log('Project board automation skipped:', error.message);
+            }

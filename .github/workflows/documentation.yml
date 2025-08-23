@@ -1,0 +1,155 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  api-docs:
+    name: Generate API Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install documentation tools
+        run: |
+          npm install -g @compodoc/compodoc
+          npm install -g swagger-jsdoc swagger-ui-express
+
+      - name: Generate TypeDoc documentation
+        run: |
+          npx compodoc -p tsconfig.json -d docs/compodoc --theme material
+
+      - name: Generate OpenAPI/Swagger docs
+        run: |
+          # If you have Swagger decorators in your NestJS app
+          cat > generate-swagger.js << 'EOF'
+          const { NestFactory } = require('@nestjs/core');
+          const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
+          const { AppModule } = require('./dist/app.module');
+          const fs = require('fs');
+
+          async function bootstrap() {
+            const app = await NestFactory.create(AppModule);
+
+            const config = new DocumentBuilder()
+              .setTitle('Meal Plan Management API')
+              .setDescription('API for managing meal plans and recipes')
+              .setVersion('1.0')
+              .addTag('meal-plans')
+              .build();
+
+            const document = SwaggerModule.createDocument(app, config);
+            fs.writeFileSync('./docs/swagger.json', JSON.stringify(document, null, 2));
+
+            await app.close();
+          }
+
+          bootstrap().catch(console.error);
+          EOF
+
+          node generate-swagger.js || echo "Swagger generation skipped - ensure @nestjs/swagger is installed"
+
+      - name: Deploy documentation to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint markdown files
+        uses: articulate/actions-markdownlint@v1
+        with:
+          config: .markdownlint.json
+          files: '**/*.md'
+
+  link-checker:
+    name: Link Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check links in markdown files
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+
+  readme-sync:
+    name: Sync README
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update README badges
+        run: |
+          # Update build status badges
+          sed -i 's|!\[CI\].*|![CI](https://github.com/${{ github.repository }}/workflows/CI/badge.svg)|' README.md
+
+          # Update coverage badge (if you set up codecov)
+          # Badge: ![Coverage](https://codecov.io/gh/${{ github.repository }}/branch/main/graph/badge.svg)
+
+      - name: Commit updated README
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --staged --quiet || git commit -m "docs: update README badges [skip ci]"
+          git push
+
+  changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: charmixer/auto-changelog-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit changelog
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git diff --staged --quiet || git commit -m "docs: update changelog [skip ci]"
+          git push

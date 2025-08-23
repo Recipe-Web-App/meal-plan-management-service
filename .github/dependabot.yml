@@ -1,0 +1,120 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Enable version updates for npm (package.json)
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '04:00'
+      timezone: 'Etc/UTC'
+    # Increase the number of open pull requests for npm from the default of 5
+    open-pull-requests-limit: 10
+    # Add assignees and reviewers
+    assignees:
+      - 'jsamuelsen11'
+    # Group related dependencies together
+    groups:
+      # Group all NestJS related packages
+      nestjs:
+        patterns:
+          - '@nestjs/*'
+        exclude-patterns:
+          - '@nestjs/testing'
+      # Group testing dependencies
+      testing:
+        patterns:
+          - '*jest*'
+          - '@types/jest'
+          - 'supertest'
+          - '@types/supertest'
+          - 'ts-jest'
+      # Group TypeScript and build tools
+      build-tools:
+        patterns:
+          - 'typescript'
+          - 'ts-node'
+          - '@types/*'
+          - 'tsconfig-paths'
+          - '@swc/*'
+      # Group linting and formatting tools
+      code-quality:
+        patterns:
+          - 'eslint*'
+          - '@typescript-eslint/*'
+          - 'prettier'
+          - '@commitlint/*'
+          - 'husky'
+          - 'lint-staged'
+      # Group Docker and containerization
+      docker:
+        patterns:
+          - 'docker*'
+          - 'dockerfile*'
+      # Group database and ORM
+      database:
+        patterns:
+          - 'prisma'
+          - '@prisma/*'
+          - 'pg'
+          - '@types/pg'
+    # Custom commit message
+    commit-message:
+      prefix: 'deps'
+      prefix-development: 'deps-dev'
+      include: 'scope'
+    # Allow both direct and indirect updates
+    allow:
+      - dependency-type: 'direct'
+      - dependency-type: 'indirect'
+    # Ignore specific packages if needed (uncomment and modify as needed)
+    # ignore:
+    #   - dependency-name: "lodash"
+    #     versions: ["4.17.x"]
+    # Custom labels for PRs
+    labels:
+      - 'dependencies'
+      - 'automated'
+    # Update npm lockfile strategy
+    versioning-strategy: 'increase'
+    # Custom pull request branch prefix
+    pull-request-branch-name:
+      separator: '/'
+
+  # Enable version updates for Docker
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Etc/UTC'
+    assignees:
+      - 'jsamuelsen11'
+    commit-message:
+      prefix: 'docker'
+      include: 'scope'
+    labels:
+      - 'docker'
+      - 'dependencies'
+      - 'automated'
+
+  # Enable version updates for GitHub Actions (if you add them later)
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Etc/UTC'
+    assignees:
+      - 'jsamuelsen11'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'
+    labels:
+      - 'github-actions'
+      - 'dependencies'
+      - 'automated'
