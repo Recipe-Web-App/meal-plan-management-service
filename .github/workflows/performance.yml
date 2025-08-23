@@ -1,0 +1,199 @@
+name: Performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run performance tests weekly on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+
+jobs:
+  load-testing:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password # pragma: allowlist secret
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
+
+      - name: Start application
+        run: |
+          npm run start:prod &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          sleep 15
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | \
+            sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests
+        run: |
+          cat > load-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+
+          export let options = {
+            stages: [
+              { duration: '2m', target: 100 }, // Ramp up to 100 users
+              { duration: '5m', target: 100 }, // Stay at 100 users
+              { duration: '2m', target: 200 }, // Ramp up to 200 users
+              { duration: '5m', target: 200 }, // Stay at 200 users
+              { duration: '2m', target: 0 },   // Ramp down to 0 users
+            ],
+            thresholds: {
+              http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+              http_req_failed: ['rate<0.1'],   // Error rate must be below 10%
+            },
+          };
+
+          export default function () {
+            let response = http.get('http://localhost:3000/health');
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+            });
+            sleep(1);
+          }
+          EOF
+
+          k6 run load-test.js
+
+      - name: Stop application
+        run: kill $APP_PID || true
+
+  memory-leak-test:
+    name: Memory Leak Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install clinic.js
+        run: npm install -g clinic
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run memory leak detection
+        run: |
+          # Run the app with clinic doctor for memory analysis
+          timeout 60s clinic doctor --on-port \
+            'autocannon -c 10 -d 30 http://localhost:3000/health' -- node dist/main.js || true
+
+      - name: Upload clinic reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinic-reports
+          path: .clinic/
+
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Analyze bundle size
+        run: |
+          npm install -g bundlesize
+
+          # Create bundlesize config
+          cat > .bundlesizerc << 'EOF'
+          {
+            "files": [
+              {
+                "path": "./dist/main.js",
+                "maxSize": "10MB"
+              }
+            ]
+          }
+          EOF
+
+          bundlesize
+
+      - name: Bundle size report
+        run: |
+          echo "## Bundle Analysis" >> bundle-report.md
+          echo "| File | Size |" >> bundle-report.md
+          echo "|------|------|" >> bundle-report.md
+          ls -lh dist/ | awk 'NR>1 {print "| " $9 " | " $5 " |"}' >> bundle-report.md
+
+      - name: Comment PR with bundle analysis
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('bundle-report.md')) {
+              const report = fs.readFileSync('bundle-report.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }

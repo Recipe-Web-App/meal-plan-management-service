@@ -1,0 +1,7 @@
+{
+  "alive-status-codes": [200, 206, 299, 301, 302, 307, 308, 403, 503],
+  "replace-base-url": {
+    "https://github.com/Recipe-Web-App/meal-plan-management-service/blob/main/": ""
+  },
+  "ignore": ["https://img.shields.io/*", "https://codecov.io/*", "https://sonarcloud.io/*"]
+}

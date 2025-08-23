@@ -1,0 +1,15 @@
+{
+  "line-length": {
+    "line_length": 120
+  },
+  "no-trailing-spaces": true,
+  "no-hard-tabs": true,
+  "no-multiple-blanks": {
+    "maximum": 2
+  },
+  "commands-show-output": false,
+  "no-inline-html": {
+    "allowed_elements": ["br", "img", "a", "code", "pre", "details", "summary"]
+  },
+  "MD041": false
+}

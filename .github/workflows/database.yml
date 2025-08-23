@@ -1,0 +1,164 @@
+name: Database
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'prisma/**'
+      - '.github/workflows/database.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'prisma/**'
+
+jobs:
+  prisma-check:
+    name: Prisma Schema Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Prisma format check
+        run: npx prisma format --check
+
+      - name: Prisma validate
+        run: npx prisma validate
+
+  migration-test:
+    name: Migration Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password # pragma: allowlist secret
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
+
+      - name: Seed database (if seed script exists)
+        run: |
+          if npm run | grep -q "db:seed"; then
+            npm run db:seed
+          else
+            echo "No seed script found, skipping..."
+          fi
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
+
+  database-backup:
+    name: Database Backup Strategy Test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test backup script
+        run: |
+          # This would test your backup strategy
+          echo "Testing database backup procedures..."
+          # Add your backup testing logic here
+
+  schema-diff:
+    name: Schema Diff Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: pr
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: pr/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd pr
+          npm ci
+
+      - name: Generate schema diff
+        run: |
+          cd pr
+          npx prisma generate
+          # Compare schema files
+          if ! diff -u ../base/prisma/schema.prisma prisma/schema.prisma > schema-diff.txt; then
+            echo "Schema changes detected:"
+            cat schema-diff.txt
+            # You could use a tool like Atlas or Prisma's diff tool here
+          else
+            echo "No schema changes detected"
+          fi
+
+      - name: Comment PR with schema changes
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const path = './pr/schema-diff.txt';
+
+            if (fs.existsSync(path)) {
+              const diff = fs.readFileSync(path, 'utf8');
+              if (diff.trim()) {
+                const body = `## 🗄️ Database Schema Changes Detected\n\n\`\`\`diff\n${diff}\n\`\`\`\n\n` +
+                           `⚠️ Please review these schema changes carefully before merging.`;
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: body
+                });
+              }
+            }

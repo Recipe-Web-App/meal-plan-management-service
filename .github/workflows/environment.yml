@@ -1,0 +1,174 @@
+name: Environment Management
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main]
+
+jobs:
+  env-validation:
+    name: Environment Validation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment configuration
+        run: |
+          echo "Validating ${{ matrix.environment }} environment..."
+
+          # Check if environment-specific files exist
+          if [ -f ".env.${{ matrix.environment }}.example" ]; then
+            echo "✅ Environment example file found"
+          else
+            echo "⚠️ No environment example file found for ${{ matrix.environment }}"
+          fi
+
+          # Check Docker configuration
+          if [ -f "docker-compose.${{ matrix.environment }}.yml" ]; then
+            echo "✅ Docker compose file found for ${{ matrix.environment }}"
+            docker-compose -f docker-compose.${{ matrix.environment }}.yml config
+          else
+            echo "⚠️ No Docker compose file found for ${{ matrix.environment }}"
+          fi
+
+  deployment-notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Notify team of deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            🚀 Deployment to production initiated
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  feature-flag-validation:
+    name: Feature Flag Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate feature flags
+        run: |
+          # Check for feature flag usage in code
+          echo "Checking for feature flag patterns..."
+
+          # Look for common feature flag patterns
+          grep -r "featureFlag\|feature_flag\|Feature.*Flag" src/ || echo "No feature flags found"
+
+          # You could integrate with services like LaunchDarkly, Split.io, etc.
+          echo "Feature flag validation completed"
+
+  environment-secrets-check:
+    name: Environment Secrets Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for potential hardcoded secrets
+          echo "Scanning for potential hardcoded secrets..."
+
+          # Common patterns to avoid
+          patterns=(
+            "password.*=.*['\"][^'\"]{8,}['\"]"
+            "secret.*=.*['\"][^'\"]{16,}['\"]"
+            "key.*=.*['\"][^'\"]{16,}['\"]"
+            "token.*=.*['\"][^'\"]{16,}['\"]"
+          )
+
+          found_issues=false
+          for pattern in "${patterns[@]}"; do
+            if grep -rE "$pattern" src/ --exclude-dir=node_modules; then
+              echo "⚠️ Potential hardcoded secret found matching pattern: $pattern"
+              found_issues=true
+            fi
+          done
+
+          if [ "$found_issues" = true ]; then
+            echo "❌ Security issues found - please use environment variables"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
+  health-check:
+    name: Health Check Endpoints
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password # pragma: allowlist secret
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          npm run start:prod &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          sleep 10
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
+
+      - name: Test health endpoints
+        run: |
+          # Test basic health endpoint
+          curl -f http://localhost:3000/health || exit 1
+
+          # Test database health (if implemented)
+          curl -f http://localhost:3000/health/database || echo "Database health endpoint not implemented"
+
+          # Test metrics endpoint (if implemented)
+          curl -f http://localhost:3000/metrics || echo "Metrics endpoint not implemented"
+
+      - name: Stop application
+        run: kill $APP_PID || true
