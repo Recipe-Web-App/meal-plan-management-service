@@ -1,0 +1,16 @@
+---
+# k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: meal-plan-management
+  labels:
+    name: meal-plan-management
+    app: meal-plan-management-service
+    environment: production
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Namespace","metadata":{"name":"meal-plan-management"}}
+spec:
+  finalizers:
+    - kubernetes

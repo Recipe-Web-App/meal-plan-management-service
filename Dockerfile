@@ -35,8 +35,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && \
+# Install only production dependencies (skip scripts to avoid husky)
+RUN npm ci --omit=dev --ignore-scripts && \
     npm cache clean --force
 
 # Copy built application and prisma schema

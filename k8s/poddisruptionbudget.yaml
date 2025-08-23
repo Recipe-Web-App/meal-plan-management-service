@@ -1,0 +1,14 @@
+---
+# k8s/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: meal-plan-management-pdb
+  namespace: meal-plan-management
+  labels:
+    app: meal-plan-management-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: meal-plan-management-service
