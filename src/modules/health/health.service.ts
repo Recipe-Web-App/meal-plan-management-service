@@ -54,10 +54,18 @@ export class HealthService {
     ]);
   }
 
-  private checkDatabase(): HealthIndicatorResult {
+  private async checkDatabase(): Promise<HealthIndicatorResult> {
+    const healthStatus = await this.prisma.performHealthCheck();
+    const connectionStatus = this.prisma.getConnectionStatus();
+
     return {
       database: {
-        status: 'up' as const,
+        status: healthStatus.status === 'healthy' ? ('up' as const) : ('down' as const),
+        message: healthStatus.message,
+        latency: healthStatus.latency,
+        connected: connectionStatus.isConnected,
+        connectionRetries: connectionStatus.connectionRetries,
+        timestamp: healthStatus.timestamp.toISOString(),
       },
     };
   }
