@@ -70,10 +70,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 #### Database
 
-- Prisma Client with PostgreSQL
-- PrismaService configured with lifecycle management
-- Schema references external database (defined in main database repository)
-- Connection managed through DATABASE_URL environment variable
+- **Prisma Client** with PostgreSQL and multi-schema support
+- **Repository Pattern** for data access abstraction (`MealPlansRepository`)
+- **Transaction Management** with retry logic and batch operations (`TransactionService`)
+- **Connection Pooling** with health monitoring and automatic reconnection (`PrismaService`)
+- **Seeding Utilities** for development and testing (`DatabaseSeeder`, factories)
+- **Health Monitoring** with periodic checks and metrics collection
+- Schema references shared `recipe_manager` schema for recipes and users
+- Comprehensive error handling with connection retry logic
+- Development tools: factories, test database utilities, and migration support
+
+**Database Documentation:**
+
+- [Complete Database Guide](./docs/DATABASE.md) - Comprehensive setup and usage documentation
+- [Quick Reference](./docs/DATABASE_QUICK_REFERENCE.md) - Commands and code snippets
+- [Setup Guide](./docs/DATABASE_SETUP.md) - Step-by-step installation instructions
 
 #### Logging
 
