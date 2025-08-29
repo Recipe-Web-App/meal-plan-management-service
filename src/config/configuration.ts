@@ -5,6 +5,10 @@ export interface DatabaseConfig {
   database: string;
   username: string;
   password: string;
+  maxRetries: number;
+  retryDelay: number;
+  healthCheckInterval: number;
+  logQueries: boolean;
 }
 
 export interface JwtConfig {
@@ -60,6 +64,11 @@ export default () => ({
     database: process.env.POSTGRES_DB!,
     username: process.env.MEAL_PLAN_MANAGEMENT_DB_USER!,
     password: process.env.MEAL_PLAN_MANAGEMENT_DB_PASSWORD!,
+    maxRetries: parseInt(process.env.DATABASE_MAX_RETRIES!, 10) || 5,
+    retryDelay: parseInt(process.env.DATABASE_RETRY_DELAY!, 10) || 5000,
+    healthCheckInterval: parseInt(process.env.DATABASE_HEALTH_CHECK_INTERVAL!, 10) || 30000,
+    logQueries:
+      process.env.DATABASE_LOG_QUERIES === 'true' || process.env.NODE_ENV === 'development',
   } as DatabaseConfig,
 
   jwt: {
