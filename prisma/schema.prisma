@@ -11,7 +11,71 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["recipe_manager"]
 }
 
-// Schema will be defined in the main database repository
-// This file is configured to connect to the existing database
+// Enums
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  DESSERT
+
+  @@map("meal_type_enum")
+  @@schema("recipe_manager")
+}
+
+// Minimal User model - only fields needed for meal plan relationships
+model User {
+  userId    String     @id @map("user_id") @db.Uuid
+  username  String     @unique @db.VarChar(50)
+  mealPlans MealPlan[]
+
+  @@map("users")
+  @@schema("recipe_manager")
+}
+
+// Minimal Recipe model - only fields needed for meal plan relationships
+model Recipe {
+  recipeId         BigInt             @id @default(autoincrement()) @map("recipe_id")
+  userId           String             @map("user_id") @db.Uuid
+  title            String             @db.VarChar(255)
+  mealPlanRecipes  MealPlanRecipe[]
+
+  @@map("recipes")
+  @@schema("recipe_manager")
+}
+
+// MealPlan model
+model MealPlan {
+  mealPlanId       BigInt             @id @default(autoincrement()) @map("meal_plan_id")
+  userId           String             @map("user_id") @db.Uuid
+  name             String             @db.VarChar(255)
+  description      String?            @db.Text
+  startDate        DateTime?          @map("start_date") @db.Date
+  endDate          DateTime?          @map("end_date") @db.Date
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  user             User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlanRecipes  MealPlanRecipe[]
+
+  @@map("meal_plans")
+  @@schema("recipe_manager")
+}
+
+// MealPlanRecipe junction model
+model MealPlanRecipe {
+  mealPlanId  BigInt    @map("meal_plan_id")
+  recipeId    BigInt    @map("recipe_id")
+  mealDate    DateTime  @map("meal_date") @db.Date
+  mealType    MealType  @map("meal_type")
+  
+  mealPlan    MealPlan  @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+  recipe      Recipe    @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
+
+  @@id([mealPlanId, recipeId, mealDate])
+  @@map("meal_plan_recipes")
+  @@schema("recipe_manager")
+}
