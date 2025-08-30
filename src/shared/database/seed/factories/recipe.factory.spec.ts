@@ -68,14 +68,11 @@ describe('RecipeFactory', () => {
     it('should build recipe object for database insertion', () => {
       const recipeData = RecipeFactory.build();
 
-      expect(recipeData).toHaveProperty('id');
+      expect(recipeData).toHaveProperty('recipeId');
+      expect(recipeData).toHaveProperty('userId');
       expect(recipeData).toHaveProperty('title');
-      expect(recipeData).toHaveProperty('description');
-      expect(recipeData).toHaveProperty('cookingTime');
-      expect(recipeData).toHaveProperty('servings');
-      expect(recipeData).toHaveProperty('difficulty');
 
-      expect(typeof recipeData.id).toBe('string');
+      expect(typeof recipeData.recipeId).toBe('bigint');
       expect(typeof recipeData.title).toBe('string');
     });
   });

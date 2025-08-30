@@ -28,11 +28,20 @@ export class TransactionService {
       isolationLevel?: Prisma.TransactionIsolationLevel;
     },
   ): Promise<T> {
-    return this.prisma.$transaction(fn, {
+    const transactionOptions: {
+      maxWait: number;
+      timeout: number;
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+    } = {
       maxWait: options?.maxWait ?? 5000, // 5 seconds
       timeout: options?.timeout ?? 10000, // 10 seconds
-      isolationLevel: options?.isolationLevel,
-    });
+    };
+
+    if (options?.isolationLevel) {
+      transactionOptions.isolationLevel = options.isolationLevel;
+    }
+
+    return this.prisma.$transaction(fn, transactionOptions);
   }
 
   /**

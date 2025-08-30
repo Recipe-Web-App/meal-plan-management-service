@@ -32,9 +32,8 @@ export class UserFactory {
   } {
     const data = this.create(overrides);
     const result: any = {
-      id: data.id!,
-      name: data.name!,
-      email: data.email!,
+      userId: data.id!,
+      username: data.name!,
     };
 
     // Only include dates if explicitly provided in overrides

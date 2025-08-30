@@ -6,22 +6,16 @@ describe('MealPlanFactory', () => {
     it('should create meal plan data with default values', () => {
       const mealPlanData = MealPlanFactory.create();
 
-      expect(mealPlanData).toHaveProperty('id');
       expect(mealPlanData).toHaveProperty('userId');
       expect(mealPlanData).toHaveProperty('name');
       expect(mealPlanData).toHaveProperty('description');
       expect(mealPlanData).toHaveProperty('startDate');
       expect(mealPlanData).toHaveProperty('endDate');
-      expect(mealPlanData).toHaveProperty('isActive');
-      expect(mealPlanData).toHaveProperty('createdAt');
-      expect(mealPlanData).toHaveProperty('updatedAt');
 
-      expect(typeof mealPlanData.id).toBe('string');
       expect(typeof mealPlanData.userId).toBe('string');
       expect(typeof mealPlanData.name).toBe('string');
       expect(mealPlanData.startDate).toBeInstanceOf(Date);
       expect(mealPlanData.endDate).toBeInstanceOf(Date);
-      expect(typeof mealPlanData.isActive).toBe('boolean');
     });
 
     it('should create end date 7 days after start date by default', () => {
@@ -63,20 +57,19 @@ describe('MealPlanFactory', () => {
 
       expect(mealPlansData).toHaveLength(count);
       mealPlansData.forEach((mealPlanData) => {
-        expect(mealPlanData).toHaveProperty('id');
         expect(mealPlanData).toHaveProperty('userId');
         expect(mealPlanData).toHaveProperty('name');
       });
     });
 
-    it('should create multiple meal plans with unique IDs', () => {
+    it('should create multiple meal plans with unique user IDs', () => {
       const count = 3;
       const mealPlansData = MealPlanFactory.createMany(count);
 
-      const ids = mealPlansData.map((plan) => plan.id);
-      const uniqueIds = new Set(ids);
+      const userIds = mealPlansData.map((plan) => plan.userId);
+      const uniqueUserIds = new Set(userIds);
 
-      expect(uniqueIds.size).toBe(count);
+      expect(uniqueUserIds.size).toBe(count);
     });
   });
 
@@ -84,15 +77,14 @@ describe('MealPlanFactory', () => {
     it('should build meal plan object for database insertion', () => {
       const mealPlanData = MealPlanFactory.build();
 
-      expect(mealPlanData).toHaveProperty('id');
       expect(mealPlanData).toHaveProperty('userId');
       expect(mealPlanData).toHaveProperty('name');
+      expect(mealPlanData).toHaveProperty('description');
       expect(mealPlanData).toHaveProperty('startDate');
       expect(mealPlanData).toHaveProperty('endDate');
-      expect(mealPlanData).toHaveProperty('isActive');
 
-      expect(typeof mealPlanData.id).toBe('string');
       expect(typeof mealPlanData.userId).toBe('string');
+      expect(typeof mealPlanData.name).toBe('string');
     });
   });
 
@@ -103,7 +95,6 @@ describe('MealPlanFactory', () => {
 
       expect(mealPlanData.userId).toBe(userId);
       expect(mealPlanData.name).toBe('Active Weekly Plan');
-      expect(mealPlanData.isActive).toBe(true);
 
       // Should span a full week
       const timeDiff = mealPlanData.endDate!.getTime() - mealPlanData.startDate!.getTime();

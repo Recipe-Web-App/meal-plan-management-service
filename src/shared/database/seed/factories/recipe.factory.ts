@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 
 export interface CreateRecipeData {
   id?: string;
+  userId?: string;
   title?: string;
   description?: string;
   cookingTime?: number;
@@ -31,6 +32,7 @@ export class RecipeFactory {
   static create(overrides: CreateRecipeData = {}): CreateRecipeData {
     return {
       id: overrides.id ?? faker.string.uuid(),
+      userId: overrides.userId ?? faker.string.uuid(),
       title:
         overrides.title ??
         `${faker.helpers.arrayElement(RecipeFactory.RECIPE_TYPES)} ${faker.food.dish()}`,
@@ -54,12 +56,9 @@ export class RecipeFactory {
   } {
     const data = this.create(overrides);
     const result: any = {
-      id: data.id!,
+      recipeId: BigInt(Math.floor(Math.random() * 1000000)),
+      userId: data.userId!,
       title: data.title!,
-      description: data.description,
-      cookingTime: data.cookingTime,
-      servings: data.servings,
-      difficulty: data.difficulty,
     };
 
     // Only include dates if explicitly provided in overrides

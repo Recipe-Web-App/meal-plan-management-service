@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
 import { DatabaseSeeder } from './database-seeder';
@@ -15,16 +14,7 @@ export class TestDatabase {
   private transactionService: TransactionService;
 
   constructor(private readonly options: TestDatabaseOptions) {
-    const logger =
-      options.logger ||
-      ({
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        debug: jest.fn(),
-      } as any);
-
-    this.transactionService = new TransactionService(options.prisma, logger);
+    this.transactionService = new TransactionService(options.prisma);
     this.seeder = new DatabaseSeeder(options.prisma, this.transactionService);
   }
 
@@ -74,21 +64,21 @@ export class TestDatabase {
       daysCount?: number;
     } = {},
   ) {
-    return this.seeder.seedMealPlanForUser(userId, recipeIds, options);
+    return this.seeder.seedMealPlanForUser(
+      userId,
+      recipeIds.map((id) => BigInt(id)),
+      options,
+    );
   }
 
   async createMealPlanRecipe(overrides = {}) {
     const recipeData = MealPlanFactory.createRecipe(overrides);
     return this.options.prisma.mealPlanRecipe.create({
       data: {
-        id: recipeData.id!,
-        mealPlanId: recipeData.mealPlanId!,
-        recipeId: recipeData.recipeId!,
-        plannedDate: recipeData.plannedDate!,
+        mealPlanId: BigInt(recipeData.mealPlanId!),
+        recipeId: BigInt(recipeData.recipeId!),
+        mealDate: recipeData.plannedDate!,
         mealType: recipeData.mealType!,
-        servings: recipeData.servings!,
-        notes: recipeData.notes,
-        createdAt: recipeData.createdAt!,
       },
     });
   }

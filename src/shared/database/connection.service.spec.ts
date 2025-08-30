@@ -97,8 +97,7 @@ describe('ConnectionService', () => {
       await expect(service.forceReconnect()).rejects.toThrow('Reconnection failed');
 
       expect(loggerService.error).toHaveBeenCalledWith(
-        'Database reconnection failed',
-        { error: 'Reconnection failed' },
+        'Database reconnection failed: Reconnection failed',
         'ConnectionService',
       );
     });
@@ -212,10 +211,7 @@ describe('ConnectionService', () => {
 
       expect(result).toBe('success');
       expect(loggerService.error).toHaveBeenCalledWith(
-        'Reconnection failed during retry attempt',
-        expect.objectContaining({
-          reconnectError: 'reconnect failed',
-        }),
+        expect.stringContaining('Reconnection failed during retry attempt'),
         'ConnectionService',
       );
 

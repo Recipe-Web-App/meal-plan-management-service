@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/require-await, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
@@ -44,7 +44,7 @@ export class DatabaseSeeder {
     this.logger.log('Starting database seeding...', { options: defaults });
 
     try {
-      return await this.transactionService.executeInTransaction(async (tx) => {
+      return await this.transactionService.executeTransaction(async (tx) => {
         if (defaults.cleanFirst) {
           await this.cleanDatabase(tx);
         }
@@ -72,8 +72,8 @@ export class DatabaseSeeder {
 
           for (let i = 0; i < userMealPlansCount; i++) {
             const mealPlanData = MealPlanFactory.create({
-              userId: user.id,
-              name: `${user.name}'s Meal Plan ${i + 1}`,
+              userId: user.userId,
+              name: `${user.username}'s Meal Plan ${i + 1}`,
             });
 
             const mealPlan = await tx.mealPlan.create({
@@ -83,9 +83,9 @@ export class DatabaseSeeder {
             // Add recipes to meal plan
             const selectedRecipes = this.getRandomRecipes(recipes, defaults.recipesPerPlan);
             const mealPlanRecipes = this.createMealPlanRecipes(
-              mealPlan.id,
-              selectedRecipes.map((r) => r.id),
-              mealPlan.startDate,
+              mealPlan.mealPlanId,
+              selectedRecipes.map((r) => r.recipeId),
+              mealPlan.startDate ?? new Date(),
             );
 
             await Promise.all(
@@ -114,7 +114,7 @@ export class DatabaseSeeder {
     }
   }
 
-  async seedUsers(count: number = 5): Promise<{ id: string; name: string; email: string }[]> {
+  async seedUsers(count: number = 5): Promise<{ userId: string; username: string }[]> {
     this.logger.log(`Seeding ${count} users...`);
 
     const userData = UserFactory.createMany(count);
@@ -122,13 +122,13 @@ export class DatabaseSeeder {
       userData.map((data) =>
         this.prisma.user.create({
           data: UserFactory.build(data),
-          select: { id: true, name: true, email: true },
+          select: { userId: true, username: true },
         }),
       ),
     );
   }
 
-  async seedRecipes(count: number = 20): Promise<{ id: string; title: string }[]> {
+  async seedRecipes(count: number = 20): Promise<{ recipeId: bigint; title: string }[]> {
     this.logger.log(`Seeding ${count} recipes...`);
 
     const recipeData = RecipeFactory.createMany(count);
@@ -136,7 +136,7 @@ export class DatabaseSeeder {
       recipeData.map((data) =>
         this.prisma.recipe.create({
           data: RecipeFactory.build(data),
-          select: { id: true, title: true },
+          select: { recipeId: true, title: true },
         }),
       ),
     );
@@ -144,36 +144,35 @@ export class DatabaseSeeder {
 
   async seedMealPlanForUser(
     userId: string,
-    recipeIds: string[],
+    recipeIds: bigint[],
     options: {
       name?: string;
       startDate?: Date;
       daysCount?: number;
     } = {},
   ): Promise<{
-    mealPlan: { id: string; name: string };
+    mealPlan: { mealPlanId: bigint; name: string };
     recipesAdded: number;
   }> {
     const { name = 'Test Meal Plan', startDate = new Date(), daysCount = 7 } = options;
 
-    return this.transactionService.executeInTransaction(async (tx) => {
+    return this.transactionService.executeTransaction(async (tx) => {
       // Create meal plan
       const mealPlanData = MealPlanFactory.create({
         userId,
         name,
         startDate,
         endDate: new Date(startDate.getTime() + daysCount * 24 * 60 * 60 * 1000),
-        isActive: true,
       });
 
       const mealPlan = await tx.mealPlan.create({
         data: MealPlanFactory.build(mealPlanData),
-        select: { id: true, name: true },
+        select: { mealPlanId: true, name: true },
       });
 
       // Create meal plan recipes
       const mealPlanRecipes = this.createMealPlanRecipes(
-        mealPlan.id,
+        mealPlan.mealPlanId,
         recipeIds.slice(0, daysCount * 3), // 3 meals per day max
         startDate,
       );
@@ -209,18 +208,14 @@ export class DatabaseSeeder {
   }
 
   private createMealPlanRecipes(
-    mealPlanId: string,
-    recipeIds: string[],
+    mealPlanId: bigint,
+    recipeIds: bigint[],
     startDate: Date,
   ): Array<{
-    id: string;
-    mealPlanId: string;
-    recipeId: string;
-    plannedDate: Date;
+    mealPlanId: bigint;
+    recipeId: bigint;
+    mealDate: Date;
     mealType: MealType;
-    servings: number;
-    notes?: string;
-    createdAt: Date;
   }> {
     const recipes = [];
     const mealTypes = [MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER];
@@ -237,24 +232,17 @@ export class DatabaseSeeder {
       for (let meal = 0; meal < mealsPerDay; meal++) {
         if (recipeIndex >= recipeIds.length) break;
 
-        const recipeData = MealPlanFactory.createRecipe({
-          mealPlanId,
-          recipeId: recipeIds[recipeIndex],
-          plannedDate: currentDate,
-          mealType: mealTypes[meal],
-          servings: Math.floor(Math.random() * 4) + 2, // 2-5 servings
-        });
+        const recipeId = recipeIds[recipeIndex];
+        const mealType = mealTypes[meal];
 
-        recipes.push({
-          id: recipeData.id!,
-          mealPlanId: recipeData.mealPlanId!,
-          recipeId: recipeData.recipeId!,
-          plannedDate: recipeData.plannedDate!,
-          mealType: recipeData.mealType!,
-          servings: recipeData.servings!,
-          notes: recipeData.notes,
-          createdAt: recipeData.createdAt!,
-        });
+        if (recipeId && mealType) {
+          recipes.push({
+            mealPlanId,
+            recipeId,
+            mealDate: currentDate,
+            mealType,
+          });
+        }
 
         recipeIndex++;
       }

@@ -1,0 +1,23 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Run full build
+echo "🔨 Running build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed! Please fix build errors before pushing."
+  exit 1
+fi
+
+# Run all tests with coverage
+echo "🧪 Running all tests with coverage..."
+npm run test:cov
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed or coverage requirements not met!"
+  echo "📊 Coverage must be at least 65% for branches, functions, lines, and statements."
+  exit 1
+fi
+
+echo "✅ All pre-push checks passed!"

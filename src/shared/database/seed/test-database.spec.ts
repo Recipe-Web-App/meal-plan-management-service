@@ -58,11 +58,8 @@ describe('TestDatabase', () => {
   describe('createUser', () => {
     it('should create user with factory data', async () => {
       const mockUser = {
-        id: 'user-1',
-        name: 'Test User',
-        email: 'test@example.com',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        userId: 'user-1',
+        username: 'TestUser',
       };
 
       prismaService.user.create.mockResolvedValue(mockUser);
@@ -71,9 +68,8 @@ describe('TestDatabase', () => {
 
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          id: expect.any(String),
-          name: expect.any(String),
-          email: expect.any(String),
+          userId: expect.any(String),
+          username: expect.any(String),
         }),
       });
       expect(result).toEqual(mockUser);
@@ -82,15 +78,11 @@ describe('TestDatabase', () => {
     it('should create user with custom overrides', async () => {
       const overrides = {
         name: 'Custom User',
-        email: 'custom@example.com',
       };
 
       const mockUser = {
-        id: 'user-1',
-        name: overrides.name,
-        email: overrides.email,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        userId: 'user-1',
+        username: 'Custom User',
       };
 
       prismaService.user.create.mockResolvedValue(mockUser);
@@ -98,7 +90,9 @@ describe('TestDatabase', () => {
       await testDb.createUser(overrides);
 
       expect(prismaService.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining(overrides),
+        data: expect.objectContaining({
+          username: 'Custom User',
+        }),
       });
     });
   });
@@ -126,11 +120,8 @@ describe('TestDatabase', () => {
       const count = 2;
       const overrides = { name: 'Shared Name' };
       const mockUser = {
-        id: 'user-1',
-        name: overrides.name,
-        email: 'test@example.com',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        userId: 'user-1',
+        username: 'Shared Name',
       };
 
       prismaService.user.create.mockResolvedValue(mockUser);
@@ -139,7 +130,9 @@ describe('TestDatabase', () => {
 
       expect(prismaService.user.create).toHaveBeenCalledTimes(count);
       expect(prismaService.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining(overrides),
+        data: expect.objectContaining({
+          username: 'Shared Name',
+        }),
       });
     });
   });
@@ -147,14 +140,9 @@ describe('TestDatabase', () => {
   describe('createRecipe', () => {
     it('should create recipe with factory data', async () => {
       const mockRecipe = {
-        id: 'recipe-1',
+        recipeId: BigInt(1),
+        userId: 'user-1',
         title: 'Test Recipe',
-        description: 'Test description',
-        cookingTime: 30,
-        servings: 4,
-        difficulty: 'Medium',
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       prismaService.recipe.create.mockResolvedValue(mockRecipe);
@@ -163,9 +151,9 @@ describe('TestDatabase', () => {
 
       expect(prismaService.recipe.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          id: expect.any(String),
+          recipeId: expect.any(BigInt),
+          userId: expect.any(String),
           title: expect.any(String),
-          cookingTime: expect.any(Number),
         }),
       });
       expect(result).toEqual(mockRecipe);
@@ -174,18 +162,12 @@ describe('TestDatabase', () => {
     it('should create recipe with custom overrides', async () => {
       const overrides = {
         title: 'Custom Recipe',
-        cookingTime: 60,
       };
 
       const mockRecipe = {
-        id: 'recipe-1',
-        title: overrides.title,
-        cookingTime: overrides.cookingTime,
-        description: null,
-        servings: 4,
-        difficulty: 'Medium',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        recipeId: BigInt(2),
+        userId: 'user-1',
+        title: 'Custom Recipe',
       };
 
       prismaService.recipe.create.mockResolvedValue(mockRecipe);
@@ -202,7 +184,7 @@ describe('TestDatabase', () => {
     it('should create multiple recipes', async () => {
       const count = 4;
       const mockRecipe = {
-        id: 'recipe-1',
+        recipeId: BigInt(1),
         title: 'Test Recipe',
         description: null,
         cookingTime: 30,
@@ -224,7 +206,7 @@ describe('TestDatabase', () => {
   describe('createMealPlan', () => {
     it('should create meal plan with factory data', async () => {
       const mockMealPlan = {
-        id: 'plan-1',
+        mealPlanId: BigInt(1),
         userId: 'user-1',
         name: 'Test Plan',
         description: 'Test description',
@@ -241,7 +223,7 @@ describe('TestDatabase', () => {
 
       expect(prismaService.mealPlan.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          id: expect.any(String),
+          mealPlanId: expect.any(BigInt),
           userId: expect.any(String),
           name: expect.any(String),
         }),
@@ -253,7 +235,7 @@ describe('TestDatabase', () => {
   describe('createMealPlanWithRecipes', () => {
     it('should delegate to seeder for complex creation', async () => {
       const userId = 'user-123';
-      const recipeIds = ['recipe-1', 'recipe-2'];
+      const recipeIds = ['1', '2'];
       const options = {
         name: 'Test Plan with Recipes',
         daysCount: 3,
@@ -261,7 +243,7 @@ describe('TestDatabase', () => {
 
       // Mock the seeder method directly on the instance
       const mockResult = {
-        mealPlan: { id: 'plan-1', name: 'Test Plan with Recipes' },
+        mealPlan: { mealPlanId: BigInt(1), name: 'Test Plan with Recipes' },
         recipesAdded: 2,
       };
 
@@ -269,7 +251,11 @@ describe('TestDatabase', () => {
 
       const result = await testDb.createMealPlanWithRecipes(userId, recipeIds, options);
 
-      expect(testDb['seeder'].seedMealPlanForUser).toHaveBeenCalledWith(userId, recipeIds, options);
+      expect(testDb['seeder'].seedMealPlanForUser).toHaveBeenCalledWith(
+        userId,
+        [BigInt(1), BigInt(2)],
+        options,
+      );
       expect(result).toEqual(mockResult);
     });
   });
@@ -277,14 +263,10 @@ describe('TestDatabase', () => {
   describe('createMealPlanRecipe', () => {
     it('should create meal plan recipe with factory data', async () => {
       const mockMealPlanRecipe = {
-        id: 'plan-recipe-1',
-        mealPlanId: 'plan-1',
-        recipeId: 'recipe-1',
-        plannedDate: new Date(),
+        mealPlanId: BigInt(1),
+        recipeId: BigInt(1),
+        mealDate: new Date(),
         mealType: MealType.DINNER,
-        servings: 4,
-        notes: null,
-        createdAt: new Date(),
       };
 
       prismaService.mealPlanRecipe.create.mockResolvedValue(mockMealPlanRecipe);
@@ -293,12 +275,10 @@ describe('TestDatabase', () => {
 
       expect(prismaService.mealPlanRecipe.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          id: expect.any(String),
-          mealPlanId: expect.any(String),
-          recipeId: expect.any(String),
-          plannedDate: expect.any(Date),
+          mealPlanId: expect.any(BigInt),
+          recipeId: expect.any(BigInt),
+          mealDate: expect.any(Date),
           mealType: expect.any(String),
-          servings: expect.any(Number),
         }),
       });
       expect(result).toEqual(mockMealPlanRecipe);
@@ -306,18 +286,16 @@ describe('TestDatabase', () => {
 
     it('should create meal plan recipe with custom overrides', async () => {
       const overrides = {
-        mealPlanId: 'custom-plan',
-        recipeId: 'custom-recipe',
+        mealPlanId: '12345',
+        recipeId: '67890',
         mealType: MealType.BREAKFAST,
-        servings: 2,
       };
 
       const mockMealPlanRecipe = {
-        id: 'plan-recipe-1',
-        ...overrides,
-        plannedDate: new Date(),
-        notes: null,
-        createdAt: new Date(),
+        mealPlanId: BigInt(12345),
+        recipeId: BigInt(67890),
+        mealDate: new Date(),
+        mealType: MealType.BREAKFAST,
       };
 
       prismaService.mealPlanRecipe.create.mockResolvedValue(mockMealPlanRecipe);
@@ -325,7 +303,11 @@ describe('TestDatabase', () => {
       await testDb.createMealPlanRecipe(overrides);
 
       expect(prismaService.mealPlanRecipe.create).toHaveBeenCalledWith({
-        data: expect.objectContaining(overrides),
+        data: expect.objectContaining({
+          mealPlanId: BigInt(12345),
+          recipeId: BigInt(67890),
+          mealType: MealType.BREAKFAST,
+        }),
       });
     });
   });
