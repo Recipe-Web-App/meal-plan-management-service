@@ -1,6 +1,12 @@
 import { IsString, IsNotEmpty, IsDate, IsBoolean, IsOptional, Length } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsMealPlanDateRangeValid } from '../validators/date-range.validator';
+import { NoMealPlanOverlap } from '../validators/meal-plan-overlap.validator';
+import {
+  StripHtml,
+  NormalizeWhitespace,
+} from '../validators/sanitizers/simple-sanitizer.validator';
 
 export class CreateMealPlanDto {
   @ApiProperty({
@@ -9,9 +15,11 @@ export class CreateMealPlanDto {
     minLength: 1,
     maxLength: 100,
   })
-  @IsNotEmpty({ message: 'Meal plan name is required' })
-  @IsString({ message: 'Name must be a string' })
-  @Length(1, 100, { message: 'Name must be between 1 and 100 characters' })
+  @IsNotEmpty({ message: 'Meal plan name is required', groups: ['basic'] })
+  @IsString({ message: 'Name must be a string', groups: ['basic'] })
+  @Length(1, 100, { message: 'Name must be between 1 and 100 characters', groups: ['basic'] })
+  @StripHtml()
+  @NormalizeWhitespace()
   name: string;
 
   @ApiPropertyOptional({
@@ -19,9 +27,11 @@ export class CreateMealPlanDto {
     example: 'A healthy and balanced weekly meal plan for the family',
     maxLength: 500,
   })
-  @IsOptional()
-  @IsString({ message: 'Description must be a string' })
-  @Length(0, 500, { message: 'Description cannot exceed 500 characters' })
+  @IsOptional({ groups: ['basic'] })
+  @IsString({ message: 'Description must be a string', groups: ['basic'] })
+  @Length(0, 500, { message: 'Description cannot exceed 500 characters', groups: ['basic'] })
+  @StripHtml()
+  @NormalizeWhitespace()
   description?: string;
 
   @ApiProperty({
@@ -30,8 +40,10 @@ export class CreateMealPlanDto {
     type: 'string',
     format: 'date-time',
   })
-  @IsNotEmpty({ message: 'Start date is required' })
-  @IsDate({ message: 'Start date must be a valid date' })
+  @IsNotEmpty({ message: 'Start date is required', groups: ['basic'] })
+  @IsDate({ message: 'Start date must be a valid date', groups: ['basic'] })
+  @IsMealPlanDateRangeValid()
+  @NoMealPlanOverlap('userId')
   @Type(() => Date)
   @Transform(({ value }) => {
     if (typeof value === 'string') {
@@ -51,8 +63,8 @@ export class CreateMealPlanDto {
     type: 'string',
     format: 'date-time',
   })
-  @IsNotEmpty({ message: 'End date is required' })
-  @IsDate({ message: 'End date must be a valid date' })
+  @IsNotEmpty({ message: 'End date is required', groups: ['basic'] })
+  @IsDate({ message: 'End date must be a valid date', groups: ['basic'] })
   @Type(() => Date)
   @Transform(({ value }) => {
     if (typeof value === 'string') {
@@ -71,8 +83,8 @@ export class CreateMealPlanDto {
     example: true,
     default: false,
   })
-  @IsOptional()
-  @IsBoolean({ message: 'isActive must be a boolean' })
+  @IsOptional({ groups: ['basic'] })
+  @IsBoolean({ message: 'isActive must be a boolean', groups: ['basic'] })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       const lowerValue = value.toLowerCase();
@@ -83,4 +95,8 @@ export class CreateMealPlanDto {
     return value as boolean;
   })
   isActive?: boolean = false;
+
+  // Internal field for validation - set by service layer, not by client
+  // This field is not exposed in API documentation
+  userId?: string;
 }

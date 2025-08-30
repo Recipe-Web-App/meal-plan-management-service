@@ -6,8 +6,8 @@ describe('CreateMealPlanDto', () => {
   const validData = {
     name: 'Weekly Meal Plan',
     description: 'A healthy weekly meal plan',
-    startDate: '2025-08-29T00:00:00.000Z',
-    endDate: '2025-09-05T23:59:59.999Z',
+    startDate: '2025-09-01T00:00:00.000Z',
+    endDate: '2025-09-07T23:59:59.999Z',
     isActive: true,
   };
 
@@ -44,8 +44,8 @@ describe('CreateMealPlanDto', () => {
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate.toISOString()).toBe('2025-08-29T00:00:00.000Z');
-      expect(dto.endDate.toISOString()).toBe('2025-09-05T23:59:59.999Z');
+      expect(dto.startDate.toISOString()).toBe('2025-09-01T00:00:00.000Z');
+      expect(dto.endDate.toISOString()).toBe('2025-09-07T23:59:59.999Z');
     });
 
     it('should transform string boolean to boolean', async () => {
@@ -214,16 +214,17 @@ describe('CreateMealPlanDto', () => {
       const dto = plainToClass(CreateMealPlanDto, invalidData);
       const errors = await validate(dto);
 
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('endDate');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(errors.length).toBeGreaterThanOrEqual(1);
+      const endDateError = errors.find((error) => error.property === 'endDate');
+      expect(endDateError).toBeDefined();
+      expect(endDateError.constraints).toHaveProperty('isDate');
     });
 
     it('should accept different valid date formats', async () => {
       const validDateFormats = [
-        { startDate: '2025-08-29', endDate: '2025-09-05' },
-        { startDate: new Date('2025-08-29'), endDate: new Date('2025-09-05') },
-        { startDate: '2025-08-29T10:30:00Z', endDate: '2025-09-05T15:45:00Z' },
+        { startDate: '2025-09-01', endDate: '2025-09-07' },
+        { startDate: new Date('2025-09-01'), endDate: new Date('2025-09-07') },
+        { startDate: '2025-09-01T10:30:00Z', endDate: '2025-09-07T15:45:00Z' },
       ];
 
       for (const dateFormat of validDateFormats) {
