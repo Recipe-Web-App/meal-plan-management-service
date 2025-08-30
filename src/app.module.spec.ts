@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -59,5 +60,22 @@ describe('AppModule', () => {
 
     const service = module.get(AppService);
     expect(service).toBeDefined();
+  });
+
+  describe('providers', () => {
+    it('should have all required providers available', async () => {
+      const module = await Test.createTestingModule({
+        imports: [AppModule],
+      })
+        .overrideProvider(LoggerService)
+        .useValue(mockLoggerService)
+        .overrideProvider(PrismaService)
+        .useValue(mockPrismaService)
+        .compile();
+
+      expect(module.get(LoggerService)).toBeDefined();
+      expect(module.get(PrismaService)).toBeDefined();
+      expect(module.get(ConfigService)).toBeDefined();
+    });
   });
 });

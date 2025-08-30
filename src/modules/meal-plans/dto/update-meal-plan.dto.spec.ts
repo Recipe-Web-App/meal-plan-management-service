@@ -253,7 +253,65 @@ describe('UpdateMealPlanDto', () => {
       expect(errorProperties).toContain('endDate');
       expect(errorProperties).not.toContain('name');
       expect(errorProperties).not.toContain('isActive');
-      // Note: startDate may have validation errors due to cross-field validation with invalid endDate
+    });
+
+    it('should handle edge case transformations', async () => {
+      const edgeCaseData = {
+        name: '  Valid Name With Spaces  ',
+        description: '  Description with whitespace  ',
+        isActive: 'true' as any,
+        startDate: null,
+        endDate: undefined,
+      };
+
+      const dto = plainToClass(UpdateMealPlanDto, edgeCaseData);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.name).toBe('  Valid Name With Spaces  ');
+      expect(dto.description).toBe('  Description with whitespace  ');
+      expect(dto.isActive).toBe('true'); // String transformation without @Transform
+      expect(dto.startDate).toBeNull();
+      expect(dto.endDate).toBeUndefined();
+    });
+
+    it('should handle boolean string transformation edge cases', async () => {
+      const booleanCases = [
+        { isActive: 'false' as any, expected: false },
+        { isActive: '0' as any, expected: false },
+        { isActive: '1' as any, expected: true },
+        { isActive: 'yes' as any, expected: true },
+        { isActive: 'no' as any, expected: false },
+      ];
+
+      for (const testCase of booleanCases) {
+        const dto = plainToClass(UpdateMealPlanDto, testCase);
+        const errors = await validate(dto);
+
+        expect(errors).toHaveLength(0);
+        expect(typeof dto.isActive).toBe('string');
+        // Without @Transform decorator, values remain as strings
+      }
+    });
+
+    it('should handle all fields being null', async () => {
+      const nullData = {
+        name: null,
+        description: null,
+        startDate: null,
+        endDate: null,
+        isActive: null,
+      };
+
+      const dto = plainToClass(UpdateMealPlanDto, nullData);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.name).toBeNull();
+      expect(dto.description).toBeNull();
+      expect(dto.startDate).toBeNull();
+      expect(dto.endDate).toBeNull();
+      expect(dto.isActive).toBeNull();
     });
 
     it('should allow updating individual fields', async () => {

@@ -396,5 +396,70 @@ describe('MealPlanQueryDto', () => {
       expect(dto.includeRecipes).toBe(complexFilter.includeRecipes);
       expect(dto.includeArchived).toBe(complexFilter.includeArchived);
     });
+
+    it('should handle null and undefined edge cases', async () => {
+      const edgeCaseData = {
+        userId: null,
+        isActive: undefined,
+        startDateFrom: null,
+        endDateTo: undefined,
+        nameSearch: null,
+        descriptionSearch: undefined,
+        sortBy: null,
+        sortOrder: 'desc',
+        includeRecipes: null,
+        includeArchived: undefined,
+      };
+
+      const dto = plainToClass(MealPlanQueryDto, edgeCaseData);
+      const errors = await validate(dto);
+
+      // Should pass validation because all fields are optional
+      expect(errors).toHaveLength(0);
+      // Note: null transforms to null, not undefined
+      expect(dto.userId).toBeNull();
+      expect(dto.isActive).toBeUndefined();
+      expect(dto.startDateFrom).toBeNull();
+      expect(dto.endDateTo).toBeUndefined();
+      expect(dto.nameSearch).toBeNull();
+      expect(dto.descriptionSearch).toBeUndefined();
+      expect(dto.sortBy).toBeNull();
+      expect(dto.sortOrder).toBe('desc'); // default value
+      expect(dto.includeRecipes).toBe(false); // default value
+      expect(dto.includeArchived).toBe(false); // default value
+    });
+
+    it('should handle empty string values', async () => {
+      const emptyStringData = {
+        userId: '',
+        nameSearch: '',
+        descriptionSearch: '',
+        sortBy: '',
+      };
+
+      const dto = plainToClass(MealPlanQueryDto, emptyStringData);
+      const errors = await validate(dto);
+
+      // Empty strings should fail validation for required fields
+      expect(errors.length).toBeGreaterThan(0);
+
+      const errorProperties = errors.map((error) => error.property);
+      expect(errorProperties).toContain('userId'); // Empty string UUID validation should fail
+    });
+
+    it('should handle boolean transformation edge cases', async () => {
+      const booleanEdgeCases = {
+        isActive: '1' as any,
+        includeRecipes: '0' as any,
+        includeArchived: 'yes' as any,
+      };
+
+      const dto = plainToClass(MealPlanQueryDto, booleanEdgeCases);
+
+      // Test boolean transformation behavior
+      expect(typeof dto.isActive).toBe('string'); // no @Transform for non-boolean strings
+      expect(typeof dto.includeRecipes).toBe('boolean'); // has @Transform
+      expect(typeof dto.includeArchived).toBe('boolean'); // has @Transform
+    });
   });
 });
