@@ -49,12 +49,9 @@ export class UpdateMealPlanDto {
     if (value === undefined || value === null) {
       return value as Date | undefined | null;
     }
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      return date;
+    // Check if Type decorator produced an Invalid Date
+    if (value instanceof Date && isNaN(value.getTime())) {
+      throw new Error('Invalid date format');
     }
     return value as Date;
   })
@@ -73,12 +70,9 @@ export class UpdateMealPlanDto {
     if (value === undefined || value === null) {
       return value as Date | undefined | null;
     }
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      return date;
+    // Check if Type decorator produced an Invalid Date
+    if (value instanceof Date && isNaN(value.getTime())) {
+      throw new Error('Invalid date format');
     }
     return value as Date;
   })

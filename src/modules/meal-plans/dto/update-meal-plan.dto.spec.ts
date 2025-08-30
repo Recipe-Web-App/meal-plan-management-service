@@ -175,26 +175,20 @@ describe('UpdateMealPlanDto', () => {
   });
 
   describe('date validation', () => {
-    it('should fail when startDate is invalid date string', async () => {
+    it('should throw when startDate is invalid date string', () => {
       const invalidData = { startDate: 'invalid-date' as any };
 
-      const dto = plainToClass(UpdateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('startDate');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(() => {
+        plainToClass(UpdateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
 
-    it('should fail when endDate is invalid date string', async () => {
+    it('should throw when endDate is invalid date string', () => {
       const invalidData = { endDate: 'invalid-date' as any };
 
-      const dto = plainToClass(UpdateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('endDate');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(() => {
+        plainToClass(UpdateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
 
     it('should accept different valid date formats', async () => {
@@ -212,6 +206,22 @@ describe('UpdateMealPlanDto', () => {
         expect(dto.startDate).toBeInstanceOf(Date);
         expect(dto.endDate).toBeInstanceOf(Date);
       }
+    });
+
+    it('should throw error when startDate transforms to Invalid Date', () => {
+      const invalidData = { startDate: 'NaN' };
+
+      expect(() => {
+        plainToClass(UpdateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
+    });
+
+    it('should throw error when endDate transforms to Invalid Date', () => {
+      const invalidData = { endDate: 'NaN' };
+
+      expect(() => {
+        plainToClass(UpdateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
 
     it('should handle only one date field being provided', async () => {
@@ -239,19 +249,20 @@ describe('UpdateMealPlanDto', () => {
         name: 'Valid Name',
         description: 'a'.repeat(501), // invalid
         startDate: '2025-09-01T00:00:00.000Z', // valid
-        endDate: 'invalid-date', // invalid
+        endDate: '2025-09-07T23:59:59.999Z', // valid to avoid transform error
         isActive: true, // valid
       };
 
       const dto = plainToClass(UpdateMealPlanDto, mixedData);
       const errors = await validate(dto);
 
-      expect(errors.length).toBeGreaterThanOrEqual(2);
+      expect(errors.length).toBeGreaterThanOrEqual(1);
 
       const errorProperties = errors.map((error) => error.property);
       expect(errorProperties).toContain('description');
-      expect(errorProperties).toContain('endDate');
+      // endDate is now valid, so no date error expected
       expect(errorProperties).not.toContain('name');
+      expect(errorProperties).not.toContain('endDate');
       expect(errorProperties).not.toContain('isActive');
     });
 
@@ -312,6 +323,25 @@ describe('UpdateMealPlanDto', () => {
       expect(dto.startDate).toBeNull();
       expect(dto.endDate).toBeNull();
       expect(dto.isActive).toBeNull();
+    });
+
+    it('should handle date transformation branches', () => {
+      const testCases = [
+        {
+          startDate: new Date('2025-09-01'),
+          endDate: new Date('2025-09-07'),
+        },
+        {
+          startDate: 1725148800000, // timestamp
+          endDate: 1725321600000,
+        },
+      ];
+
+      testCases.forEach((testCase) => {
+        const dto = plainToClass(UpdateMealPlanDto, testCase);
+        expect(dto.startDate).toBeDefined();
+        expect(dto.endDate).toBeDefined();
+      });
     });
 
     it('should allow updating individual fields', async () => {

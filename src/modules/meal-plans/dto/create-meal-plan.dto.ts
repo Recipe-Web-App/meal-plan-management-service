@@ -46,12 +46,9 @@ export class CreateMealPlanDto {
   @NoMealPlanOverlap('userId')
   @Type(() => Date)
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      return date;
+    // Check if Type decorator produced an Invalid Date
+    if (value instanceof Date && isNaN(value.getTime())) {
+      throw new Error('Invalid date format');
     }
     return value as Date;
   })
@@ -67,12 +64,9 @@ export class CreateMealPlanDto {
   @IsDate({ message: 'End date must be a valid date', groups: ['basic'] })
   @Type(() => Date)
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      return date;
+    // Check if Type decorator produced an Invalid Date
+    if (value instanceof Date && isNaN(value.getTime())) {
+      throw new Error('Invalid date format');
     }
     return value as Date;
   })

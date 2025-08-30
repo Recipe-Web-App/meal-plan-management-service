@@ -134,6 +134,35 @@ describe('MealPlanTransformationUtil', () => {
       expect(result.userId).toBe('user-123');
     });
 
+    it('should handle non-string field values during sanitization', () => {
+      const rawData = {
+        name: 123, // number instead of string
+        description: null, // null value
+        otherField: 'valid string',
+      };
+
+      const result = MealPlanTransformationUtil.toCreateMealPlanDto(rawData as any);
+
+      // Should not crash and should transform to string via class-transformer
+      expect(result.name).toBe('123');
+      expect(result.description).toBe(null);
+    });
+
+    it('should handle empty string fields', () => {
+      const rawData = {
+        name: '',
+        description: '',
+        userId: 'user-123',
+      };
+
+      const result = MealPlanTransformationUtil.toCreateMealPlanDto(rawData, 'user-123');
+
+      // Empty strings should be processed but remain empty
+      expect(result.name).toBe('');
+      expect(result.description).toBe('');
+      expect(result.userId).toBe('user-123');
+    });
+
     it('should handle null input', () => {
       expect(MealPlanTransformationUtil.fromDatabaseModel(null)).toBeNull();
       expect(MealPlanTransformationUtil.fromDatabaseModel(undefined)).toBeNull();

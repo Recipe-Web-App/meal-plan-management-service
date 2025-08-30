@@ -191,33 +191,26 @@ describe('CreateMealPlanDto', () => {
       expect(errors[0].constraints).toHaveProperty('isNotEmpty');
     });
 
-    it('should fail when startDate is invalid date string', async () => {
+    it('should fail when startDate is invalid date string', () => {
       const invalidData = {
         ...validData,
         startDate: 'invalid-date' as any,
       };
 
-      const dto = plainToClass(CreateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('startDate');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(() => {
+        plainToClass(CreateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
 
-    it('should fail when endDate is invalid date string', async () => {
+    it('should fail when endDate is invalid date string', () => {
       const invalidData = {
         ...validData,
         endDate: 'invalid-date' as any,
       };
 
-      const dto = plainToClass(CreateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors.length).toBeGreaterThanOrEqual(1);
-      const endDateError = errors.find((error) => error.property === 'endDate');
-      expect(endDateError).toBeDefined();
-      expect(endDateError.constraints).toHaveProperty('isDate');
+      expect(() => {
+        plainToClass(CreateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
 
     it('should accept different valid date formats', async () => {
@@ -240,6 +233,30 @@ describe('CreateMealPlanDto', () => {
         expect(dto.startDate).toBeInstanceOf(Date);
         expect(dto.endDate).toBeInstanceOf(Date);
       }
+    });
+
+    it('should throw error when startDate transforms to Invalid Date', () => {
+      const invalidData = {
+        ...validData,
+        startDate: 'NaN',
+      };
+
+      // Transform should throw when Type decorator produces Invalid Date
+      expect(() => {
+        plainToClass(CreateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
+    });
+
+    it('should throw error when endDate transforms to Invalid Date', () => {
+      const invalidData = {
+        ...validData,
+        endDate: 'NaN',
+      };
+
+      // Transform should throw when Type decorator produces Invalid Date
+      expect(() => {
+        plainToClass(CreateMealPlanDto, invalidData);
+      }).toThrow('Invalid date format');
     });
   });
 
@@ -302,13 +319,36 @@ describe('CreateMealPlanDto', () => {
     });
   });
 
+  describe('date transformation edge cases', () => {
+    it('should handle date transformation with non-string values', () => {
+      const testCases = [
+        {
+          name: 'Test Plan',
+          startDate: new Date('2025-09-01'),
+          endDate: new Date('2025-09-07'),
+        },
+        {
+          name: 'Test Plan 2',
+          startDate: 123456789,
+          endDate: 987654321,
+        },
+      ];
+
+      testCases.forEach((testCase) => {
+        const dto = plainToClass(CreateMealPlanDto, testCase);
+        expect(dto.startDate).toBeDefined();
+        expect(dto.endDate).toBeDefined();
+      });
+    });
+  });
+
   describe('combined validation errors', () => {
     it('should return multiple validation errors for multiple invalid fields', async () => {
       const invalidData = {
         name: '',
         description: 'a'.repeat(501),
-        startDate: 'invalid-date',
-        endDate: 'invalid-date',
+        startDate: '2025-09-01T00:00:00.000Z', // Use valid dates to avoid transform error
+        endDate: '2025-09-07T23:59:59.999Z',
         isActive: 'invalid',
       };
 
@@ -320,8 +360,7 @@ describe('CreateMealPlanDto', () => {
       const errorProperties = errors.map((error) => error.property);
       expect(errorProperties).toContain('name');
       expect(errorProperties).toContain('description');
-      expect(errorProperties).toContain('startDate');
-      expect(errorProperties).toContain('endDate');
+      // Dates are now valid, so no date errors expected
       // isActive might fail or might be transformed, both are valid
     });
   });

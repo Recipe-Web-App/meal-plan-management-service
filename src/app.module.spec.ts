@@ -77,5 +77,56 @@ describe('AppModule', () => {
       expect(module.get(PrismaService)).toBeDefined();
       expect(module.get(ConfigService)).toBeDefined();
     });
+
+    it('should handle rate limit config fallbacks', async () => {
+      // Create a mock that returns null to test the nullish coalescing
+      const mockConfigService = {
+        get: jest.fn((key: string) => {
+          if (key === 'rateLimit.ttl') return null;
+          if (key === 'rateLimit.limit') return null;
+          if (key === 'logging')
+            return { level: 'info', consoleFormat: 'pretty', fileEnabled: false };
+          return undefined;
+        }),
+      };
+
+      const module = await Test.createTestingModule({
+        imports: [AppModule],
+      })
+        .overrideProvider(LoggerService)
+        .useValue(mockLoggerService)
+        .overrideProvider(PrismaService)
+        .useValue(mockPrismaService)
+        .overrideProvider(ConfigService)
+        .useValue(mockConfigService)
+        .compile();
+
+      expect(module).toBeDefined();
+    });
+
+    it('should handle rate limit config with undefined values', async () => {
+      const mockConfigService = {
+        get: jest.fn((key: string) => {
+          if (key === 'rateLimit.ttl') return undefined;
+          if (key === 'rateLimit.limit') return undefined;
+          if (key === 'logging')
+            return { level: 'info', consoleFormat: 'pretty', fileEnabled: false };
+          return undefined;
+        }),
+      };
+
+      const module = await Test.createTestingModule({
+        imports: [AppModule],
+      })
+        .overrideProvider(LoggerService)
+        .useValue(mockLoggerService)
+        .overrideProvider(PrismaService)
+        .useValue(mockPrismaService)
+        .overrideProvider(ConfigService)
+        .useValue(mockConfigService)
+        .compile();
+
+      expect(module).toBeDefined();
+    });
   });
 });
