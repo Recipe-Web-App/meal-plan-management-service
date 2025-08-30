@@ -64,7 +64,11 @@ export class TestDatabase {
       daysCount?: number;
     } = {},
   ) {
-    return this.seeder.seedMealPlanForUser(userId, recipeIds, options);
+    return this.seeder.seedMealPlanForUser(
+      userId,
+      recipeIds.map((id) => BigInt(id)),
+      options,
+    );
   }
 
   async createMealPlanRecipe(overrides = {}) {

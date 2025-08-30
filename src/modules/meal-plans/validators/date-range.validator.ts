@@ -10,15 +10,6 @@ import {
   DecoratorTarget,
 } from '../types/validator.types';
 
-// Re-export for backward compatibility
-export interface DateRangeValidationArgs {
-  startDateProperty: string;
-  endDateProperty: string;
-  maxDurationDays?: number;
-  minDurationDays?: number;
-  allowPastDates?: boolean;
-}
-
 @ValidatorConstraint({ name: 'isDateRangeValid', async: false })
 export class IsDateRangeValidConstraint implements ValidatorConstraintInterface {
   validate(value: unknown, args: TypedValidationArguments): boolean {
@@ -30,6 +21,18 @@ export class IsDateRangeValidConstraint implements ValidatorConstraintInterface 
 
     // Skip validation if either date is missing (let other validators handle required fields)
     if (!startDate || !endDate) {
+      return true;
+    }
+
+    // Skip validation if values are not valid date inputs
+    if (
+      typeof startDate !== 'string' &&
+      typeof startDate !== 'number' &&
+      !(startDate instanceof Date)
+    ) {
+      return true;
+    }
+    if (typeof endDate !== 'string' && typeof endDate !== 'number' && !(endDate instanceof Date)) {
       return true;
     }
 
@@ -82,6 +85,18 @@ export class IsDateRangeValidConstraint implements ValidatorConstraintInterface 
       return `Both ${config.startDateProperty} and ${config.endDateProperty} must be provided`;
     }
 
+    // Skip validation if values are not valid date inputs
+    if (
+      typeof startDate !== 'string' &&
+      typeof startDate !== 'number' &&
+      !(startDate instanceof Date)
+    ) {
+      return 'Start date must be a valid date format';
+    }
+    if (typeof endDate !== 'string' && typeof endDate !== 'number' && !(endDate instanceof Date)) {
+      return 'End date must be a valid date format';
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -131,7 +146,7 @@ export function IsDateRangeValid(
       name: 'isDateRangeValid',
       target: object.constructor,
       propertyName: propertyName,
-      options: validationOptions,
+      options: validationOptions ?? {},
       constraints: [config],
       validator: IsDateRangeValidConstraint,
     });

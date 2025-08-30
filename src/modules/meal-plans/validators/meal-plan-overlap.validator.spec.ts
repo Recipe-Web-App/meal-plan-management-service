@@ -38,8 +38,6 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           AND: [
             {
               startDate: {
@@ -53,7 +51,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
 
@@ -132,8 +130,6 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           AND: [
             {
               startDate: {
@@ -147,7 +143,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
 
@@ -171,8 +167,6 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           AND: [
             {
               startDate: {
@@ -186,7 +180,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
 
@@ -210,8 +204,6 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           AND: [
             {
               startDate: {
@@ -225,7 +217,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
   });
@@ -241,11 +233,11 @@ describe('NoOverlappingMealPlansConstraint', () => {
             startDateProperty: 'startDate',
             endDateProperty: 'endDate',
             allowOverlaps: false,
-            excludeCurrentProperty: 'id',
+            excludeCurrentProperty: 'mealPlanId',
           },
         ],
         object: {
-          id: 'current-meal-plan-id',
+          mealPlanId: '12345',
           userId: 'user-123',
           startDate: new Date('2025-01-01'),
           endDate: new Date('2025-01-07'),
@@ -256,10 +248,8 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           NOT: {
-            id: 'current-meal-plan-id',
+            mealPlanId: BigInt('12345'),
           },
           AND: [
             {
@@ -274,7 +264,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
 
@@ -288,7 +278,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             startDateProperty: 'startDate',
             endDateProperty: 'endDate',
             allowOverlaps: false,
-            excludeCurrentProperty: 'id',
+            excludeCurrentProperty: 'mealPlanId',
           },
         ],
         object: {
@@ -301,8 +291,6 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: {
           userId: 'user-123',
-          isActive: true,
-          deletedAt: null,
           AND: [
             {
               startDate: {
@@ -316,7 +304,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
             },
           ],
         },
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
   });
@@ -525,11 +513,11 @@ describe('decorator variations', () => {
             startDateProperty: 'startDate',
             endDateProperty: 'endDate',
             allowOverlaps: false,
-            excludeCurrentProperty: 'id',
+            excludeCurrentProperty: 'mealPlanId',
           },
         ],
         object: {
-          id: 'current-id',
+          mealPlanId: '123',
           userId: 'user-123',
           startDate: new Date('2025-01-01'),
           endDate: new Date('2025-01-07'),
@@ -540,7 +528,7 @@ describe('decorator variations', () => {
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            NOT: { id: 'current-id' },
+            NOT: { mealPlanId: BigInt('123') },
           }),
         }),
       );
@@ -604,8 +592,6 @@ describe('edge cases', () => {
     expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
       where: {
         userId: 'user-123',
-        isActive: true,
-        deletedAt: null,
         AND: [
           {
             startDate: {
@@ -619,7 +605,7 @@ describe('edge cases', () => {
           },
         ],
       },
-      select: { id: true },
+      select: { mealPlanId: true },
     });
   });
 
@@ -648,8 +634,6 @@ describe('edge cases', () => {
     expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
       where: {
         userId: 'user-123',
-        isActive: true,
-        deletedAt: null,
         AND: [
           {
             startDate: {
@@ -663,7 +647,7 @@ describe('edge cases', () => {
           },
         ],
       },
-      select: { id: true },
+      select: { mealPlanId: true },
     });
   });
 });

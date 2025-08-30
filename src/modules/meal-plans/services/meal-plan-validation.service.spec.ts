@@ -165,7 +165,7 @@ describe('MealPlanValidationService', () => {
 
     const context: ValidationContext = {
       userId: 'user-123',
-      currentMealPlanId: 'plan-456',
+      currentMealPlanId: '456',
     };
 
     it('should validate valid update meal plan data', async () => {
@@ -185,9 +185,9 @@ describe('MealPlanValidationService', () => {
 
       expect(mockPrismaService.mealPlan.findFirst).toHaveBeenCalledWith({
         where: expect.objectContaining({
-          NOT: { id: 'plan-456' },
+          NOT: { mealPlanId: BigInt('456') },
         }),
-        select: { id: true },
+        select: { mealPlanId: true },
       });
     });
 
@@ -206,14 +206,14 @@ describe('MealPlanValidationService', () => {
   describe('validateMealPlanAccess', () => {
     it('should validate access for existing meal plan', async () => {
       const mockMealPlan = {
-        id: 'plan-123',
+        mealPlanId: BigInt(123),
         userId: 'user-123',
-        title: 'Test Plan',
+        name: 'Test Plan',
       };
 
       mockPrismaService.mealPlan.findFirst.mockResolvedValue(mockMealPlan);
 
-      const result = await service.validateMealPlanAccess('plan-123', 'user-123');
+      const result = await service.validateMealPlanAccess('123', 'user-123');
 
       expect(result.isValid).toBe(true);
       expect(result.sanitizedData).toEqual(mockMealPlan);
@@ -222,7 +222,7 @@ describe('MealPlanValidationService', () => {
     it('should fail validation for non-existent meal plan', async () => {
       mockPrismaService.mealPlan.findFirst.mockResolvedValue(null);
 
-      const result = await service.validateMealPlanAccess('plan-123', 'user-123');
+      const result = await service.validateMealPlanAccess('123', 'user-123');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Meal plan not found or access denied');
@@ -231,7 +231,7 @@ describe('MealPlanValidationService', () => {
     it('should fail validation for meal plan belonging to different user', async () => {
       mockPrismaService.mealPlan.findFirst.mockResolvedValue(null);
 
-      const result = await service.validateMealPlanAccess('plan-123', 'different-user');
+      const result = await service.validateMealPlanAccess('123', 'different-user');
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Meal plan not found or access denied');

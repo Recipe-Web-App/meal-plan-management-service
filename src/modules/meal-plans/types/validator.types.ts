@@ -71,8 +71,6 @@ export interface TypedValidationArguments extends ValidationArguments {
  */
 export interface MealPlanWhereClause {
   userId?: string;
-  isActive?: boolean;
-  deletedAt?: Date | null;
   startDate?: {
     lte?: Date;
   };
@@ -84,7 +82,7 @@ export interface MealPlanWhereClause {
     endDate?: { gte?: Date };
   }>;
   NOT?: {
-    id?: string;
+    mealPlanId?: bigint;
   };
 }
 

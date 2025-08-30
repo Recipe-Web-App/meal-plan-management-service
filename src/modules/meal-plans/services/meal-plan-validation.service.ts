@@ -140,10 +140,8 @@ export class MealPlanValidationService {
     try {
       const mealPlan = await this.prisma.mealPlan.findFirst({
         where: {
-          id: mealPlanId,
+          mealPlanId: BigInt(mealPlanId),
           userId: userId,
-          isActive: true,
-          deletedAt: null,
         },
       });
 
@@ -218,7 +216,7 @@ export class MealPlanValidationService {
       return {};
     }
 
-    const sanitized: SanitizedMealPlanData = { ...data };
+    const sanitized: SanitizedMealPlanData = { ...data } as SanitizedMealPlanData;
 
     fields.forEach((field) => {
       if (sanitized[field] && typeof sanitized[field] === 'string') {
@@ -323,8 +321,6 @@ export class MealPlanValidationService {
     try {
       const whereClause: MealPlanWhereClause = {
         userId: userId,
-        isActive: true,
-        deletedAt: null,
         AND: [
           {
             startDate: {
@@ -341,13 +337,13 @@ export class MealPlanValidationService {
 
       if (excludeMealPlanId) {
         whereClause.NOT = {
-          id: excludeMealPlanId,
+          mealPlanId: BigInt(excludeMealPlanId),
         };
       }
 
       const overlapping = await this.prisma.mealPlan.findFirst({
         where: whereClause,
-        select: { id: true },
+        select: { mealPlanId: true },
       });
 
       return overlapping !== null;

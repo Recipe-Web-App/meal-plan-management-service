@@ -184,7 +184,7 @@ describe('TestDatabase', () => {
     it('should create multiple recipes', async () => {
       const count = 4;
       const mockRecipe = {
-        id: 'recipe-1',
+        recipeId: BigInt(1),
         title: 'Test Recipe',
         description: null,
         cookingTime: 30,
@@ -235,7 +235,7 @@ describe('TestDatabase', () => {
   describe('createMealPlanWithRecipes', () => {
     it('should delegate to seeder for complex creation', async () => {
       const userId = 'user-123';
-      const recipeIds = ['recipe-1', 'recipe-2'];
+      const recipeIds = ['1', '2'];
       const options = {
         name: 'Test Plan with Recipes',
         daysCount: 3,
@@ -243,7 +243,7 @@ describe('TestDatabase', () => {
 
       // Mock the seeder method directly on the instance
       const mockResult = {
-        mealPlan: { id: 'plan-1', name: 'Test Plan with Recipes' },
+        mealPlan: { mealPlanId: BigInt(1), name: 'Test Plan with Recipes' },
         recipesAdded: 2,
       };
 
@@ -251,7 +251,11 @@ describe('TestDatabase', () => {
 
       const result = await testDb.createMealPlanWithRecipes(userId, recipeIds, options);
 
-      expect(testDb['seeder'].seedMealPlanForUser).toHaveBeenCalledWith(userId, recipeIds, options);
+      expect(testDb['seeder'].seedMealPlanForUser).toHaveBeenCalledWith(
+        userId,
+        [BigInt(1), BigInt(2)],
+        options,
+      );
       expect(result).toEqual(mockResult);
     });
   });

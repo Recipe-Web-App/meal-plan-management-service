@@ -29,7 +29,6 @@ describe('RecipeExistsConstraint', () => {
       expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
         where: {
           recipeId: BigInt(123),
-          deletedAt: null,
         },
         select: { recipeId: true },
       });
@@ -107,7 +106,6 @@ describe('RecipeExistsConstraint', () => {
       expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
         where: {
           recipeId: BigInt(123),
-          deletedAt: null,
           userId: 'user-123',
         },
         select: { recipeId: true },
@@ -133,7 +131,6 @@ describe('RecipeExistsConstraint', () => {
       expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
         where: {
           recipeId: BigInt(123),
-          deletedAt: null,
         },
         select: { recipeId: true },
       });
@@ -268,7 +265,6 @@ describe('RecipeExists decorator variations', () => {
       expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
         where: {
           recipeId: BigInt(123),
-          deletedAt: null,
           userId: 'user-456',
         },
         select: { recipeId: true },
@@ -300,7 +296,6 @@ describe('edge cases', () => {
     expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
       where: {
         recipeId: BigInt(largeId),
-        deletedAt: null,
       },
       select: { recipeId: true },
     });
@@ -341,7 +336,6 @@ describe('edge cases', () => {
     expect(mockPrismaService.recipe.findFirst).toHaveBeenCalledWith({
       where: {
         recipeId: BigInt(123),
-        deletedAt: null,
       },
       select: { recipeId: true },
     });

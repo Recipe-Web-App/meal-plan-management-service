@@ -67,17 +67,6 @@ describe('UpdateMealPlanDto', () => {
       expect(dto.endDate?.toISOString()).toBe('2025-09-07T23:59:59.999Z');
     });
 
-    it('should transform string boolean to boolean', async () => {
-      const data = {
-        isActive: 'true' as any,
-      };
-
-      const dto = plainToClass(UpdateMealPlanDto, data);
-
-      expect(dto.isActive).toBe(true);
-      expect(typeof dto.isActive).toBe('boolean');
-    });
-
     it('should handle null and undefined values properly', async () => {
       const data = {
         name: undefined,
@@ -241,64 +230,6 @@ describe('UpdateMealPlanDto', () => {
       expect(startDto.endDate).toBeUndefined();
       expect(endDto.endDate).toBeInstanceOf(Date);
       expect(endDto.startDate).toBeUndefined();
-    });
-  });
-
-  describe('isActive validation', () => {
-    it('should pass when isActive is boolean true', async () => {
-      const dto = plainToClass(UpdateMealPlanDto, { isActive: true });
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(0);
-      expect(dto.isActive).toBe(true);
-    });
-
-    it('should pass when isActive is boolean false', async () => {
-      const dto = plainToClass(UpdateMealPlanDto, { isActive: false });
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(0);
-      expect(dto.isActive).toBe(false);
-    });
-
-    it('should transform string "true" to boolean true', async () => {
-      const dto = plainToClass(UpdateMealPlanDto, { isActive: 'true' as any });
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(0);
-      expect(dto.isActive).toBe(true);
-      expect(typeof dto.isActive).toBe('boolean');
-    });
-
-    it('should transform string "false" to boolean false', async () => {
-      const dto = plainToClass(UpdateMealPlanDto, { isActive: 'false' as any });
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(0);
-      expect(dto.isActive).toBe(false);
-      expect(typeof dto.isActive).toBe('boolean');
-    });
-
-    it('should fail when isActive is invalid string', async () => {
-      const invalidData = { isActive: 'invalid' as any };
-
-      const dto = plainToClass(UpdateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('isActive');
-      expect(errors[0].constraints).toHaveProperty('isBoolean');
-    });
-
-    it('should fail when isActive is number', async () => {
-      const invalidData = { isActive: 1 as any };
-
-      const dto = plainToClass(UpdateMealPlanDto, invalidData);
-      const errors = await validate(dto);
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('isActive');
-      expect(errors[0].constraints).toHaveProperty('isBoolean');
     });
   });
 

@@ -10,7 +10,6 @@ describe('MealPlanTransformationUtil', () => {
         description: 'A test meal plan',
         startDate: '2025-09-01T00:00:00.000Z',
         endDate: '2025-09-07T23:59:59.999Z',
-        isActive: true,
         extraField: 'should be excluded', // Extra field
       };
 
@@ -21,7 +20,6 @@ describe('MealPlanTransformationUtil', () => {
       expect(result.description).toBe('A test meal plan');
       expect(result.startDate).toBeInstanceOf(Date);
       expect(result.endDate).toBeInstanceOf(Date);
-      expect(result.isActive).toBe(true);
       expect(result.userId).toBe('user-123');
       // Note: extra fields are preserved in this transformation
     });
@@ -119,7 +117,6 @@ describe('MealPlanTransformationUtil', () => {
         description: 'Test description',
         startDate: new Date('2025-09-01T00:00:00.000Z'),
         endDate: new Date('2025-09-07T23:59:59.999Z'),
-        isActive: 1, // Database boolean as number
         createdAt: new Date('2025-08-01T00:00:00.000Z'),
         updatedAt: new Date('2025-08-15T00:00:00.000Z'),
         userId: 'user-123',
@@ -127,12 +124,11 @@ describe('MealPlanTransformationUtil', () => {
 
       const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
 
-      expect(result.id).toBe('123');
+      expect(result.mealPlanId).toEqual(BigInt(123));
       expect(result.name).toBe('Test Plan');
       expect(result.description).toBe('Test description');
       expect(result.startDate).toEqual(new Date('2025-09-01T00:00:00.000Z'));
       expect(result.endDate).toEqual(new Date('2025-09-07T23:59:59.999Z'));
-      expect(result.isActive).toBe(true);
       expect(result.createdAt).toEqual(new Date('2025-08-01T00:00:00.000Z'));
       expect(result.updatedAt).toEqual(new Date('2025-08-15T00:00:00.000Z'));
       expect(result.userId).toBe('user-123');
@@ -159,19 +155,29 @@ describe('MealPlanTransformationUtil', () => {
   describe('fromDatabaseModels', () => {
     it('should transform array of database models', () => {
       const dbModels = [
-        { id: '1', name: 'Plan 1', isActive: true },
-        { id: '2', name: 'Plan 2', isActive: false },
+        {
+          mealPlanId: BigInt(1),
+          name: 'Plan 1',
+          userId: 'user-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          mealPlanId: BigInt(2),
+          name: 'Plan 2',
+          userId: 'user-2',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ];
 
       const result = MealPlanTransformationUtil.fromDatabaseModels(dbModels);
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('1');
+      expect(result[0].mealPlanId).toEqual(BigInt(1));
       expect(result[0].name).toBe('Plan 1');
-      expect(result[0].isActive).toBe(true);
-      expect(result[1].id).toBe('2');
+      expect(result[1].mealPlanId).toEqual(BigInt(2));
       expect(result[1].name).toBe('Plan 2');
-      expect(result[1].isActive).toBe(false);
     });
 
     it('should handle non-array input', () => {
@@ -229,7 +235,6 @@ describe('MealPlanTransformationUtil', () => {
 
       const result = MealPlanTransformationUtil.transformFilterParams(query);
 
-      expect(result.isActive).toBe(true);
       expect(result.startDate).toBeInstanceOf(Date);
       expect(result.startDate?.toISOString()).toBe('2025-09-01T00:00:00.000Z');
       expect(result.endDate).toBeInstanceOf(Date);

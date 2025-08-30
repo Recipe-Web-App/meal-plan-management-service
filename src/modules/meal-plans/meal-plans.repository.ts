@@ -53,9 +53,9 @@ export class MealPlansRepository {
     return this.prisma.mealPlan.create({
       data: {
         name: data.name,
-        description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        description: data.description ?? null,
+        startDate: data.startDate ?? null,
+        endDate: data.endDate ?? null,
         user: {
           connect: { userId: data.userId },
         },
@@ -251,9 +251,9 @@ export class MealPlansRepository {
     const mealPlan = await client.mealPlan.create({
       data: {
         name: data.name,
-        description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        description: data.description ?? null,
+        startDate: data.startDate ?? null,
+        endDate: data.endDate ?? null,
         user: {
           connect: { userId: data.userId },
         },
@@ -444,9 +444,9 @@ export class MealPlansRepository {
     const newMealPlan = await client.mealPlan.create({
       data: {
         name: targetData.name,
-        description: targetData.description,
-        startDate: targetData.startDate,
-        endDate: targetData.endDate,
+        description: targetData.description ?? null,
+        startDate: targetData.startDate ?? null,
+        endDate: targetData.endDate ?? null,
         user: {
           connect: { userId: targetData.userId },
         },

@@ -1,17 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-import { MealPlan, MealType } from '@prisma/client';
+import { MealType } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 export interface CreateMealPlanData {
-  id?: string;
+  mealPlanId?: bigint;
   userId?: string;
   name?: string;
   description?: string;
   startDate?: Date;
   endDate?: Date;
-  isActive?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface CreateMealPlanRecipeData {
@@ -44,15 +40,12 @@ export class MealPlanFactory {
     const endDate = overrides.endDate ?? new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days later
 
     return {
-      id: overrides.id ?? faker.string.uuid(),
+      mealPlanId: overrides.mealPlanId ?? BigInt(Math.floor(Math.random() * 1000000)),
       userId: overrides.userId ?? faker.string.uuid(),
       name: overrides.name ?? faker.helpers.arrayElement(MealPlanFactory.MEAL_PLAN_NAMES),
       description: overrides.description ?? faker.lorem.sentence(),
       startDate,
       endDate,
-      isActive: overrides.isActive ?? faker.datatype.boolean(),
-      createdAt: overrides.createdAt ?? new Date(),
-      updatedAt: overrides.updatedAt ?? new Date(),
       ...overrides,
     };
   }
@@ -61,30 +54,23 @@ export class MealPlanFactory {
     return Array.from({ length: count }, () => this.create(overrides));
   }
 
-  static build(overrides: CreateMealPlanData = {}): Omit<MealPlan, 'createdAt' | 'updatedAt'> & {
-    createdAt?: Date;
-    updatedAt?: Date;
+  static build(overrides: CreateMealPlanData = {}): {
+    mealPlanId: bigint;
+    userId: string;
+    name: string;
+    description?: string | null;
+    startDate?: Date | null;
+    endDate?: Date | null;
   } {
     const data = this.create(overrides);
-    const result: any = {
-      mealPlanId: BigInt(Math.floor(Math.random() * 1000000)),
+    return {
+      mealPlanId: data.mealPlanId!,
       userId: data.userId!,
       name: data.name!,
-      description: data.description,
-      startDate: data.startDate!,
-      endDate: data.endDate!,
-      isActive: data.isActive!,
+      description: data.description ?? null,
+      startDate: data.startDate ?? null,
+      endDate: data.endDate ?? null,
     };
-
-    // Only include dates if explicitly provided in overrides
-    if ('createdAt' in overrides && overrides.createdAt) {
-      result.createdAt = overrides.createdAt;
-    }
-    if ('updatedAt' in overrides && overrides.updatedAt) {
-      result.updatedAt = overrides.updatedAt;
-    }
-
-    return result;
   }
 
   static createActiveWeekly(
@@ -101,7 +87,6 @@ export class MealPlanFactory {
       name: 'Active Weekly Plan',
       startDate: startOfWeek,
       endDate: endOfWeek,
-      isActive: true,
       ...overrides,
     });
   }

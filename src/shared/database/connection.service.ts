@@ -54,11 +54,7 @@ export class ConnectionService {
       this.logger.info('Database reconnection successful', {}, 'ConnectionService');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error(
-        'Database reconnection failed',
-        { error: errorMessage },
-        'ConnectionService',
-      );
+      this.logger.error('Database reconnection failed: ' + errorMessage, 'ConnectionService');
       throw error;
     }
   }
@@ -133,12 +129,9 @@ export class ConnectionService {
           } catch (reconnectError) {
             // Log reconnection failure but continue with retry
             this.logger.error(
-              'Reconnection failed during retry attempt',
-              {
-                reconnectError:
-                  reconnectError instanceof Error ? reconnectError.message : String(reconnectError),
-                attempt,
-              },
+              `Reconnection failed during retry attempt ${attempt}: ${
+                reconnectError instanceof Error ? reconnectError.message : String(reconnectError)
+              }`,
               'ConnectionService',
             );
           }

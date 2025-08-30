@@ -13,16 +13,6 @@ import {
   MealPlanWhereClause,
 } from '../types/validator.types';
 
-// Re-export for backward compatibility
-export interface MealPlanOverlapValidationArgs {
-  userIdProperty: string;
-  startDateProperty: string;
-  endDateProperty: string;
-  allowOverlaps?: boolean;
-  excludeCurrentProperty?: string;
-  message?: string;
-}
-
 @ValidatorConstraint({ name: 'noOverlappingMealPlans', async: true })
 @Injectable()
 export class NoOverlappingMealPlansConstraint implements ValidatorConstraintInterface {
@@ -38,6 +28,21 @@ export class NoOverlappingMealPlansConstraint implements ValidatorConstraintInte
 
     // Skip validation if required data is missing
     if (!userId || !startDate || !endDate) {
+      return true;
+    }
+
+    // Skip validation if values are not valid types
+    if (typeof userId !== 'string') {
+      return true;
+    }
+    if (
+      typeof startDate !== 'string' &&
+      typeof startDate !== 'number' &&
+      !(startDate instanceof Date)
+    ) {
+      return true;
+    }
+    if (typeof endDate !== 'string' && typeof endDate !== 'number' && !(endDate instanceof Date)) {
       return true;
     }
 
@@ -58,8 +63,6 @@ export class NoOverlappingMealPlansConstraint implements ValidatorConstraintInte
       // Build where clause to find overlapping meal plans
       const whereClause: MealPlanWhereClause = {
         userId: userId,
-        isActive: true,
-        deletedAt: null,
         AND: [
           {
             startDate: {
@@ -79,14 +82,14 @@ export class NoOverlappingMealPlansConstraint implements ValidatorConstraintInte
         const currentMealPlanId = object[config.excludeCurrentProperty];
         if (currentMealPlanId) {
           whereClause.NOT = {
-            id: currentMealPlanId,
+            mealPlanId: BigInt(currentMealPlanId as string),
           };
         }
       }
 
       const overlappingPlans = await this.prisma.mealPlan.findFirst({
         where: whereClause,
-        select: { id: true },
+        select: { mealPlanId: true },
       });
 
       return overlappingPlans === null;
@@ -122,7 +125,7 @@ export function NoOverlappingMealPlans(
       name: 'noOverlappingMealPlans',
       target: object.constructor,
       propertyName: propertyName,
-      options: validationOptions,
+      options: validationOptions ?? {},
       constraints: [config],
       validator: NoOverlappingMealPlansConstraint,
     });

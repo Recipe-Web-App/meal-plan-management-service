@@ -71,7 +71,7 @@ export class MealPlanTransformationUtil {
       return {};
     }
 
-    const sanitized: SanitizedMealPlanData = { ...data };
+    const sanitized: SanitizedMealPlanData = { ...data } as SanitizedMealPlanData;
 
     fields.forEach((field) => {
       if (sanitized[field] && typeof sanitized[field] === 'string') {
@@ -115,15 +115,14 @@ export class MealPlanTransformationUtil {
     }
 
     const transformed: DatabaseMealPlan = {
-      id: dbModel.mealPlanId?.toString() ?? dbModel.id ?? '',
+      mealPlanId: dbModel.mealPlanId,
       userId: dbModel.userId,
       name: dbModel.name,
-      description: dbModel.description,
-      startDate: dbModel.startDate ? new Date(dbModel.startDate) : undefined,
-      endDate: dbModel.endDate ? new Date(dbModel.endDate) : undefined,
-      isActive: Boolean(dbModel.isActive),
-      createdAt: dbModel.createdAt ? new Date(dbModel.createdAt) : undefined,
-      updatedAt: dbModel.updatedAt ? new Date(dbModel.updatedAt) : undefined,
+      description: dbModel.description ?? null,
+      startDate: dbModel.startDate ? new Date(dbModel.startDate) : null,
+      endDate: dbModel.endDate ? new Date(dbModel.endDate) : null,
+      createdAt: dbModel.createdAt ? new Date(dbModel.createdAt) : new Date(),
+      updatedAt: dbModel.updatedAt ? new Date(dbModel.updatedAt) : new Date(),
     };
 
     // Include additional fields if present
@@ -142,7 +141,9 @@ export class MealPlanTransformationUtil {
       return [];
     }
 
-    return dbModels.map((model) => this.fromDatabaseModel(model));
+    return dbModels
+      .map((model) => this.fromDatabaseModel(model))
+      .filter((model): model is DatabaseMealPlan => model !== null);
   }
 
   /**

@@ -13,13 +13,6 @@ import {
   RecipeWhereClause,
 } from '../types/validator.types';
 
-// Re-export for backward compatibility
-export interface RecipeExistsValidationArgs {
-  message?: string;
-  checkOwnership?: boolean;
-  userIdProperty?: string;
-}
-
 @ValidatorConstraint({ name: 'recipeExists', async: true })
 @Injectable()
 export class RecipeExistsConstraint implements ValidatorConstraintInterface {
@@ -59,13 +52,12 @@ export class RecipeExistsConstraint implements ValidatorConstraintInterface {
 
       const whereClause: RecipeWhereClause = {
         recipeId: recipeIdBigInt,
-        deletedAt: null, // Only check non-deleted recipes
       };
 
       // If ownership check is required, add user filter
       if (config?.checkOwnership && config.userIdProperty) {
         const userId = object[config.userIdProperty];
-        if (userId) {
+        if (userId && typeof userId === 'string') {
           whereClause.userId = userId;
         }
       }
@@ -112,7 +104,7 @@ export function RecipeExists(
       name: 'recipeExists',
       target: object.constructor,
       propertyName: propertyName,
-      options: validationOptions,
+      options: validationOptions ?? {},
       constraints: [config ?? {}],
       validator: RecipeExistsConstraint,
     });

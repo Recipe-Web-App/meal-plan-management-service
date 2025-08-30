@@ -24,9 +24,8 @@ export interface SanitizedMealPlanData {
   description?: string;
   startDate?: string | Date;
   endDate?: string | Date;
-  isActive?: boolean;
   userId?: string;
-  id?: string; // For updates
+  mealPlanId?: string; // For updates
   // Allow additional sanitized properties
   [key: string]: unknown;
 }
@@ -53,17 +52,14 @@ export interface ValidationContext {
  * Database meal plan model (from Prisma)
  */
 export interface DatabaseMealPlan {
-  mealPlanId?: bigint;
-  id?: string;
+  mealPlanId: bigint;
   userId: string;
   name: string;
   description?: string | null;
   startDate?: Date | null;
   endDate?: Date | null;
-  isActive?: boolean | number;
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
   // Relations
   recipes?: unknown[];
   [key: string]: unknown;

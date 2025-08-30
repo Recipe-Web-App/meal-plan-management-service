@@ -36,7 +36,7 @@ export class MealPlanRecipeResponseDto {
     example: 4,
   })
   @Expose()
-  servings: number;
+  servings!: number;
 
   @ApiPropertyOptional({
     description: 'Additional notes',
@@ -74,21 +74,21 @@ export class MealPlanResponseDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @Expose()
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'User ID who owns this meal plan',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
   @Expose()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({
     description: 'Meal plan name',
     example: 'Weekly Family Meal Plan',
   })
   @Expose()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     description: 'Meal plan description',
@@ -105,7 +105,7 @@ export class MealPlanResponseDto {
   })
   @Expose()
   @Type(() => Date)
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     description: 'End date of the meal plan',
@@ -115,14 +115,14 @@ export class MealPlanResponseDto {
   })
   @Expose()
   @Type(() => Date)
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty({
     description: 'Whether this meal plan is currently active',
     example: true,
   })
   @Expose()
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({
     description: 'When the meal plan was created',
@@ -132,7 +132,7 @@ export class MealPlanResponseDto {
   })
   @Expose()
   @Type(() => Date)
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'When the meal plan was last updated',
@@ -142,7 +142,7 @@ export class MealPlanResponseDto {
   })
   @Expose()
   @Type(() => Date)
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional({
     description: 'Recipes in this meal plan',

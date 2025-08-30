@@ -61,7 +61,7 @@ export function StripHtml(validationOptions?: ValidationOptions) {
       name: 'stripHtml',
       target: object.constructor,
       propertyName: propertyName,
-      options: validationOptions,
+      options: validationOptions ?? {},
       constraints: [],
       validator: StripHtmlConstraint,
     });
@@ -77,7 +77,7 @@ export function NormalizeWhitespace(validationOptions?: ValidationOptions) {
       name: 'normalizeWhitespace',
       target: object.constructor,
       propertyName: propertyName,
-      options: validationOptions,
+      options: validationOptions ?? {},
       constraints: [],
       validator: NormalizeWhitespaceConstraint,
     });
