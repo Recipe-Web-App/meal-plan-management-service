@@ -16,7 +16,7 @@ echo "🧪 Running all tests with coverage..."
 npm run test:cov
 if [ $? -ne 0 ]; then
   echo "❌ Tests failed or coverage requirements not met!"
-  echo "📊 Coverage must be at least 80% for branches, functions, lines, and statements."
+  echo "📊 Coverage must be at least 65% for branches, functions, lines, and statements."
   exit 1
 fi
 
