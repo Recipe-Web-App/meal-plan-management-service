@@ -84,14 +84,14 @@ describe('MealPlanFactory', () => {
     it('should build meal plan object for database insertion', () => {
       const mealPlanData = MealPlanFactory.build();
 
-      expect(mealPlanData).toHaveProperty('id');
+      expect(mealPlanData).toHaveProperty('mealPlanId');
       expect(mealPlanData).toHaveProperty('userId');
       expect(mealPlanData).toHaveProperty('name');
       expect(mealPlanData).toHaveProperty('startDate');
       expect(mealPlanData).toHaveProperty('endDate');
       expect(mealPlanData).toHaveProperty('isActive');
 
-      expect(typeof mealPlanData.id).toBe('string');
+      expect(typeof mealPlanData.mealPlanId).toBe('bigint');
       expect(typeof mealPlanData.userId).toBe('string');
     });
   });

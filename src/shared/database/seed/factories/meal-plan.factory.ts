@@ -67,7 +67,7 @@ export class MealPlanFactory {
   } {
     const data = this.create(overrides);
     const result: any = {
-      id: data.id!,
+      mealPlanId: BigInt(Math.floor(Math.random() * 1000000)),
       userId: data.userId!,
       name: data.name!,
       description: data.description,
@@ -109,12 +109,12 @@ export class MealPlanFactory {
   static createRecipe(overrides: CreateMealPlanRecipeData = {}): CreateMealPlanRecipeData {
     return {
       id: overrides.id ?? faker.string.uuid(),
-      mealPlanId: overrides.mealPlanId ?? faker.string.uuid(),
-      recipeId: overrides.recipeId ?? faker.string.uuid(),
+      mealPlanId: overrides.mealPlanId ?? Math.floor(Math.random() * 1000000).toString(),
+      recipeId: overrides.recipeId ?? Math.floor(Math.random() * 1000000).toString(),
       plannedDate: overrides.plannedDate ?? faker.date.soon({ days: 7 }),
       mealType: overrides.mealType ?? faker.helpers.enumValue(MealType),
       servings: overrides.servings ?? faker.number.int({ min: 1, max: 6 }),
-      notes: overrides.notes ?? (faker.datatype.boolean() ? faker.lorem.sentence() : undefined),
+      notes: overrides.notes ?? faker.lorem.sentence(),
       createdAt: overrides.createdAt ?? new Date(),
       ...overrides,
     };
@@ -141,11 +141,12 @@ export class MealPlanFactory {
       currentDate.setDate(start.getDate() + day);
 
       mealTypes.forEach((mealType, index) => {
-        if (recipeIds[day * 3 + index]) {
+        const recipeId = recipeIds[day * 3 + index];
+        if (recipeId) {
           recipes.push(
             this.createRecipe({
               mealPlanId,
-              recipeId: recipeIds[day * 3 + index],
+              recipeId,
               plannedDate: currentDate,
               mealType,
               servings: faker.number.int({ min: 2, max: 4 }),

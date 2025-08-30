@@ -20,7 +20,7 @@ export class CreateMealPlanDto {
   @Length(1, 100, { message: 'Name must be between 1 and 100 characters', groups: ['basic'] })
   @StripHtml()
   @NormalizeWhitespace()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     description: 'Description of the meal plan',
@@ -55,7 +55,7 @@ export class CreateMealPlanDto {
     }
     return value as Date;
   })
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     description: 'End date of the meal plan',
@@ -76,7 +76,7 @@ export class CreateMealPlanDto {
     }
     return value as Date;
   })
-  endDate: Date;
+  endDate!: Date;
 
   @ApiPropertyOptional({
     description: 'Whether this meal plan is currently active',
@@ -90,9 +90,9 @@ export class CreateMealPlanDto {
       const lowerValue = value.toLowerCase();
       if (lowerValue === 'true') return true;
       if (lowerValue === 'false') return false;
-      return value as boolean; // Let validator handle invalid strings
+      return value as unknown as boolean; // Let validator handle invalid strings
     }
-    return value as boolean;
+    return value as unknown as boolean;
   })
   isActive?: boolean = false;
 

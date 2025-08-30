@@ -20,7 +20,7 @@ export class CreateMealPlanRecipeDto {
   @IsNotEmpty({ message: 'Recipe ID is required' })
   @IsString({ message: 'Recipe ID must be a string' })
   @IsUUID(4, { message: 'Recipe ID must be a valid UUID' })
-  recipeId: string;
+  recipeId!: string;
 
   @ApiProperty({
     description: 'Day of the meal plan (1-7 representing Monday-Sunday)',
@@ -33,7 +33,7 @@ export class CreateMealPlanRecipeDto {
   @Min(1, { message: 'Day must be between 1 and 7' })
   @Max(7, { message: 'Day must be between 1 and 7' })
   @Type(() => Number)
-  day: number;
+  day!: number;
 
   @ApiProperty({
     description: 'Meal type for this recipe',
@@ -45,7 +45,7 @@ export class CreateMealPlanRecipeDto {
   @IsIn(['breakfast', 'lunch', 'dinner', 'snack'], {
     message: 'Meal type must be one of: breakfast, lunch, dinner, snack',
   })
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  mealType!: 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
   @ApiPropertyOptional({
     description: 'Number of servings for this recipe in the meal plan',

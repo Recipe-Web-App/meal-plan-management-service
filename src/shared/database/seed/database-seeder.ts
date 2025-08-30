@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/require-await, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
@@ -151,12 +151,12 @@ export class DatabaseSeeder {
       daysCount?: number;
     } = {},
   ): Promise<{
-    mealPlan: { id: string; name: string };
+    mealPlan: { mealPlanId: bigint; name: string };
     recipesAdded: number;
   }> {
     const { name = 'Test Meal Plan', startDate = new Date(), daysCount = 7 } = options;
 
-    return this.transactionService.executeInTransaction(async (tx) => {
+    return this.transactionService.executeTransaction(async (tx) => {
       // Create meal plan
       const mealPlanData = MealPlanFactory.create({
         userId,
@@ -168,12 +168,12 @@ export class DatabaseSeeder {
 
       const mealPlan = await tx.mealPlan.create({
         data: MealPlanFactory.build(mealPlanData),
-        select: { id: true, name: true },
+        select: { mealPlanId: true, name: true },
       });
 
       // Create meal plan recipes
       const mealPlanRecipes = this.createMealPlanRecipes(
-        mealPlan.id,
+        mealPlan.mealPlanId.toString(),
         recipeIds.slice(0, daysCount * 3), // 3 meals per day max
         startDate,
       );

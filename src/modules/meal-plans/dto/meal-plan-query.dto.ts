@@ -26,9 +26,9 @@ export class MealPlanQueryDto {
       const lowerValue = value.toLowerCase();
       if (lowerValue === 'true') return true;
       if (lowerValue === 'false') return false;
-      return value as boolean;
+      return value as unknown as boolean;
     }
-    return value as boolean;
+    return value as unknown as boolean;
   })
   isActive?: boolean;
 

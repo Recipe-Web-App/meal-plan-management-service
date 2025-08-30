@@ -83,9 +83,8 @@ describe('UserFactory', () => {
     it('should build user object without optional dates', () => {
       const userData = UserFactory.build();
 
-      expect(userData).toHaveProperty('id');
-      expect(userData).toHaveProperty('name');
-      expect(userData).toHaveProperty('email');
+      expect(userData).toHaveProperty('userId');
+      expect(userData).toHaveProperty('username');
       expect(userData).not.toHaveProperty('createdAt');
       expect(userData).not.toHaveProperty('updatedAt');
     });
@@ -110,9 +109,8 @@ describe('UserFactory', () => {
 
       const userData = UserFactory.build(customData);
 
-      expect(userData.id).toBe(customData.id);
-      expect(userData.name).toBe(customData.name);
-      expect(userData.email).toBe(customData.email);
+      expect(userData.userId).toBe(customData.id);
+      expect(userData.username).toBe(customData.name);
     });
   });
 

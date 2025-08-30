@@ -7,21 +7,21 @@ export class MealPlanRecipeResponseDto {
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @Expose()
-  recipeId: string;
+  recipeId!: string;
 
   @ApiProperty({
     description: 'Recipe name',
     example: 'Overnight Oats with Berries',
   })
   @Expose()
-  recipeName: string;
+  recipeName!: string;
 
   @ApiProperty({
     description: 'Day of the meal plan (1-7)',
     example: 1,
   })
   @Expose()
-  day: number;
+  day!: number;
 
   @ApiProperty({
     description: 'Meal type',
@@ -29,7 +29,7 @@ export class MealPlanRecipeResponseDto {
     enum: ['breakfast', 'lunch', 'dinner', 'snack'],
   })
   @Expose()
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  mealType!: 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
   @ApiProperty({
     description: 'Number of servings',

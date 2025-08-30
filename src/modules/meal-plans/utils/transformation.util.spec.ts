@@ -114,7 +114,7 @@ describe('MealPlanTransformationUtil', () => {
   describe('fromDatabaseModel', () => {
     it('should transform database model to response format', () => {
       const dbModel = {
-        id: BigInt(123),
+        mealPlanId: BigInt(123),
         name: 'Test Plan',
         description: 'Test description',
         startDate: new Date('2025-09-01T00:00:00.000Z'),
@@ -130,11 +130,11 @@ describe('MealPlanTransformationUtil', () => {
       expect(result.id).toBe('123');
       expect(result.name).toBe('Test Plan');
       expect(result.description).toBe('Test description');
-      expect(result.startDate).toBe('2025-09-01T00:00:00.000Z');
-      expect(result.endDate).toBe('2025-09-07T23:59:59.999Z');
+      expect(result.startDate).toEqual(new Date('2025-09-01T00:00:00.000Z'));
+      expect(result.endDate).toEqual(new Date('2025-09-07T23:59:59.999Z'));
       expect(result.isActive).toBe(true);
-      expect(result.createdAt).toBe('2025-08-01T00:00:00.000Z');
-      expect(result.updatedAt).toBe('2025-08-15T00:00:00.000Z');
+      expect(result.createdAt).toEqual(new Date('2025-08-01T00:00:00.000Z'));
+      expect(result.updatedAt).toEqual(new Date('2025-08-15T00:00:00.000Z'));
       expect(result.userId).toBe('user-123');
     });
 

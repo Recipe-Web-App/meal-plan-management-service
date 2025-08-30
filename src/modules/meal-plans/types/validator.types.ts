@@ -100,6 +100,4 @@ export interface RecipeWhereClause {
 /**
  * Type-safe decorator target for validators
  */
-export interface DecoratorTarget {
-  constructor: new (...args: unknown[]) => unknown;
-}
+export type DecoratorTarget = object | ((...args: unknown[]) => unknown);

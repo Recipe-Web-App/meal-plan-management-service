@@ -216,9 +216,9 @@ describe('DatabaseSeeder', () => {
         daysCount: 3,
       };
 
-      const mockMealPlan = { id: 'plan-1', name: 'Test Plan' };
+      const mockMealPlan = { mealPlanId: BigInt(1), name: 'Test Plan' };
 
-      transactionService.executeInTransaction.mockImplementation(async (fn) => {
+      transactionService.executeTransaction.mockImplementation(async (fn) => {
         const mockTx = {
           mealPlan: {
             create: jest.fn().mockResolvedValue(mockMealPlan),
