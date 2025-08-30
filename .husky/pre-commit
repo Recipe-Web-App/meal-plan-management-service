@@ -1,1 +1,26 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged (linting and formatting)
+echo "📝 Running linters and formatters..."
 npx lint-staged
+
+# Run build
+echo "🔨 Running build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed! Please fix build errors before committing."
+  exit 1
+fi
+
+# Run tests
+echo "🧪 Running tests..."
+npm test
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed! Please fix failing tests before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
