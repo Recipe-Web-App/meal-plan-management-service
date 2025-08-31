@@ -10,6 +10,7 @@ describe('HealthController', () => {
     const mockHealthService = {
       check: jest.fn(),
       checkReadiness: jest.fn(),
+      checkReadinessGraceful: jest.fn(),
       checkLiveness: jest.fn(),
       getVersion: jest.fn(),
     };
@@ -45,14 +46,22 @@ describe('HealthController', () => {
   });
 
   describe('getReadiness', () => {
-    it('should return readiness check result', async () => {
-      const mockResult = { status: 'ok', info: {}, error: {}, details: {} };
-      healthService.checkReadiness.mockResolvedValue(mockResult as any);
+    it('should return graceful readiness check result', async () => {
+      const mockResult = {
+        status: 'ok',
+        info: {
+          service: { status: 'up' },
+          database: { status: 'down', degraded: true },
+        },
+        error: {},
+        details: {},
+      };
+      healthService.checkReadinessGraceful.mockResolvedValue(mockResult as any);
 
       const result = await controller.getReadiness();
 
       expect(result).toEqual(mockResult);
-      expect(healthService.checkReadiness).toHaveBeenCalled();
+      expect(healthService.checkReadinessGraceful).toHaveBeenCalled();
     });
   });
 

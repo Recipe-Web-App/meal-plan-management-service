@@ -6,10 +6,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from '@/config/configuration';
 import { validationSchema } from '@/config/env.validation';
-import { PrismaService } from '@/config/database.config';
 import { createWinstonLogger } from '@/config/logger.config';
 import { HealthModule } from '@/modules/health/health.module';
-import { RequestContextService, LoggerService } from '@/shared';
+import { SharedModule } from '@/shared';
 
 @Module({
   imports: [
@@ -43,10 +42,10 @@ import { RequestContextService, LoggerService } from '@/shared';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => createWinstonLogger(configService),
     }),
+    SharedModule,
     HealthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, RequestContextService, LoggerService],
-  exports: [PrismaService, RequestContextService, LoggerService],
+  providers: [AppService],
 })
 export class AppModule {}
