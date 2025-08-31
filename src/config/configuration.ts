@@ -7,6 +7,8 @@ export interface DatabaseConfig {
   password: string;
   maxRetries: number;
   retryDelay: number;
+  longRetryDelay: number;
+  enableContinuousRetry: boolean;
   healthCheckInterval: number;
   logQueries: boolean;
 }
@@ -66,6 +68,8 @@ export default () => ({
     password: process.env.MEAL_PLAN_MANAGEMENT_DB_PASSWORD!,
     maxRetries: parseInt(process.env.DATABASE_MAX_RETRIES!, 10) || 5,
     retryDelay: parseInt(process.env.DATABASE_RETRY_DELAY!, 10) || 5000,
+    longRetryDelay: parseInt(process.env.DATABASE_LONG_RETRY_DELAY!, 10) || 60000,
+    enableContinuousRetry: process.env.DATABASE_ENABLE_CONTINUOUS_RETRY !== 'false',
     healthCheckInterval: parseInt(process.env.DATABASE_HEALTH_CHECK_INTERVAL!, 10) || 30000,
     logQueries:
       process.env.DATABASE_LOG_QUERIES === 'true' || process.env.NODE_ENV === 'development',

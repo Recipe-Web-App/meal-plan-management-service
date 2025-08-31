@@ -112,7 +112,10 @@
     "coveragePathIgnorePatterns": [
       "/src/modules/meal-plans/test-utils/",
       ".*\\.mock\\.ts$",
-      "/src/shared/database/seed/factories/.*\\.factory\\.ts$"
+      "/src/shared/database/seed/factories/.*\\.factory\\.ts$",
+      "/src/.*/index\\.ts$",
+      "/src/.*/*\\.module\\.ts$",
+      "/src/main\\.ts$"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",

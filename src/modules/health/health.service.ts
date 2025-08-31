@@ -46,6 +46,59 @@ export class HealthService {
     ]);
   }
 
+  async checkReadinessGraceful(): Promise<HealthCheckResult> {
+    try {
+      // Attempt database check
+      const dbStatus = await this.checkDatabase();
+
+      // If database is healthy, return normal status
+      if (dbStatus.database && dbStatus.database.status === 'up') {
+        return {
+          status: 'ok',
+          info: dbStatus,
+          error: {},
+          details: dbStatus,
+        };
+      }
+
+      // If database is down, return degraded but still 200
+      return {
+        status: 'ok', // Return ok status so HTTP 200 is sent
+        info: {
+          service: { status: 'up' },
+          database: {
+            status: 'down',
+            message: 'Database is unavailable but service is running',
+            degraded: true,
+          },
+        },
+        error: {},
+        details: dbStatus,
+      };
+    } catch (error) {
+      // Even on error, return degraded status with 200
+      return {
+        status: 'ok', // Return ok status so HTTP 200 is sent
+        info: {
+          service: { status: 'up' },
+          database: {
+            status: 'down',
+            message: error instanceof Error ? error.message : 'Database health check failed',
+            degraded: true,
+          },
+        },
+        error: {},
+        details: {
+          database: {
+            status: 'down',
+            message: error instanceof Error ? error.message : 'Database health check failed',
+            connected: false,
+          },
+        },
+      };
+    }
+  }
+
   @HealthCheck()
   async checkLiveness(): Promise<HealthCheckResult> {
     return this.health.check([

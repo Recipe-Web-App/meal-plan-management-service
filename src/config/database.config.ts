@@ -17,6 +17,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private connectionRetries = 0;
   private readonly maxRetries: number;
   private readonly retryDelay: number;
+  private readonly longRetryDelay: number;
+  private readonly enableContinuousRetry: boolean;
+  private isInLongRetryPhase = false;
+  private retryInterval?: NodeJS.Timeout | undefined;
   private healthCheckInterval?: NodeJS.Timeout;
 
   constructor(
@@ -53,6 +57,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     this.maxRetries = configService.get<number>('database.maxRetries', 5);
     this.retryDelay = configService.get<number>('database.retryDelay', 5000);
+    this.longRetryDelay = configService.get<number>('database.longRetryDelay', 60000);
+    this.enableContinuousRetry = configService.get<boolean>('database.enableContinuousRetry', true);
 
     this.setupEventListeners();
   }
@@ -65,6 +71,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   async onModuleDestroy() {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
+    }
+    if (this.retryInterval) {
+      clearInterval(this.retryInterval);
     }
     await this.safeDisconnect();
   }
@@ -84,51 +93,130 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   private async connectWithRetry(): Promise<void> {
-    while (this.connectionRetries < this.maxRetries) {
+    // Phase 1: Quick retries (5 attempts with 5 second delays)
+    await this.performQuickRetries();
+
+    // Phase 2: Long retries (continuous with 60 second delays) - only if enabled
+    if (this.enableContinuousRetry && !this.isConnected) {
+      this.startLongRetryPhase();
+    } else if (!this.isConnected) {
+      throw new Error(
+        `Database connection failed after ${this.maxRetries} attempts and continuous retry is disabled`,
+      );
+    }
+  }
+
+  private async performQuickRetries(): Promise<void> {
+    this.logger.info(
+      'Starting database connection with quick retry phase',
+      {
+        maxRetries: this.maxRetries,
+        retryDelay: this.retryDelay,
+        enableContinuousRetry: this.enableContinuousRetry,
+      },
+      'PrismaService',
+    );
+
+    while (this.connectionRetries < this.maxRetries && !this.isConnected) {
       try {
-        await this.$connect();
-        this.isConnected = true;
-        this.connectionRetries = 0;
-
-        this.logger.info(
-          'Successfully connected to database',
-          {
-            attempt: this.connectionRetries + 1,
-            maxRetries: this.maxRetries,
-          },
-          'PrismaService',
-        );
-
+        await this.attemptConnection();
         return;
       } catch (error) {
         this.connectionRetries++;
         const errorMessage = error instanceof Error ? error.message : String(error);
 
         this.logger.warn(
-          `Database connection attempt ${this.connectionRetries} failed`,
+          `Database connection attempt ${this.connectionRetries} failed (quick retry phase)`,
           {
             error: errorMessage,
             attempt: this.connectionRetries,
             maxRetries: this.maxRetries,
             nextRetryIn: this.retryDelay,
+            phase: 'quick',
           },
           'PrismaService',
         );
 
-        if (this.connectionRetries >= this.maxRetries) {
-          this.logger.error(
-            `Failed to connect to database after maximum retries: ${errorMessage}`,
-            undefined,
-            'PrismaService',
-          );
-          throw new Error(
-            `Database connection failed after ${this.maxRetries} attempts: ${errorMessage}`,
-          );
+        if (this.connectionRetries < this.maxRetries) {
+          await this.sleep(this.retryDelay);
         }
-
-        await this.sleep(this.retryDelay);
       }
     }
+
+    if (!this.isConnected) {
+      this.logger.warn(
+        `Quick retry phase completed without success (${this.maxRetries} attempts)`,
+        {
+          totalAttempts: this.connectionRetries,
+          continuousRetryEnabled: this.enableContinuousRetry,
+        },
+        'PrismaService',
+      );
+    }
+  }
+
+  private startLongRetryPhase(): void {
+    this.isInLongRetryPhase = true;
+
+    this.logger.info(
+      'Starting long retry phase with continuous connection attempts',
+      {
+        longRetryDelay: this.longRetryDelay,
+        previousAttempts: this.connectionRetries,
+      },
+      'PrismaService',
+    );
+
+    // Start the long retry interval
+    this.retryInterval = setInterval(() => {
+      void (async () => {
+        if (this.isConnected) {
+          if (this.retryInterval) {
+            clearInterval(this.retryInterval);
+            delete this.retryInterval;
+          }
+          return;
+        }
+
+        try {
+          await this.attemptConnection();
+        } catch (error) {
+          this.connectionRetries++;
+          const errorMessage = error instanceof Error ? error.message : String(error);
+
+          this.logger.warn(
+            `Database connection attempt ${this.connectionRetries} failed (long retry phase)`,
+            {
+              error: errorMessage,
+              attempt: this.connectionRetries,
+              nextRetryIn: this.longRetryDelay,
+              phase: 'long',
+            },
+            'PrismaService',
+          );
+        }
+      })();
+    }, this.longRetryDelay);
+  }
+
+  private async attemptConnection(): Promise<void> {
+    await this.$connect();
+    this.isConnected = true;
+    this.isInLongRetryPhase = false;
+
+    if (this.retryInterval) {
+      clearInterval(this.retryInterval);
+      delete this.retryInterval;
+    }
+
+    this.logger.info(
+      'Successfully connected to database',
+      {
+        totalAttempts: this.connectionRetries + 1,
+        phase: this.connectionRetries < this.maxRetries ? 'quick' : 'long',
+      },
+      'PrismaService',
+    );
   }
 
   private async safeDisconnect(): Promise<void> {
@@ -216,11 +304,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     isConnected: boolean;
     connectionRetries: number;
     maxRetries: number;
+    isInLongRetryPhase: boolean;
+    enableContinuousRetry: boolean;
   } {
     return {
       isConnected: this.isConnected,
       connectionRetries: this.connectionRetries,
       maxRetries: this.maxRetries,
+      isInLongRetryPhase: this.isInLongRetryPhase,
+      enableContinuousRetry: this.enableContinuousRetry,
     };
   }
 

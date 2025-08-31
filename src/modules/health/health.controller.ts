@@ -18,10 +18,9 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({ summary: 'Readiness probe for Kubernetes' })
-  @ApiResponse({ status: 200, description: 'Service is ready' })
-  @ApiResponse({ status: 503, description: 'Service not ready' })
+  @ApiResponse({ status: 200, description: 'Service is ready or degraded' })
   async getReadiness(): Promise<HealthCheckResult> {
-    return this.healthService.checkReadiness();
+    return this.healthService.checkReadinessGraceful();
   }
 
   @Get('live')

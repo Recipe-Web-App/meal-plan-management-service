@@ -113,6 +113,60 @@ describe('HealthService', () => {
     });
   });
 
+  describe('checkReadinessGraceful', () => {
+    it('should return ok status when database is healthy', async () => {
+      prismaService.performHealthCheck.mockResolvedValue({
+        status: 'healthy',
+        message: 'Database is healthy',
+        latency: 10,
+        timestamp: new Date(),
+      });
+      prismaService.getConnectionStatus.mockReturnValue({
+        isConnected: true,
+        connectionRetries: 0,
+        lastConnectionAttempt: new Date(),
+      });
+
+      const result = await service.checkReadinessGraceful();
+
+      expect(result.status).toBe('ok');
+      expect(result.info.database.status).toBe('up');
+    });
+
+    it('should return ok status with degraded info when database is down', async () => {
+      prismaService.performHealthCheck.mockResolvedValue({
+        status: 'unhealthy',
+        message: 'Database connection failed',
+        latency: 1000,
+        timestamp: new Date(),
+      });
+      prismaService.getConnectionStatus.mockReturnValue({
+        isConnected: false,
+        connectionRetries: 3,
+        lastConnectionAttempt: new Date(),
+      });
+
+      const result = await service.checkReadinessGraceful();
+
+      expect(result.status).toBe('ok'); // Still returns ok for 200 status
+      expect(result.info.service.status).toBe('up');
+      expect(result.info.database.status).toBe('down');
+      expect(result.info.database.degraded).toBe(true);
+    });
+
+    it('should handle database check exceptions gracefully', async () => {
+      prismaService.performHealthCheck.mockRejectedValue(new Error('Connection timeout'));
+
+      const result = await service.checkReadinessGraceful();
+
+      expect(result.status).toBe('ok'); // Still returns ok for 200 status
+      expect(result.info.service.status).toBe('up');
+      expect(result.info.database.status).toBe('down');
+      expect(result.info.database.message).toBe('Connection timeout');
+      expect(result.info.database.degraded).toBe(true);
+    });
+  });
+
   describe('checkLiveness', () => {
     it('should perform liveness check', async () => {
       healthCheckService.check.mockResolvedValue(mockHealthResult);
