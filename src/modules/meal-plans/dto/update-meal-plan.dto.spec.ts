@@ -101,7 +101,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should fail when name is too long', async () => {
-      const invalidData = { name: 'a'.repeat(101) };
+      const invalidData = { name: 'a'.repeat(256) };
 
       const dto = plainToClass(UpdateMealPlanDto, invalidData);
       const errors = await validate(dto);
@@ -112,7 +112,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should pass when name is at maximum length', async () => {
-      const validData = { name: 'a'.repeat(100) };
+      const validData = { name: 'a'.repeat(255) };
 
       const dto = plainToClass(UpdateMealPlanDto, validData);
       const errors = await validate(dto);
@@ -143,7 +143,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should fail when description is too long', async () => {
-      const invalidData = { description: 'a'.repeat(501) };
+      const invalidData = { description: 'a'.repeat(1001) };
 
       const dto = plainToClass(UpdateMealPlanDto, invalidData);
       const errors = await validate(dto);
@@ -154,7 +154,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should pass when description is at maximum length', async () => {
-      const validData = { description: 'a'.repeat(500) };
+      const validData = { description: 'a'.repeat(1000) };
 
       const dto = plainToClass(UpdateMealPlanDto, validData);
       const errors = await validate(dto);
@@ -247,7 +247,7 @@ describe('UpdateMealPlanDto', () => {
     it('should handle mixed valid and invalid fields', async () => {
       const mixedData = {
         name: 'Valid Name',
-        description: 'a'.repeat(501), // invalid
+        description: 'a'.repeat(1001), // invalid
         startDate: '2025-09-01T00:00:00.000Z', // valid
         endDate: '2025-09-07T23:59:59.999Z', // valid to avoid transform error
         isActive: true, // valid

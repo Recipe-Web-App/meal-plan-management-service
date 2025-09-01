@@ -1,4 +1,13 @@
-import { IsString, IsNotEmpty, IsDate, IsBoolean, IsOptional, Length } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDate,
+  IsBoolean,
+  IsOptional,
+  Length,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsMealPlanDateRangeValid } from '../validators/date-range.validator';
@@ -7,17 +16,18 @@ import {
   StripHtml,
   NormalizeWhitespace,
 } from '../validators/sanitizers/simple-sanitizer.validator';
+import { CreateMealPlanRecipeDto } from './create-meal-plan-recipe.dto';
 
 export class CreateMealPlanDto {
   @ApiProperty({
     description: 'Name of the meal plan',
     example: 'Weekly Family Meal Plan',
     minLength: 1,
-    maxLength: 100,
+    maxLength: 255,
   })
   @IsNotEmpty({ message: 'Meal plan name is required', groups: ['basic'] })
   @IsString({ message: 'Name must be a string', groups: ['basic'] })
-  @Length(1, 100, { message: 'Name must be between 1 and 100 characters', groups: ['basic'] })
+  @Length(1, 255, { message: 'Name must be between 1 and 255 characters', groups: ['basic'] })
   @StripHtml()
   @NormalizeWhitespace()
   name!: string;
@@ -25,11 +35,11 @@ export class CreateMealPlanDto {
   @ApiPropertyOptional({
     description: 'Description of the meal plan',
     example: 'A healthy and balanced weekly meal plan for the family',
-    maxLength: 500,
+    maxLength: 1000,
   })
   @IsOptional({ groups: ['basic'] })
   @IsString({ message: 'Description must be a string', groups: ['basic'] })
-  @Length(0, 500, { message: 'Description cannot exceed 500 characters', groups: ['basic'] })
+  @Length(0, 1000, { message: 'Description cannot exceed 1000 characters', groups: ['basic'] })
   @StripHtml()
   @NormalizeWhitespace()
   description?: string;
@@ -89,6 +99,25 @@ export class CreateMealPlanDto {
     return value as unknown as boolean;
   })
   isActive?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Optional list of recipes to add when creating the meal plan',
+    type: [CreateMealPlanRecipeDto],
+    example: [
+      {
+        recipeId: '550e8400-e29b-41d4-a716-446655440000',
+        day: 1,
+        mealType: 'BREAKFAST',
+        servings: 4,
+        notes: 'Prepare the night before',
+      },
+    ],
+  })
+  @IsOptional()
+  @IsArray({ message: 'Recipes must be an array' })
+  @ValidateNested({ each: true, message: 'Each recipe must be valid' })
+  @Type(() => CreateMealPlanRecipeDto)
+  recipes?: CreateMealPlanRecipeDto[];
 
   // Internal field for validation - set by service layer, not by client
   // This field is not exposed in API documentation

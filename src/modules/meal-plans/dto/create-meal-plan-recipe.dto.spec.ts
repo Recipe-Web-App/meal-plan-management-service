@@ -6,7 +6,7 @@ describe('CreateMealPlanRecipeDto', () => {
   const validData = {
     recipeId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     day: 1,
-    mealType: 'breakfast' as const,
+    mealType: 'BREAKFAST' as const,
     servings: 4,
     notes: 'Prepare the night before for easier morning prep',
   };
@@ -55,7 +55,7 @@ describe('CreateMealPlanRecipeDto', () => {
     });
 
     it('should accept all valid meal types', async () => {
-      const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
+      const mealTypes = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'] as const;
 
       for (const mealType of mealTypes) {
         const testData = { ...validData, mealType };
@@ -278,8 +278,8 @@ describe('CreateMealPlanRecipeDto', () => {
       expect(errors[0].constraints).toHaveProperty('min');
     });
 
-    it('should fail when servings is greater than 20', async () => {
-      const invalidData = { ...validData, servings: 21 };
+    it('should fail when servings is greater than 100', async () => {
+      const invalidData = { ...validData, servings: 101 };
 
       const dto = plainToClass(CreateMealPlanRecipeDto, invalidData);
       const errors = await validate(dto);
@@ -351,7 +351,7 @@ describe('CreateMealPlanRecipeDto', () => {
         recipeId: 'invalid-uuid',
         day: 0,
         mealType: 'brunch' as any,
-        servings: 25,
+        servings: 125,
         notes: 123 as any,
       };
 
@@ -369,10 +369,10 @@ describe('CreateMealPlanRecipeDto', () => {
 
     it('should validate different meal combinations', async () => {
       const combinations = [
-        { day: 1, mealType: 'breakfast', servings: 2 },
-        { day: 3, mealType: 'lunch', servings: 4 },
-        { day: 5, mealType: 'dinner', servings: 6 },
-        { day: 7, mealType: 'snack', servings: 1 },
+        { day: 1, mealType: 'BREAKFAST', servings: 2 },
+        { day: 3, mealType: 'LUNCH', servings: 4 },
+        { day: 5, mealType: 'DINNER', servings: 6 },
+        { day: 7, mealType: 'SNACK', servings: 1 },
       ] as const;
 
       for (const combination of combinations) {

@@ -92,7 +92,7 @@ describe('CreateMealPlanDto', () => {
     it('should fail when name is too long', async () => {
       const invalidData = {
         ...validData,
-        name: 'a'.repeat(101),
+        name: 'a'.repeat(256),
       };
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
@@ -106,7 +106,7 @@ describe('CreateMealPlanDto', () => {
     it('should pass when name is at maximum length', async () => {
       const validLongName = {
         ...validData,
-        name: 'a'.repeat(100),
+        name: 'a'.repeat(255),
       };
 
       const dto = plainToClass(CreateMealPlanDto, validLongName);
@@ -142,7 +142,7 @@ describe('CreateMealPlanDto', () => {
     it('should fail when description is too long', async () => {
       const invalidData = {
         ...validData,
-        description: 'a'.repeat(501),
+        description: 'a'.repeat(1001),
       };
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
@@ -156,7 +156,7 @@ describe('CreateMealPlanDto', () => {
     it('should pass when description is at maximum length', async () => {
       const validLongDescription = {
         ...validData,
-        description: 'a'.repeat(500),
+        description: 'a'.repeat(1000),
       };
 
       const dto = plainToClass(CreateMealPlanDto, validLongDescription);
@@ -346,7 +346,7 @@ describe('CreateMealPlanDto', () => {
     it('should return multiple validation errors for multiple invalid fields', async () => {
       const invalidData = {
         name: '',
-        description: 'a'.repeat(501),
+        description: 'a'.repeat(1001),
         startDate: '2025-09-01T00:00:00.000Z', // Use valid dates to avoid transform error
         endDate: '2025-09-07T23:59:59.999Z',
         isActive: 'invalid',

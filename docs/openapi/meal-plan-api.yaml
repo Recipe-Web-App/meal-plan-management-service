@@ -1,0 +1,949 @@
+openapi: 3.0.3
+info:
+  title: Meal Plan Management Service API
+  description: API for managing meal plans, recipes, and nutritional tracking
+  version: 1.0.0
+  contact:
+    name: Recipe Web App Team
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.recipe-app.com
+    description: Production server
+
+tags:
+  - name: meal-plans
+    description: Meal plan management operations
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/meal-plans:
+    post:
+      tags:
+        - meal-plans
+      summary: Create a new meal plan
+      description: Creates a new meal plan for the authenticated user
+      operationId: createMealPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMealPlanDto'
+      responses:
+        '201':
+          description: Meal plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      tags:
+        - meal-plans
+      summary: List meal plans
+      description: Retrieve a paginated list of meal plans with optional filters
+      operationId: listMealPlans
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/IsActive'
+        - $ref: '#/components/parameters/StartDateFrom'
+        - $ref: '#/components/parameters/EndDateTo'
+        - $ref: '#/components/parameters/NameSearch'
+        - $ref: '#/components/parameters/DescriptionSearch'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/IncludeRecipes'
+        - $ref: '#/components/parameters/IncludeArchived'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of meal plans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMealPlansResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/meal-plans/{id}:
+    get:
+      tags:
+        - meal-plans
+      summary: Get meal plan by ID
+      description: Retrieve a specific meal plan with flexible viewing options and filters
+      operationId: getMealPlanById
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+        - name: viewMode
+          in: query
+          description: How to structure the response data
+          schema:
+            type: string
+            enum: [full, day, week, month]
+            default: full
+        - name: filterDate
+          in: query
+          description: For 'day' view - specific date to retrieve
+          schema:
+            type: string
+            format: date
+            example: '2024-03-15'
+        - name: filterStartDate
+          in: query
+          description: Start date for filtering (week view or custom range)
+          schema:
+            type: string
+            format: date
+        - name: filterEndDate
+          in: query
+          description: End date for custom date range filtering
+          schema:
+            type: string
+            format: date
+        - name: filterYear
+          in: query
+          description: Year for month view
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2100
+            example: 2024
+        - name: filterMonth
+          in: query
+          description: Month number (1-12) for month view
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 3
+        - name: mealType
+          in: query
+          description: Filter results by meal type
+          schema:
+            $ref: '#/components/schemas/MealType'
+        - name: groupByMealType
+          in: query
+          description: Group results by meal type
+          schema:
+            type: boolean
+            default: false
+        - name: includeRecipes
+          in: query
+          description: Include full recipe details in response
+          schema:
+            type: boolean
+            default: true
+        - name: includeStatistics
+          in: query
+          description: Include meal statistics (useful for month view)
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Meal plan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanQueryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - meal-plans
+      summary: Update meal plan
+      description: Update an existing meal plan's details
+      operationId: updateMealPlan
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMealPlanDto'
+      responses:
+        '200':
+          description: Meal plan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - meal-plans
+      summary: Delete meal plan
+      description: Permanently delete a meal plan and all associated recipes
+      operationId: deleteMealPlan
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      responses:
+        '200':
+          description: Meal plan deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/meal-plans/{id}/meals:
+    post:
+      tags:
+        - meal-plans
+      summary: Add meal to plan
+      description: Add a recipe as a meal to the specified meal plan
+      operationId: addMealToPlan
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMealPlanRecipeDto'
+      responses:
+        '201':
+          description: Meal added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Meal already exists for this date and meal type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - meal-plans
+      summary: Clear all meals from plan
+      description: Remove all recipes/meals from the specified meal plan
+      operationId: clearMealPlan
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      responses:
+        '200':
+          description: All meals cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/meal-plans/{id}/meals/{recipeId}:
+    delete:
+      tags:
+        - meal-plans
+      summary: Remove specific meal
+      description: Remove a specific recipe/meal from the meal plan
+      operationId: removeMealFromPlan
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+        - name: recipeId
+          in: path
+          required: true
+          description: ID of the recipe to remove
+          schema:
+            type: string
+            format: uuid
+        - name: mealDate
+          in: query
+          required: true
+          description: Date of the meal to remove
+          schema:
+            type: string
+            format: date
+        - name: mealType
+          in: query
+          required: false
+          description: Type of meal to remove (if multiple instances exist)
+          schema:
+            $ref: '#/components/schemas/MealType'
+      responses:
+        '200':
+          description: Meal removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    MealPlanId:
+      name: id
+      in: path
+      required: true
+      description: Meal plan ID
+      schema:
+        type: string
+        example: '123'
+
+    UserId:
+      name: userId
+      in: query
+      description: User ID to filter by
+      schema:
+        type: string
+        format: uuid
+
+    IsActive:
+      name: isActive
+      in: query
+      description: Filter by active status
+      schema:
+        type: boolean
+
+    StartDateFrom:
+      name: startDateFrom
+      in: query
+      description: Filter meal plans starting from this date
+      schema:
+        type: string
+        format: date
+
+    EndDateTo:
+      name: endDateTo
+      in: query
+      description: Filter meal plans ending before this date
+      schema:
+        type: string
+        format: date
+
+    NameSearch:
+      name: nameSearch
+      in: query
+      description: Search term for meal plan name
+      schema:
+        type: string
+
+    DescriptionSearch:
+      name: descriptionSearch
+      in: query
+      description: Search term for meal plan description
+      schema:
+        type: string
+
+    SortBy:
+      name: sortBy
+      in: query
+      description: Field to sort by
+      schema:
+        type: string
+        enum: [name, startDate, endDate, createdAt, updatedAt]
+        default: createdAt
+
+    SortOrder:
+      name: sortOrder
+      in: query
+      description: Sort order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+    IncludeRecipes:
+      name: includeRecipes
+      in: query
+      description: Include recipe details in response
+      schema:
+        type: boolean
+        default: false
+
+    IncludeArchived:
+      name: includeArchived
+      in: query
+      description: Include archived meal plans
+      schema:
+        type: boolean
+        default: false
+
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    MealType:
+      type: string
+      enum:
+        - BREAKFAST
+        - LUNCH
+        - DINNER
+        - SNACK
+        - DESSERT
+
+    CreateMealPlanDto:
+      type: object
+      required:
+        - name
+        - startDate
+        - endDate
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the meal plan
+          example: Weekly Meal Prep
+        description:
+          type: string
+          maxLength: 1000
+          description: Optional description of the meal plan
+          example: Healthy meals for the week
+        startDate:
+          type: string
+          format: date
+          description: Start date of the meal plan
+          example: '2024-03-11'
+        endDate:
+          type: string
+          format: date
+          description: End date of the meal plan
+          example: '2024-03-17'
+        isActive:
+          type: boolean
+          description: Whether the meal plan is currently active
+          default: true
+        userId:
+          type: string
+          format: uuid
+          description: User ID (typically set from authentication context)
+        recipes:
+          type: array
+          description: Optional list of recipes to add when creating the meal plan
+          items:
+            $ref: '#/components/schemas/CreateMealPlanRecipeDto'
+
+    UpdateMealPlanDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Updated name of the meal plan
+        description:
+          type: string
+          maxLength: 1000
+          description: Updated description
+        startDate:
+          type: string
+          format: date
+          description: Updated start date
+        endDate:
+          type: string
+          format: date
+          description: Updated end date
+
+    CreateMealPlanRecipeDto:
+      type: object
+      required:
+        - recipeId
+        - day
+        - mealType
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+          description: ID of the recipe to add
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        day:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of the week (1=Monday, 7=Sunday)
+          example: 3
+        mealType:
+          $ref: '#/components/schemas/MealType'
+        servings:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Number of servings
+          default: 1
+        notes:
+          type: string
+          maxLength: 500
+          description: Optional notes for this meal
+          example: Double the portion for guests
+
+    MealPlanResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Meal plan ID
+          example: '123'
+        userId:
+          type: string
+          format: uuid
+          description: User ID who owns this meal plan
+        name:
+          type: string
+          description: Name of the meal plan
+        description:
+          type: string
+          nullable: true
+          description: Description of the meal plan
+        startDate:
+          type: string
+          format: date
+          description: Start date of the meal plan
+        endDate:
+          type: string
+          format: date
+          description: End date of the meal plan
+        isActive:
+          type: boolean
+          description: Whether the meal plan is currently active
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+          description: List of recipes in this meal plan
+        recipeCount:
+          type: integer
+          description: Total number of recipes
+          example: 21
+        durationDays:
+          type: integer
+          description: Duration of the meal plan in days
+          example: 7
+
+    MealPlanRecipeResponseDto:
+      type: object
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+          description: Recipe ID
+        recipeName:
+          type: string
+          description: Name of the recipe
+          example: Grilled Chicken Salad
+        day:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of the week
+        mealType:
+          $ref: '#/components/schemas/MealType'
+        servings:
+          type: integer
+          description: Number of servings
+        notes:
+          type: string
+          nullable: true
+          description: Optional notes
+        prepTime:
+          type: integer
+          nullable: true
+          description: Preparation time in minutes
+          example: 15
+        cookTime:
+          type: integer
+          nullable: true
+          description: Cooking time in minutes
+          example: 20
+        difficulty:
+          type: string
+          nullable: true
+          enum: [EASY, MEDIUM, HARD]
+          description: Recipe difficulty level
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        totalPages:
+          type: integer
+          example: 8
+        hasNext:
+          type: boolean
+          example: true
+        hasPrevious:
+          type: boolean
+          example: false
+
+    PaginatedMealPlansResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanResponseDto'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    MealPlanQueryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        viewMode:
+          type: string
+          enum: [full, day, week, month]
+          description: The view mode used for this response
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/MealPlanResponseDto'
+            - $ref: '#/components/schemas/DayViewResponse'
+            - $ref: '#/components/schemas/WeekViewResponse'
+            - $ref: '#/components/schemas/MonthViewResponse'
+        statistics:
+          $ref: '#/components/schemas/MealPlanStatistics'
+          description: Optional statistics (when includeStatistics=true)
+
+    DayViewResponse:
+      type: object
+      properties:
+        mealPlanId:
+          type: string
+        mealPlanName:
+          type: string
+        date:
+          type: string
+          format: date
+        meals:
+          type: object
+          properties:
+            breakfast:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+            lunch:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+            dinner:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+            snack:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+            dessert:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+        totalMeals:
+          type: integer
+
+    WeekViewResponse:
+      type: object
+      properties:
+        mealPlanId:
+          type: string
+        mealPlanName:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        weekNumber:
+          type: integer
+        days:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              dayOfWeek:
+                type: string
+                enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+              meals:
+                type: object
+                properties:
+                  breakfast:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+                  lunch:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+                  dinner:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+                  snack:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+                  dessert:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlanRecipeResponseDto'
+              totalMeals:
+                type: integer
+        totalMeals:
+          type: integer
+
+    MonthViewResponse:
+      type: object
+      properties:
+        mealPlanId:
+          type: string
+        mealPlanName:
+          type: string
+        year:
+          type: integer
+        month:
+          type: integer
+        monthName:
+          type: string
+        weeks:
+          type: array
+          items:
+            type: object
+            properties:
+              weekNumber:
+                type: integer
+              startDate:
+                type: string
+                format: date
+              endDate:
+                type: string
+                format: date
+              days:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date
+                    dayOfMonth:
+                      type: integer
+                    isCurrentMonth:
+                      type: boolean
+                    mealCount:
+                      type: integer
+                    meals:
+                      type: object
+                      properties:
+                        breakfast:
+                          type: integer
+                        lunch:
+                          type: integer
+                        dinner:
+                          type: integer
+                        snack:
+                          type: integer
+                        dessert:
+                          type: integer
+        totalMeals:
+          type: integer
+
+    MealPlanStatistics:
+      type: object
+      properties:
+        averageMealsPerDay:
+          type: number
+          format: float
+        mostFrequentMealType:
+          $ref: '#/components/schemas/MealType'
+        daysWithMeals:
+          type: integer
+        totalRecipes:
+          type: integer
+        mealTypeBreakdown:
+          type: object
+          properties:
+            breakfast:
+              type: integer
+            lunch:
+              type: integer
+            dinner:
+              type: integer
+            snack:
+              type: integer
+            dessert:
+              type: integer
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/MealPlanResponseDto'
+        message:
+          type: string
+          example: Meal plan created successfully
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Validation failed
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            details:
+              type: array
+              items:
+                type: string
+              example:
+                - Name must be at least 1 character long
+                - End date must be after start date
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Conflict - resource already exists or dates overlap
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

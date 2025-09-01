@@ -22,7 +22,7 @@ describe('PaginationDto', () => {
 
       expect(errors).toHaveLength(0);
       expect(dto.page).toBe(1);
-      expect(dto.limit).toBe(10);
+      expect(dto.limit).toBe(20);
       expect(dto.offset).toBe(0);
     });
 
@@ -207,8 +207,8 @@ describe('PaginationDto', () => {
 
       expect(errors).toHaveLength(0);
       expect(dto.page).toBe(5);
-      expect(dto.limit).toBe(10); // default
-      expect(dto.offset).toBe(40);
+      expect(dto.limit).toBe(20); // default
+      expect(dto.offset).toBe(80);
     });
 
     it('should work with only limit provided', async () => {
@@ -254,7 +254,7 @@ describe('PaginatedResponseDto', () => {
       const response = new PaginatedResponseDto(sampleData, 25, 1, 10);
 
       expect(response.data).toEqual(sampleData);
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 1,
         limit: 10,
         total: 25,
@@ -267,7 +267,7 @@ describe('PaginatedResponseDto', () => {
     it('should calculate correct pagination metadata for middle page', () => {
       const response = new PaginatedResponseDto(sampleData, 25, 2, 10);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 2,
         limit: 10,
         total: 25,
@@ -280,7 +280,7 @@ describe('PaginatedResponseDto', () => {
     it('should calculate correct pagination metadata for last page', () => {
       const response = new PaginatedResponseDto(sampleData, 25, 3, 10);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 3,
         limit: 10,
         total: 25,
@@ -293,7 +293,7 @@ describe('PaginatedResponseDto', () => {
     it('should handle single page results', () => {
       const response = new PaginatedResponseDto(sampleData, 3, 1, 10);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 1,
         limit: 10,
         total: 3,
@@ -307,7 +307,7 @@ describe('PaginatedResponseDto', () => {
       const response = new PaginatedResponseDto([], 0, 1, 10);
 
       expect(response.data).toEqual([]);
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 1,
         limit: 10,
         total: 0,
@@ -320,7 +320,7 @@ describe('PaginatedResponseDto', () => {
     it('should handle exact page boundaries', () => {
       const response = new PaginatedResponseDto(sampleData, 20, 2, 10);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 2,
         limit: 10,
         total: 20,
@@ -335,7 +335,7 @@ describe('PaginatedResponseDto', () => {
     it('should handle small page size', () => {
       const response = new PaginatedResponseDto([sampleData[0]], 100, 1, 1);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 1,
         limit: 1,
         total: 100,
@@ -348,7 +348,7 @@ describe('PaginatedResponseDto', () => {
     it('should handle large page size', () => {
       const response = new PaginatedResponseDto(sampleData, 3, 1, 100);
 
-      expect(response.pagination).toEqual({
+      expect(response.meta).toEqual({
         page: 1,
         limit: 100,
         total: 3,
@@ -368,7 +368,7 @@ describe('PaginatedResponseDto', () => {
 
       for (const scenario of scenarios) {
         const response = new PaginatedResponseDto([], scenario.total, 1, scenario.limit);
-        expect(response.pagination.totalPages).toBe(scenario.expectedTotalPages);
+        expect(response.meta.totalPages).toBe(scenario.expectedTotalPages);
       }
     });
   });
@@ -390,8 +390,8 @@ describe('PaginatedResponseDto', () => {
           testCase.limit,
         );
 
-        expect(response.pagination.hasNext).toBe(testCase.expectedHasNext);
-        expect(response.pagination.hasPrevious).toBe(testCase.expectedHasPrevious);
+        expect(response.meta.hasNext).toBe(testCase.expectedHasNext);
+        expect(response.meta.hasPrevious).toBe(testCase.expectedHasPrevious);
       }
     });
   });
@@ -414,7 +414,7 @@ describe('PaginatedResponseDto', () => {
       const response = new PaginatedResponseDto(numberData, 20, 1, 5);
 
       expect(response.data).toEqual(numberData);
-      expect(response.pagination.total).toBe(20);
+      expect(response.meta.total).toBe(20);
     });
   });
 });

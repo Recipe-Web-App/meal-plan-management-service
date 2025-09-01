@@ -19,17 +19,17 @@ export class PaginationDto {
 
   @ApiPropertyOptional({
     description: 'Number of items per page',
-    example: 10,
+    example: 20,
     minimum: 1,
     maximum: 100,
-    default: 10,
+    default: 20,
   })
   @IsOptional()
   @IsInt({ message: 'Limit must be an integer' })
   @Min(1, { message: 'Limit must be at least 1' })
   @Max(100, { message: 'Limit cannot exceed 100' })
   @Type(() => Number)
-  limit?: number = 10;
+  limit?: number = 20;
 
   get offset(): number {
     return (this.page! - 1) * this.limit!;
@@ -46,7 +46,7 @@ export class PaginatedResponseDto<T> {
   @ApiPropertyOptional({
     description: 'Pagination metadata',
   })
-  pagination: {
+  meta: {
     page: number;
     limit: number;
     total: number;
@@ -59,7 +59,7 @@ export class PaginatedResponseDto<T> {
     this.data = data;
     const totalPages = Math.ceil(total / limit);
 
-    this.pagination = {
+    this.meta = {
       page,
       limit,
       total,

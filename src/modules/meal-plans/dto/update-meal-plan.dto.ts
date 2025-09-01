@@ -13,11 +13,11 @@ export class UpdateMealPlanDto {
     description: 'Name of the meal plan',
     example: 'Updated Weekly Family Meal Plan',
     minLength: 1,
-    maxLength: 100,
+    maxLength: 255,
   })
   @IsOptional({ groups: ['basic'] })
   @IsString({ message: 'Name must be a string', groups: ['basic'] })
-  @Length(1, 100, { message: 'Name must be between 1 and 100 characters', groups: ['basic'] })
+  @Length(1, 255, { message: 'Name must be between 1 and 255 characters', groups: ['basic'] })
   @StripHtml()
   @NormalizeWhitespace()
   name?: string;
@@ -25,11 +25,11 @@ export class UpdateMealPlanDto {
   @ApiPropertyOptional({
     description: 'Description of the meal plan',
     example: 'An updated healthy and balanced weekly meal plan for the family',
-    maxLength: 500,
+    maxLength: 1000,
   })
   @IsOptional({ groups: ['basic'] })
   @IsString({ message: 'Description must be a string', groups: ['basic'] })
-  @Length(0, 500, { message: 'Description cannot exceed 500 characters', groups: ['basic'] })
+  @Length(0, 1000, { message: 'Description cannot exceed 1000 characters', groups: ['basic'] })
   @StripHtml()
   @NormalizeWhitespace()
   description?: string;

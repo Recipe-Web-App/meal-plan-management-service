@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import { MealType, MEAL_TYPE_VALUES } from '../enums/meal-type.enum';
+import { RecipeDifficulty, RECIPE_DIFFICULTY_VALUES } from '../enums/recipe-difficulty.enum';
 
 export class MealPlanRecipeResponseDto {
   @ApiProperty({
@@ -25,11 +27,11 @@ export class MealPlanRecipeResponseDto {
 
   @ApiProperty({
     description: 'Meal type',
-    example: 'breakfast',
-    enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+    example: MealType.BREAKFAST,
+    enum: MEAL_TYPE_VALUES,
   })
   @Expose()
-  mealType!: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  mealType!: MealType;
 
   @ApiProperty({
     description: 'Number of servings',
@@ -61,11 +63,11 @@ export class MealPlanRecipeResponseDto {
 
   @ApiProperty({
     description: 'Recipe difficulty level',
-    example: 'easy',
-    enum: ['easy', 'medium', 'hard'],
+    example: RecipeDifficulty.EASY,
+    enum: RECIPE_DIFFICULTY_VALUES,
   })
   @Expose()
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: RecipeDifficulty;
 }
 
 export class MealPlanResponseDto {
