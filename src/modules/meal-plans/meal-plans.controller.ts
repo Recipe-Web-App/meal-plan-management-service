@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
   Query,
@@ -27,6 +28,7 @@ import {
   MealPlanQueryResponseDto,
   ErrorResponseDto,
   CreateMealPlanDto,
+  UpdateMealPlanDto,
   MealPlanResponseDto,
 } from './dto';
 import { MEAL_TYPE_VALUES } from './enums/meal-type.enum';
@@ -202,6 +204,69 @@ export class MealPlansController {
     const userId = 'temp-user-id';
 
     return this.mealPlansService.createMealPlan(createMealPlanDto, userId);
+  }
+
+  @Put(':id')
+  @ApiOperation({
+    summary: 'Update an existing meal plan',
+    description: 'Update a meal plan by ID with new data. Only provided fields will be updated.',
+    operationId: 'updateMealPlan',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Meal plan ID to update',
+    type: String,
+    example: '123',
+  })
+  @ApiBody({
+    type: UpdateMealPlanDto,
+    description: 'Meal plan update data. All fields are optional.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Meal plan updated successfully',
+    type: MealPlanResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error or invalid data',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - authentication required',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - user does not own this meal plan',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Meal plan not found',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - updated dates would overlap with existing meal plan',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+  })
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // Moderate rate limiting for updates
+  async updateMealPlan(
+    @Param('id') id: string,
+    @Body() updateMealPlanDto: UpdateMealPlanDto,
+    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+  ): Promise<MealPlanResponseDto> {
+    // TODO: Replace with actual user ID from JWT token
+    const userId = 'temp-user-id';
+
+    return this.mealPlansService.updateMealPlan(id, updateMealPlanDto, userId);
   }
 
   @Get(':id')

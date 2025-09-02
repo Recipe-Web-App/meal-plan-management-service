@@ -24,11 +24,13 @@ describe('MealPlansService', () => {
     create: jest.fn(),
     addRecipeToMealPlan: jest.fn(),
     findByIdWithRecipes: jest.fn(),
+    update: jest.fn(),
   };
 
   const mockValidationService = {
     validateMealPlanAccess: jest.fn(),
     validateCreateMealPlan: jest.fn(),
+    validateUpdateMealPlan: jest.fn(),
   };
 
   const mockMealPlan = {
@@ -308,6 +310,326 @@ describe('MealPlansService', () => {
       await expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  describe('updateMealPlan', () => {
+    const mealPlanId = '123';
+    const userId = 'test-user-id';
+
+    const updateMealPlanDto = {
+      name: 'Updated Meal Plan',
+      description: 'Updated description',
+      startDate: new Date('2024-04-01T00:00:00.000Z'),
+      endDate: new Date('2024-04-07T23:59:59.999Z'),
+    };
+
+    const existingMealPlan = {
+      mealPlanId: BigInt(123),
+      name: 'Original Meal Plan',
+      description: 'Original description',
+      userId: 'test-user-id',
+      startDate: new Date('2024-03-01T00:00:00.000Z'),
+      endDate: new Date('2024-03-07T23:59:59.999Z'),
+      createdAt: new Date('2024-02-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-02-01T00:00:00.000Z'),
+    };
+
+    const updatedMealPlan = {
+      ...existingMealPlan,
+      name: 'Updated Meal Plan',
+      description: 'Updated description',
+      startDate: new Date('2024-04-01T00:00:00.000Z'),
+      endDate: new Date('2024-04-07T23:59:59.999Z'),
+      updatedAt: new Date(),
+    };
+
+    beforeEach(() => {
+      mockRepository.findById.mockClear();
+      mockRepository.update.mockClear();
+      mockValidationService.validateUpdateMealPlan.mockClear();
+    });
+
+    describe('successful updates', () => {
+      it('should update a meal plan successfully with all fields', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: {
+            name: 'Updated Meal Plan',
+            description: 'Updated description',
+            startDate: new Date('2024-04-01T00:00:00.000Z'),
+            endDate: new Date('2024-04-07T23:59:59.999Z'),
+          },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue(updatedMealPlan);
+
+        const result = await service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId);
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockValidationService.validateUpdateMealPlan).toHaveBeenCalledWith(
+          { ...updateMealPlanDto, userId, id: mealPlanId },
+          { userId, currentMealPlanId: mealPlanId },
+        );
+        expect(mockRepository.update).toHaveBeenCalledWith(BigInt(123), {
+          name: 'Updated Meal Plan',
+          description: 'Updated description',
+          startDate: new Date('2024-04-01T00:00:00.000Z'),
+          endDate: new Date('2024-04-07T23:59:59.999Z'),
+        });
+        expect(result).toBeDefined();
+        expect(result.name).toBe('Updated Meal Plan');
+      });
+
+      it('should update a meal plan with partial fields', async () => {
+        const partialUpdateDto = {
+          name: 'Just Update Name',
+        };
+
+        const validationResult = {
+          isValid: true,
+          sanitizedData: {
+            name: 'Just Update Name',
+          },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue({
+          ...existingMealPlan,
+          name: 'Just Update Name',
+        });
+
+        const result = await service.updateMealPlan(mealPlanId, partialUpdateDto as any, userId);
+
+        expect(mockRepository.update).toHaveBeenCalledWith(BigInt(123), {
+          name: 'Just Update Name',
+        });
+        expect(result.name).toBe('Just Update Name');
+      });
+
+      it('should handle empty update (no fields changed)', async () => {
+        const emptyUpdateDto = {};
+
+        const validationResult = {
+          isValid: true,
+          sanitizedData: {},
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+
+        const result = await service.updateMealPlan(mealPlanId, emptyUpdateDto as any, userId);
+
+        expect(mockRepository.update).not.toHaveBeenCalled();
+        expect(result).toBeDefined();
+        expect(result.name).toBe('Original Meal Plan');
+      });
+
+      it('should update only name field', async () => {
+        const nameOnlyDto = { name: 'New Name' };
+        const validationResult = {
+          isValid: true,
+          sanitizedData: { name: 'New Name' },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue({
+          ...existingMealPlan,
+          name: 'New Name',
+        });
+
+        await service.updateMealPlan(mealPlanId, nameOnlyDto as any, userId);
+
+        expect(mockRepository.update).toHaveBeenCalledWith(BigInt(123), {
+          name: 'New Name',
+        });
+      });
+
+      it('should update only description field', async () => {
+        const descOnlyDto = { description: 'New description' };
+        const validationResult = {
+          isValid: true,
+          sanitizedData: { description: 'New description' },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue({
+          ...existingMealPlan,
+          description: 'New description',
+        });
+
+        await service.updateMealPlan(mealPlanId, descOnlyDto as any, userId);
+
+        expect(mockRepository.update).toHaveBeenCalledWith(BigInt(123), {
+          description: 'New description',
+        });
+      });
+
+      it('should update date fields only', async () => {
+        const dateOnlyDto = {
+          startDate: new Date('2024-05-01T00:00:00.000Z'),
+          endDate: new Date('2024-05-07T23:59:59.999Z'),
+        };
+
+        const validationResult = {
+          isValid: true,
+          sanitizedData: {
+            startDate: new Date('2024-05-01T00:00:00.000Z'),
+            endDate: new Date('2024-05-07T23:59:59.999Z'),
+          },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue({
+          ...existingMealPlan,
+          startDate: new Date('2024-05-01T00:00:00.000Z'),
+          endDate: new Date('2024-05-07T23:59:59.999Z'),
+        });
+
+        await service.updateMealPlan(mealPlanId, dateOnlyDto as any, userId);
+
+        expect(mockRepository.update).toHaveBeenCalledWith(BigInt(123), {
+          startDate: new Date('2024-05-01T00:00:00.000Z'),
+          endDate: new Date('2024-05-07T23:59:59.999Z'),
+        });
+      });
+    });
+
+    describe('error handling', () => {
+      it('should throw NotFoundException when meal plan does not exist', async () => {
+        mockRepository.findById.mockResolvedValue(null);
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(NotFoundException);
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+      });
+
+      it('should throw ForbiddenException when user does not own meal plan', async () => {
+        const differentUserMealPlan = {
+          ...existingMealPlan,
+          userId: 'different-user-id',
+        };
+
+        mockRepository.findById.mockResolvedValue(differentUserMealPlan);
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should throw BadRequestException when validation fails', async () => {
+        const validationResult = {
+          isValid: false,
+          errors: ['Name is required', 'Invalid date range'],
+          sanitizedData: undefined,
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should handle repository update errors', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: updateMealPlanDto,
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockRejectedValue(new Error('Database error'));
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should propagate NotFoundException from nested methods', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: updateMealPlanDto,
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockRejectedValue(new NotFoundException('Record not found'));
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('should propagate ForbiddenException from nested methods', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: updateMealPlanDto,
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockRejectedValue(new ForbiddenException('Access denied'));
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should propagate BadRequestException from nested methods', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: updateMealPlanDto,
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockRejectedValue(new BadRequestException('Invalid data'));
+
+        await expect(
+          service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
+        ).rejects.toThrow(BadRequestException);
+      });
+    });
+
+    describe('validation context', () => {
+      it('should set correct validation context', async () => {
+        const validationResult = {
+          isValid: true,
+          sanitizedData: { name: 'Test' },
+          errors: [],
+        };
+
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
+        mockRepository.update.mockResolvedValue(existingMealPlan);
+
+        await service.updateMealPlan(mealPlanId, { name: 'Test' } as any, userId);
+
+        expect(mockValidationService.validateUpdateMealPlan).toHaveBeenCalledWith(
+          { name: 'Test', userId, id: mealPlanId },
+          { userId, currentMealPlanId: mealPlanId },
+        );
+      });
     });
   });
 

@@ -5,7 +5,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { MealPlansRepository, RecipeFilters, CreateMealPlanData } from './meal-plans.repository';
+import {
+  MealPlansRepository,
+  RecipeFilters,
+  CreateMealPlanData,
+  UpdateMealPlanData,
+} from './meal-plans.repository';
 import { MealPlanValidationService } from './services/meal-plan-validation.service';
 import {
   MealPlanQueryDto,
@@ -20,6 +25,7 @@ import {
   MealPlanStatisticsDto,
   MealTypeBreakdownDto,
   CreateMealPlanDto,
+  UpdateMealPlanDto,
 } from './dto';
 import { MealType } from '@prisma/client';
 import { RawMealPlanInput } from './types/validation.types';
@@ -154,6 +160,84 @@ export class MealPlansService {
         throw error;
       }
       throw new BadRequestException('Failed to create meal plan');
+    }
+  }
+
+  async updateMealPlan(
+    mealPlanId: string,
+    updateMealPlanDto: UpdateMealPlanDto,
+    userId: string,
+  ): Promise<MealPlanResponseDto> {
+    // First, verify the meal plan exists and user has permission
+    const existingMealPlan = await this.repository.findById(BigInt(mealPlanId));
+    if (!existingMealPlan) {
+      throw new NotFoundException(`Meal plan with ID ${mealPlanId} not found`);
+    }
+
+    // Check if user owns this meal plan
+    if (existingMealPlan.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to update this meal plan');
+    }
+
+    // Set context fields for validation
+    updateMealPlanDto.userId = userId;
+    updateMealPlanDto.id = mealPlanId;
+
+    // Validate and sanitize the update data
+    const validationResult = await this.validationService.validateUpdateMealPlan(
+      updateMealPlanDto as RawMealPlanInput,
+      { userId, currentMealPlanId: mealPlanId },
+    );
+
+    if (!validationResult.isValid) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        errors: validationResult.errors,
+      });
+    }
+
+    try {
+      // Build update data with only provided fields
+      const updateData: UpdateMealPlanData = {};
+
+      if (validationResult.sanitizedData!.name !== undefined) {
+        updateData.name = validationResult.sanitizedData!.name;
+      }
+
+      if (validationResult.sanitizedData!.description !== undefined) {
+        updateData.description = validationResult.sanitizedData!.description;
+      }
+
+      if (validationResult.sanitizedData!.startDate !== undefined) {
+        updateData.startDate = validationResult.sanitizedData!.startDate;
+      }
+
+      if (validationResult.sanitizedData!.endDate !== undefined) {
+        updateData.endDate = validationResult.sanitizedData!.endDate;
+      }
+
+      // If no fields to update, return the existing meal plan
+      if (Object.keys(updateData).length === 0) {
+        return plainToInstance(MealPlanResponseDto, existingMealPlan, {
+          excludeExtraneousValues: true,
+        });
+      }
+
+      // Update the meal plan
+      const updatedMealPlan = await this.repository.update(BigInt(mealPlanId), updateData);
+
+      return plainToInstance(MealPlanResponseDto, updatedMealPlan, {
+        excludeExtraneousValues: true,
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to update meal plan');
     }
   }
 

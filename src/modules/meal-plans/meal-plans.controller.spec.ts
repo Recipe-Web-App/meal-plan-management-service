@@ -8,6 +8,7 @@ import {
   PaginatedMealPlansResponseDto,
   MealPlanQueryResponseDto,
   CreateMealPlanDto,
+  UpdateMealPlanDto,
   MealPlanResponseDto,
 } from './dto';
 import { MealType } from './enums/meal-type.enum';
@@ -20,6 +21,7 @@ describe('MealPlansController', () => {
     findMealPlans: jest.fn(),
     findMealPlanById: jest.fn(),
     createMealPlan: jest.fn(),
+    updateMealPlan: jest.fn(),
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
@@ -714,6 +716,235 @@ describe('MealPlansController', () => {
         service.createMealPlan.mockRejectedValue(error);
 
         await expect(controller.createMealPlan(invalidDayDto)).rejects.toThrow(error);
+      });
+    });
+  });
+
+  describe('PUT /meal-plans/:id (updateMealPlan)', () => {
+    const mockMealPlanId = '123';
+    const mockUserId = 'temp-user-id';
+
+    const updateMealPlanDto: UpdateMealPlanDto = {
+      name: 'Updated Meal Plan',
+      description: 'Updated description',
+      startDate: new Date('2024-03-15T00:00:00.000Z'),
+      endDate: new Date('2024-03-21T23:59:59.999Z'),
+    };
+
+    const expectedResponse: MealPlanResponseDto = {
+      mealPlanId: '123',
+      name: 'Updated Meal Plan',
+      description: 'Updated description',
+      userId: 'temp-user-id',
+      startDate: new Date('2024-03-15T00:00:00.000Z'),
+      endDate: new Date('2024-03-21T23:59:59.999Z'),
+      createdAt: new Date('2024-03-01T00:00:00.000Z'),
+      updatedAt: new Date(),
+      totalRecipes: 0,
+      mealPlanRecipes: [],
+    };
+
+    beforeEach(() => {
+      service.updateMealPlan.mockClear();
+    });
+
+    describe('successful updates', () => {
+      it('should update a meal plan successfully with all fields', async () => {
+        service.updateMealPlan.mockResolvedValue(expectedResponse);
+
+        const result = await controller.updateMealPlan(mockMealPlanId, updateMealPlanDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(
+          mockMealPlanId,
+          updateMealPlanDto,
+          mockUserId,
+        );
+        expect(result).toEqual(expectedResponse);
+      });
+
+      it('should update a meal plan with partial data', async () => {
+        const partialUpdateDto: UpdateMealPlanDto = {
+          name: 'Just Update Name',
+        };
+
+        const partialResponse = { ...expectedResponse, name: 'Just Update Name' };
+        service.updateMealPlan.mockResolvedValue(partialResponse);
+
+        const result = await controller.updateMealPlan(mockMealPlanId, partialUpdateDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(
+          mockMealPlanId,
+          partialUpdateDto,
+          mockUserId,
+        );
+        expect(result).toEqual(partialResponse);
+      });
+
+      it('should update only the name field', async () => {
+        const nameOnlyDto: UpdateMealPlanDto = {
+          name: 'New Name Only',
+        };
+
+        service.updateMealPlan.mockResolvedValue({
+          ...expectedResponse,
+          name: 'New Name Only',
+        });
+
+        const result = await controller.updateMealPlan(mockMealPlanId, nameOnlyDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(
+          mockMealPlanId,
+          nameOnlyDto,
+          mockUserId,
+        );
+        expect(result.name).toBe('New Name Only');
+      });
+
+      it('should update only the description field', async () => {
+        const descriptionOnlyDto: UpdateMealPlanDto = {
+          description: 'New description only',
+        };
+
+        service.updateMealPlan.mockResolvedValue({
+          ...expectedResponse,
+          description: 'New description only',
+        });
+
+        const result = await controller.updateMealPlan(mockMealPlanId, descriptionOnlyDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(
+          mockMealPlanId,
+          descriptionOnlyDto,
+          mockUserId,
+        );
+        expect(result.description).toBe('New description only');
+      });
+
+      it('should update only date fields', async () => {
+        const datesOnlyDto: UpdateMealPlanDto = {
+          startDate: new Date('2024-04-01T00:00:00.000Z'),
+          endDate: new Date('2024-04-07T23:59:59.999Z'),
+        };
+
+        service.updateMealPlan.mockResolvedValue({
+          ...expectedResponse,
+          startDate: new Date('2024-04-01T00:00:00.000Z'),
+          endDate: new Date('2024-04-07T23:59:59.999Z'),
+        });
+
+        const result = await controller.updateMealPlan(mockMealPlanId, datesOnlyDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(
+          mockMealPlanId,
+          datesOnlyDto,
+          mockUserId,
+        );
+        expect(result.startDate).toEqual(new Date('2024-04-01T00:00:00.000Z'));
+        expect(result.endDate).toEqual(new Date('2024-04-07T23:59:59.999Z'));
+      });
+
+      it('should handle empty update (no fields provided)', async () => {
+        const emptyDto: UpdateMealPlanDto = {};
+
+        service.updateMealPlan.mockResolvedValue(expectedResponse);
+
+        const result = await controller.updateMealPlan(mockMealPlanId, emptyDto);
+
+        expect(service.updateMealPlan).toHaveBeenCalledWith(mockMealPlanId, emptyDto, mockUserId);
+        expect(result).toEqual(expectedResponse);
+      });
+    });
+
+    describe('error handling', () => {
+      it('should handle meal plan not found', async () => {
+        const error = new Error('Meal plan with ID 999 not found');
+        error.name = 'NotFoundException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan('999', updateMealPlanDto)).rejects.toThrow(error);
+      });
+
+      it('should handle forbidden access (user does not own meal plan)', async () => {
+        const error = new Error('You do not have permission to update this meal plan');
+        error.name = 'ForbiddenException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan(mockMealPlanId, updateMealPlanDto)).rejects.toThrow(
+          error,
+        );
+      });
+
+      it('should handle validation errors', async () => {
+        const invalidDto: UpdateMealPlanDto = {
+          name: '', // Invalid: empty name
+          description: 'a'.repeat(1001), // Invalid: too long
+        };
+
+        const error = new Error('Validation failed');
+        error.name = 'BadRequestException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan(mockMealPlanId, invalidDto)).rejects.toThrow(error);
+      });
+
+      it('should handle date overlap conflicts', async () => {
+        const conflictDto: UpdateMealPlanDto = {
+          startDate: new Date('2024-03-01T00:00:00.000Z'),
+          endDate: new Date('2024-03-07T23:59:59.999Z'),
+        };
+
+        const error = new Error('Updated dates would overlap with existing meal plan');
+        error.name = 'ConflictException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan(mockMealPlanId, conflictDto)).rejects.toThrow(error);
+      });
+
+      it('should handle invalid date ranges', async () => {
+        const invalidDateDto: UpdateMealPlanDto = {
+          startDate: new Date('2024-03-07T00:00:00.000Z'),
+          endDate: new Date('2024-03-01T23:59:59.999Z'), // End before start
+        };
+
+        const error = new Error('End date must be after start date');
+        error.name = 'BadRequestException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan(mockMealPlanId, invalidDateDto)).rejects.toThrow(
+          error,
+        );
+      });
+
+      it('should handle general service errors', async () => {
+        const error = new Error('Failed to update meal plan');
+        error.name = 'BadRequestException';
+        service.updateMealPlan.mockRejectedValue(error);
+
+        await expect(controller.updateMealPlan(mockMealPlanId, updateMealPlanDto)).rejects.toThrow(
+          error,
+        );
+      });
+    });
+
+    describe('parameter validation', () => {
+      it('should work with different meal plan ID formats', async () => {
+        const testIds = ['1', '123', '999999'];
+
+        for (const testId of testIds) {
+          service.updateMealPlan.mockResolvedValue({
+            ...expectedResponse,
+            mealPlanId: testId,
+          });
+
+          const result = await controller.updateMealPlan(testId, updateMealPlanDto);
+
+          expect(service.updateMealPlan).toHaveBeenCalledWith(
+            testId,
+            updateMealPlanDto,
+            mockUserId,
+          );
+          expect(result.mealPlanId).toBe(testId);
+        }
       });
     });
   });
