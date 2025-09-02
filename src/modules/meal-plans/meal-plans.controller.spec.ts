@@ -22,6 +22,7 @@ describe('MealPlansController', () => {
     findMealPlanById: jest.fn(),
     createMealPlan: jest.fn(),
     updateMealPlan: jest.fn(),
+    deleteMealPlan: jest.fn(),
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
@@ -945,6 +946,141 @@ describe('MealPlansController', () => {
           );
           expect(result.mealPlanId).toBe(testId);
         }
+      });
+    });
+  });
+
+  describe('DELETE /meal-plans/:id (deleteMealPlan)', () => {
+    const mockMealPlanId = '123';
+    const mockUserId = 'temp-user-id';
+
+    beforeEach(() => {
+      service.deleteMealPlan.mockClear();
+    });
+
+    describe('successful deletion', () => {
+      it('should delete a meal plan successfully', async () => {
+        service.deleteMealPlan.mockResolvedValue(undefined);
+
+        const result = await controller.deleteMealPlan(mockMealPlanId);
+
+        expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
+        expect(result).toBeUndefined();
+      });
+
+      it('should work with different meal plan ID formats', async () => {
+        const testIds = ['1', '123', '999999', '9999999999999'];
+
+        for (const testId of testIds) {
+          service.deleteMealPlan.mockClear();
+          service.deleteMealPlan.mockResolvedValue(undefined);
+
+          const result = await controller.deleteMealPlan(testId);
+
+          expect(service.deleteMealPlan).toHaveBeenCalledWith(testId, mockUserId);
+          expect(result).toBeUndefined();
+        }
+      });
+    });
+
+    describe('error handling', () => {
+      it('should handle meal plan not found', async () => {
+        const error = new Error('Meal plan with ID 999 not found');
+        error.name = 'NotFoundException';
+        service.deleteMealPlan.mockRejectedValue(error);
+
+        await expect(controller.deleteMealPlan('999')).rejects.toThrow(error);
+        expect(service.deleteMealPlan).toHaveBeenCalledWith('999', mockUserId);
+      });
+
+      it('should handle forbidden access (user does not own meal plan)', async () => {
+        const error = new Error('You do not have permission to delete this meal plan');
+        error.name = 'ForbiddenException';
+        service.deleteMealPlan.mockRejectedValue(error);
+
+        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+        expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
+      });
+
+      it('should handle invalid meal plan ID format', async () => {
+        const error = new Error('Invalid meal plan ID format');
+        error.name = 'BadRequestException';
+        service.deleteMealPlan.mockRejectedValue(error);
+
+        await expect(controller.deleteMealPlan('invalid-id')).rejects.toThrow(error);
+      });
+
+      it('should handle database errors during deletion', async () => {
+        const error = new Error('Failed to delete meal plan');
+        error.name = 'BadRequestException';
+        service.deleteMealPlan.mockRejectedValue(error);
+
+        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+        expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
+      });
+
+      it('should handle general service errors', async () => {
+        const error = new Error('Internal server error');
+        error.name = 'InternalServerErrorException';
+        service.deleteMealPlan.mockRejectedValue(error);
+
+        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+      });
+
+      it('should propagate service exceptions without modification', async () => {
+        const customError = new Error('Custom service error');
+        customError.name = 'CustomException';
+        service.deleteMealPlan.mockRejectedValue(customError);
+
+        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(customError);
+      });
+    });
+
+    describe('authentication context', () => {
+      it('should pass correct user ID from temporary context', async () => {
+        service.deleteMealPlan.mockResolvedValue(undefined);
+
+        await controller.deleteMealPlan(mockMealPlanId);
+
+        expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, 'temp-user-id');
+      });
+    });
+
+    describe('parameter validation', () => {
+      it('should accept various ID formats without validation errors', async () => {
+        const testCases = [
+          '1', // simple number
+          '123456789', // larger number
+          '000123', // padded number
+          'abc123', // alphanumeric (if supported)
+        ];
+
+        for (const testId of testCases) {
+          service.deleteMealPlan.mockClear();
+          service.deleteMealPlan.mockResolvedValue(undefined);
+
+          await controller.deleteMealPlan(testId);
+
+          expect(service.deleteMealPlan).toHaveBeenCalledWith(testId, mockUserId);
+        }
+      });
+    });
+
+    describe('response format', () => {
+      it('should return undefined/void for successful deletion', async () => {
+        service.deleteMealPlan.mockResolvedValue(undefined);
+
+        const result = await controller.deleteMealPlan(mockMealPlanId);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should not return any data on successful deletion', async () => {
+        service.deleteMealPlan.mockResolvedValue(undefined);
+
+        const result = await controller.deleteMealPlan(mockMealPlanId);
+
+        expect(result).not.toBeDefined();
       });
     });
   });

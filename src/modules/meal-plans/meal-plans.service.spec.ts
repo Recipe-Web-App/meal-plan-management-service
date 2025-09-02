@@ -25,6 +25,7 @@ describe('MealPlansService', () => {
     addRecipeToMealPlan: jest.fn(),
     findByIdWithRecipes: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockValidationService = {
@@ -629,6 +630,201 @@ describe('MealPlansService', () => {
           { name: 'Test', userId, id: mealPlanId },
           { userId, currentMealPlanId: mealPlanId },
         );
+      });
+    });
+  });
+
+  describe('deleteMealPlan', () => {
+    const mealPlanId = '123';
+    const userId = 'test-user-id';
+
+    const existingMealPlan = {
+      mealPlanId: BigInt(123),
+      name: 'Test Meal Plan',
+      description: 'Test description',
+      userId: 'test-user-id',
+      startDate: new Date('2024-03-01T00:00:00.000Z'),
+      endDate: new Date('2024-03-07T23:59:59.999Z'),
+      createdAt: new Date('2024-02-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-02-01T00:00:00.000Z'),
+    };
+
+    beforeEach(() => {
+      mockRepository.findById.mockClear();
+      mockRepository.delete.mockClear();
+    });
+
+    describe('successful deletion', () => {
+      it('should delete a meal plan successfully', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockResolvedValue(existingMealPlan);
+
+        await service.deleteMealPlan(mealPlanId, userId);
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(123));
+      });
+
+      it('should verify ownership before deletion', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockResolvedValue(existingMealPlan);
+
+        await service.deleteMealPlan(mealPlanId, userId);
+
+        // Should call both findById (for ownership verification) and delete
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(123));
+      });
+
+      it('should handle different meal plan ID formats', async () => {
+        const testIds = ['1', '456', '999999'];
+
+        for (const testId of testIds) {
+          mockRepository.findById.mockClear();
+          mockRepository.delete.mockClear();
+
+          const mealPlan = { ...existingMealPlan, mealPlanId: BigInt(testId) };
+          mockRepository.findById.mockResolvedValue(mealPlan);
+          mockRepository.delete.mockResolvedValue(mealPlan);
+
+          await service.deleteMealPlan(testId, userId);
+
+          expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(testId));
+          expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(testId));
+        }
+      });
+    });
+
+    describe('error handling', () => {
+      it('should throw NotFoundException when meal plan does not exist', async () => {
+        mockRepository.findById.mockResolvedValue(null);
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockRepository.delete).not.toHaveBeenCalled();
+      });
+
+      it('should throw ForbiddenException when user does not own meal plan', async () => {
+        const differentUserMealPlan = {
+          ...existingMealPlan,
+          userId: 'different-user-id',
+        };
+
+        mockRepository.findById.mockResolvedValue(differentUserMealPlan);
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
+          ForbiddenException,
+        );
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockRepository.delete).not.toHaveBeenCalled();
+      });
+
+      it('should handle repository delete errors', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockRejectedValue(new Error('Database error'));
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
+          BadRequestException,
+        );
+
+        expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
+        expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(123));
+      });
+
+      it('should propagate NotFoundException from repository operations', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockRejectedValue(
+          new NotFoundException('Record not found during deletion'),
+        );
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
+      });
+
+      it('should propagate ForbiddenException from repository operations', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockRejectedValue(
+          new ForbiddenException('Access denied during deletion'),
+        );
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
+          ForbiddenException,
+        );
+      });
+
+      it('should wrap generic errors in BadRequestException', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockRejectedValue(new Error('Generic database error'));
+
+        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
+          BadRequestException,
+        );
+
+        const thrownError = await service.deleteMealPlan(mealPlanId, userId).catch((err) => err);
+        expect(thrownError.message).toBe('Failed to delete meal plan');
+      });
+    });
+
+    describe('authorization checks', () => {
+      it('should verify user ownership with exact userId match', async () => {
+        const testUserId = 'specific-user-123';
+        const ownedMealPlan = {
+          ...existingMealPlan,
+          userId: testUserId,
+        };
+
+        mockRepository.findById.mockResolvedValue(ownedMealPlan);
+        mockRepository.delete.mockResolvedValue(ownedMealPlan);
+
+        await service.deleteMealPlan(mealPlanId, testUserId);
+
+        expect(mockRepository.delete).toHaveBeenCalled();
+      });
+
+      it('should reject deletion when userId does not match exactly', async () => {
+        const mealPlanOwnerId = 'owner-123';
+        const requestUserId = 'different-456';
+
+        const mealPlan = {
+          ...existingMealPlan,
+          userId: mealPlanOwnerId,
+        };
+
+        mockRepository.findById.mockResolvedValue(mealPlan);
+
+        await expect(service.deleteMealPlan(mealPlanId, requestUserId)).rejects.toThrow(
+          ForbiddenException,
+        );
+
+        expect(mockRepository.delete).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('cascade deletion', () => {
+      it('should rely on Prisma cascade deletion for recipes', async () => {
+        // This test verifies that we don't manually delete recipes
+        // but rely on Prisma's cascade deletion
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockResolvedValue(existingMealPlan);
+
+        await service.deleteMealPlan(mealPlanId, userId);
+
+        // Should only call repository.delete, not any recipe removal methods
+        expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(123));
+        // Verify that only the delete method was called for cascade deletion
+        expect(mockRepository.delete).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('return value', () => {
+      it('should not return any value (void)', async () => {
+        mockRepository.findById.mockResolvedValue(existingMealPlan);
+        mockRepository.delete.mockResolvedValue(existingMealPlan);
+
+        const result = await service.deleteMealPlan(mealPlanId, userId);
+
+        expect(result).toBeUndefined();
       });
     });
   });

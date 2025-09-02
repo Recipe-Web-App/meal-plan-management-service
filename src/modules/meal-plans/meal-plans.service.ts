@@ -241,6 +241,29 @@ export class MealPlansService {
     }
   }
 
+  async deleteMealPlan(mealPlanId: string, userId: string): Promise<void> {
+    // First, verify the meal plan exists and user has permission
+    const existingMealPlan = await this.repository.findById(BigInt(mealPlanId));
+    if (!existingMealPlan) {
+      throw new NotFoundException(`Meal plan with ID ${mealPlanId} not found`);
+    }
+
+    // Check if user owns this meal plan
+    if (existingMealPlan.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to delete this meal plan');
+    }
+
+    try {
+      // Delete the meal plan (Prisma will handle cascade deletion of recipes)
+      await this.repository.delete(BigInt(mealPlanId));
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to delete meal plan');
+    }
+  }
+
   async findMealPlans(
     queryDto: MealPlanQueryDto,
     paginationDto: PaginationDto,

@@ -3,9 +3,12 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
+  HttpCode,
+  HttpStatus,
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
@@ -386,5 +389,58 @@ export class MealPlansController {
     const userId = 'temp-user-id';
 
     return this.mealPlansService.findMealPlanById(id, queryDto, userId);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete a meal plan',
+    description: 'Delete a meal plan by ID. This will also remove all associated recipes.',
+    operationId: 'deleteMealPlan',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Meal plan ID to delete',
+    type: String,
+    example: '123',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Meal plan deleted successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid meal plan ID format',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - authentication required',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - user does not own this meal plan',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Meal plan not found',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+  })
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // Stricter rate limiting for deletions
+  async deleteMealPlan(
+    @Param('id') id: string,
+    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+  ): Promise<void> {
+    // TODO: Replace with actual user ID from JWT token
+    const userId = 'temp-user-id';
+
+    await this.mealPlansService.deleteMealPlan(id, userId);
   }
 }
