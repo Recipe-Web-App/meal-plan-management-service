@@ -8,8 +8,8 @@ describe('UpdateMealPlanDto', () => {
       const validData = {
         name: 'Updated Weekly Meal Plan',
         description: 'An updated healthy weekly meal plan',
-        startDate: '2025-09-01T00:00:00.000Z',
-        endDate: '2025-09-07T23:59:59.999Z',
+        startDate: '2025-09-15T00:00:00.000Z',
+        endDate: '2025-09-21T23:59:59.999Z',
         isActive: true,
       };
 
@@ -55,16 +55,16 @@ describe('UpdateMealPlanDto', () => {
 
     it('should transform string dates to Date objects', async () => {
       const data = {
-        startDate: '2025-09-01T00:00:00.000Z',
-        endDate: '2025-09-07T23:59:59.999Z',
+        startDate: '2025-09-15T00:00:00.000Z',
+        endDate: '2025-09-21T23:59:59.999Z',
       };
 
       const dto = plainToClass(UpdateMealPlanDto, data);
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate?.toISOString()).toBe('2025-09-01T00:00:00.000Z');
-      expect(dto.endDate?.toISOString()).toBe('2025-09-07T23:59:59.999Z');
+      expect(dto.startDate?.toISOString()).toBe('2025-09-15T00:00:00.000Z');
+      expect(dto.endDate?.toISOString()).toBe('2025-09-21T23:59:59.999Z');
     });
 
     it('should handle null and undefined values properly', async () => {
@@ -193,9 +193,9 @@ describe('UpdateMealPlanDto', () => {
 
     it('should accept different valid date formats', async () => {
       const validDateFormats = [
-        { startDate: '2025-09-01', endDate: '2025-09-07' },
-        { startDate: new Date('2025-09-01'), endDate: new Date('2025-09-07') },
-        { startDate: '2025-09-01T10:30:00Z', endDate: '2025-09-07T15:45:00Z' },
+        { startDate: '2025-09-15', endDate: '2025-09-21' },
+        { startDate: new Date('2025-09-15'), endDate: new Date('2025-09-21') },
+        { startDate: '2025-09-15T10:30:00Z', endDate: '2025-09-21T15:45:00Z' },
       ];
 
       for (const dateFormat of validDateFormats) {
@@ -225,7 +225,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should handle only one date field being provided', async () => {
-      const startOnlyData = { startDate: '2025-09-01T00:00:00.000Z' };
+      const startOnlyData = { startDate: '2025-09-15T00:00:00.000Z' };
       const endOnlyData = { endDate: '2025-09-05T23:59:59.999Z' };
 
       const startDto = plainToClass(UpdateMealPlanDto, startOnlyData);
@@ -328,8 +328,8 @@ describe('UpdateMealPlanDto', () => {
     it('should handle date transformation branches', () => {
       const testCases = [
         {
-          startDate: new Date('2025-09-01'),
-          endDate: new Date('2025-09-07'),
+          startDate: new Date('2025-09-15'),
+          endDate: new Date('2025-09-21'),
         },
         {
           startDate: 1725148800000, // timestamp
@@ -348,7 +348,7 @@ describe('UpdateMealPlanDto', () => {
       const testCases = [
         { name: 'Just Name Update' },
         { description: 'Just Description Update' },
-        { startDate: '2025-09-01T00:00:00.000Z' },
+        { startDate: '2025-09-15T00:00:00.000Z' },
         { endDate: '2025-09-05T23:59:59.999Z' },
         { isActive: true },
       ];

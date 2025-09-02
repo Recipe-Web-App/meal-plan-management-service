@@ -1,4 +1,14 @@
-import { IsString, IsOptional, IsBoolean, IsDate, IsInt, IsIn, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsDate,
+  IsInt,
+  IsEnum,
+  IsIn,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { MealType, MEAL_TYPE_VALUES } from '../enums/meal-type.enum';
@@ -119,8 +129,7 @@ export class MealPlanByIdQueryDto {
     example: MealType.BREAKFAST,
   })
   @IsOptional()
-  @IsString({ message: 'Meal type must be a string' })
-  @IsIn(MEAL_TYPE_VALUES, {
+  @IsEnum(MealType, {
     message: `Meal type must be one of: ${MEAL_TYPE_VALUES.join(', ')}`,
   })
   mealType?: MealType;

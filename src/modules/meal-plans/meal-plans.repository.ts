@@ -41,6 +41,48 @@ export interface MealPlanFilters {
   endDate?: Date;
 }
 
+export interface EnhancedMealPlanFilters {
+  userId?: string;
+  isActive?: boolean;
+  startDateFrom?: Date;
+  endDateTo?: Date;
+  nameSearch?: string;
+  descriptionSearch?: string;
+  includeRecipes?: boolean;
+  includeArchived?: boolean;
+}
+
+export interface MealPlanSorting {
+  sortBy: 'name' | 'startDate' | 'endDate' | 'createdAt' | 'updatedAt';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface RecipeFilters {
+  mealType?: MealType;
+  dateRange?: {
+    startDate?: Date;
+    endDate?: Date;
+  };
+}
+
+export interface MealTypeCount {
+  mealType: MealType;
+  count: number;
+}
+
+export interface StatisticsData {
+  totalRecipes: number;
+  daysWithMeals: number;
+  mealTypeCounts: MealTypeCount[];
+  uniqueDates: Date[];
+}
+
+export interface MealPlanWithCounts extends MealPlan {
+  _count: {
+    mealPlanRecipes: number;
+  };
+}
+
 export interface CreateMealPlanWithRecipesData extends CreateMealPlanData {
   recipes?: AddRecipeToMealPlanData[];
 }
@@ -490,5 +532,425 @@ export class MealPlansRepository {
         },
       },
     }) as Promise<MealPlanWithRecipes>;
+  }
+
+  // New methods for enhanced filtering and querying
+
+  async findManyWithFilters(
+    filters: EnhancedMealPlanFilters,
+    sorting: MealPlanSorting,
+    pagination: { skip: number; take: number },
+  ): Promise<MealPlan[]> {
+    const where = this.buildWhereClause(filters);
+    const orderBy = this.buildOrderByClause(sorting);
+
+    return this.prisma.mealPlan.findMany({
+      where,
+      orderBy,
+      skip: pagination.skip,
+      take: pagination.take,
+      ...(filters.includeRecipes && {
+        include: {
+          mealPlanRecipes: {
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        },
+      }),
+    });
+  }
+
+  async countMealPlans(filters: EnhancedMealPlanFilters): Promise<number> {
+    const where = this.buildWhereClause(filters);
+    return this.prisma.mealPlan.count({ where });
+  }
+
+  async findByIdWithRecipesFiltered(
+    mealPlanId: bigint,
+    recipeFilters?: RecipeFilters,
+  ): Promise<MealPlanWithRecipes | null> {
+    const result = await this.prisma.mealPlan.findUnique({
+      where: { mealPlanId },
+      include: {
+        mealPlanRecipes: {
+          where: this.buildRecipeWhereClause(recipeFilters),
+          include: {
+            recipe: {
+              select: {
+                recipeId: true,
+                title: true,
+                userId: true,
+              },
+            },
+          },
+          orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+        },
+      },
+    });
+
+    return result as MealPlanWithRecipes | null;
+  }
+
+  private buildWhereClause(filters: EnhancedMealPlanFilters): Prisma.MealPlanWhereInput {
+    const where: Prisma.MealPlanWhereInput = {};
+
+    if (filters.userId) {
+      where.userId = filters.userId;
+    }
+
+    // Note: isActive and includeArchived filtering not supported by current schema
+    // These can be implemented if isActive field is added to MealPlan model
+
+    // Date range filtering
+    if (filters.startDateFrom || filters.endDateTo) {
+      where.AND = [];
+
+      if (filters.endDateTo) {
+        where.AND.push({
+          OR: [{ startDate: { lte: filters.endDateTo } }, { startDate: null }],
+        });
+      }
+
+      if (filters.startDateFrom) {
+        where.AND.push({
+          OR: [{ endDate: { gte: filters.startDateFrom } }, { endDate: null }],
+        });
+      }
+    }
+
+    // Text search
+    if (filters.nameSearch || filters.descriptionSearch) {
+      const textFilters = [];
+
+      if (filters.nameSearch) {
+        textFilters.push({
+          name: {
+            contains: filters.nameSearch,
+            mode: 'insensitive' as Prisma.QueryMode,
+          },
+        });
+      }
+
+      if (filters.descriptionSearch) {
+        textFilters.push({
+          description: {
+            contains: filters.descriptionSearch,
+            mode: 'insensitive' as Prisma.QueryMode,
+          },
+        });
+      }
+
+      where.OR = textFilters;
+    }
+
+    return where;
+  }
+
+  private buildOrderByClause(sorting: MealPlanSorting): Prisma.MealPlanOrderByWithRelationInput {
+    const { sortBy, sortOrder } = sorting;
+    return { [sortBy]: sortOrder };
+  }
+
+  private buildRecipeWhereClause(filters?: RecipeFilters): Prisma.MealPlanRecipeWhereInput {
+    if (!filters) return {};
+
+    const where: Prisma.MealPlanRecipeWhereInput = {};
+
+    if (filters.mealType) {
+      where.mealType = filters.mealType;
+    }
+
+    if (filters.dateRange) {
+      if (filters.dateRange.startDate && filters.dateRange.endDate) {
+        // If both dates are the same, filter for exact date
+        if (filters.dateRange.startDate.getTime() === filters.dateRange.endDate.getTime()) {
+          where.mealDate = filters.dateRange.startDate;
+        } else {
+          where.mealDate = {
+            gte: filters.dateRange.startDate,
+            lte: filters.dateRange.endDate,
+          };
+        }
+      } else if (filters.dateRange.startDate) {
+        where.mealDate = {
+          gte: filters.dateRange.startDate,
+        };
+      } else if (filters.dateRange.endDate) {
+        where.mealDate = {
+          lte: filters.dateRange.endDate,
+        };
+      }
+    }
+
+    return where;
+  }
+
+  // Statistics & Analytics Methods
+
+  async getMealPlanStatistics(mealPlanId: bigint): Promise<StatisticsData> {
+    const [totalRecipes, mealTypeCounts, uniqueDatesResult] = await Promise.all([
+      // Get total recipe count
+      this.prisma.mealPlanRecipe.count({
+        where: { mealPlanId },
+      }),
+
+      // Get counts by meal type
+      this.prisma.mealPlanRecipe.groupBy({
+        by: ['mealType'],
+        where: { mealPlanId },
+        _count: {
+          mealType: true,
+        },
+      }),
+
+      // Get unique dates
+      this.prisma.mealPlanRecipe.findMany({
+        where: { mealPlanId },
+        select: { mealDate: true },
+        distinct: ['mealDate'],
+        orderBy: { mealDate: 'asc' },
+      }),
+    ]);
+
+    const uniqueDates = uniqueDatesResult.map((r) => r.mealDate);
+    const mealTypeCountsTyped: MealTypeCount[] = mealTypeCounts.map((item) => ({
+      mealType: item.mealType,
+      count: item._count.mealType,
+    }));
+
+    return {
+      totalRecipes,
+      daysWithMeals: uniqueDates.length,
+      mealTypeCounts: mealTypeCountsTyped,
+      uniqueDates,
+    };
+  }
+
+  async getMealCountsByType(mealPlanId: bigint): Promise<MealTypeCount[]> {
+    const counts = await this.prisma.mealPlanRecipe.groupBy({
+      by: ['mealType'],
+      where: { mealPlanId },
+      _count: {
+        mealType: true,
+      },
+    });
+
+    return counts.map((item) => ({
+      mealType: item.mealType,
+      count: item._count.mealType,
+    }));
+  }
+
+  async getUniqueMealDates(mealPlanId: bigint): Promise<Date[]> {
+    const dates = await this.prisma.mealPlanRecipe.findMany({
+      where: { mealPlanId },
+      select: { mealDate: true },
+      distinct: ['mealDate'],
+      orderBy: { mealDate: 'asc' },
+    });
+
+    return dates.map((d) => d.mealDate);
+  }
+
+  // View Mode Support Methods
+
+  async findRecipesForDateRange(
+    mealPlanId: bigint,
+    startDate: Date,
+    endDate: Date,
+    filters?: RecipeFilters,
+  ): Promise<MealPlanRecipe[]> {
+    const where: Prisma.MealPlanRecipeWhereInput = {
+      mealPlanId,
+      mealDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+    };
+
+    // Apply additional filters
+    if (filters?.mealType) {
+      where.mealType = filters.mealType;
+    }
+
+    return this.prisma.mealPlanRecipe.findMany({
+      where,
+      include: {
+        recipe: {
+          select: {
+            recipeId: true,
+            title: true,
+            userId: true,
+          },
+        },
+      },
+      orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+    });
+  }
+
+  async findRecipesForWeek(
+    mealPlanId: bigint,
+    weekStart: Date,
+    filters?: RecipeFilters,
+  ): Promise<MealPlanRecipe[]> {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    return this.findRecipesForDateRange(mealPlanId, weekStart, weekEnd, filters);
+  }
+
+  async findRecipesForMonth(
+    mealPlanId: bigint,
+    year: number,
+    month: number,
+    filters?: RecipeFilters,
+  ): Promise<MealPlanRecipe[]> {
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+
+    return this.findRecipesForDateRange(mealPlanId, monthStart, monthEnd, filters);
+  }
+
+  // Enhanced Recipe Querying
+
+  async findRecipesByMealType(mealPlanId: bigint, mealType: MealType): Promise<MealPlanRecipe[]> {
+    return this.prisma.mealPlanRecipe.findMany({
+      where: {
+        mealPlanId,
+        mealType,
+      },
+      include: {
+        recipe: {
+          select: {
+            recipeId: true,
+            title: true,
+            userId: true,
+          },
+        },
+      },
+      orderBy: [{ mealDate: 'asc' }],
+    });
+  }
+
+  async findRecipesGroupedByMealType(
+    mealPlanId: bigint,
+    dateRange?: { startDate?: Date; endDate?: Date },
+  ): Promise<Record<string, MealPlanRecipe[]>> {
+    const where: Prisma.MealPlanRecipeWhereInput = { mealPlanId };
+
+    if (dateRange) {
+      const dateFilter: { gte?: Date; lte?: Date } = {};
+      if (dateRange.startDate) dateFilter.gte = dateRange.startDate;
+      if (dateRange.endDate) dateFilter.lte = dateRange.endDate;
+      if (Object.keys(dateFilter).length > 0) {
+        where.mealDate = dateFilter;
+      }
+    }
+
+    const recipes = await this.prisma.mealPlanRecipe.findMany({
+      where,
+      include: {
+        recipe: {
+          select: {
+            recipeId: true,
+            title: true,
+            userId: true,
+          },
+        },
+      },
+      orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+    });
+
+    // Group by meal type
+    const grouped: Record<string, MealPlanRecipe[]> = {
+      BREAKFAST: [],
+      LUNCH: [],
+      DINNER: [],
+      SNACK: [],
+      DESSERT: [],
+    };
+
+    recipes.forEach((recipe) => {
+      const mealTypeKey = recipe.mealType as keyof typeof grouped;
+      if (grouped[mealTypeKey]) {
+        grouped[mealTypeKey].push(recipe);
+      }
+    });
+
+    return grouped;
+  }
+
+  // Validation & Authorization Helpers
+
+  async verifyMealPlanOwnership(mealPlanId: bigint, userId: string): Promise<boolean> {
+    const count = await this.prisma.mealPlan.count({
+      where: {
+        mealPlanId,
+        userId,
+      },
+    });
+    return count > 0;
+  }
+
+  async checkMealPlanExists(mealPlanId: bigint): Promise<boolean> {
+    const count = await this.prisma.mealPlan.count({
+      where: { mealPlanId },
+    });
+    return count > 0;
+  }
+
+  // Performance Optimization Methods
+
+  async findMealPlansWithCounts(
+    filters: EnhancedMealPlanFilters,
+    sorting: MealPlanSorting,
+    pagination: { skip: number; take: number },
+  ): Promise<MealPlanWithCounts[]> {
+    const where = this.buildWhereClause(filters);
+    const orderBy = this.buildOrderByClause(sorting);
+
+    return this.prisma.mealPlan.findMany({
+      where,
+      orderBy,
+      skip: pagination.skip,
+      take: pagination.take,
+      include: {
+        _count: {
+          select: {
+            mealPlanRecipes: true,
+          },
+        },
+        ...(filters.includeRecipes && {
+          mealPlanRecipes: {
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        }),
+      },
+    }) as Promise<MealPlanWithCounts[]>;
+  }
+
+  async countRecipesByMealPlan(mealPlanId: bigint): Promise<number> {
+    return this.prisma.mealPlanRecipe.count({
+      where: { mealPlanId },
+    });
   }
 }

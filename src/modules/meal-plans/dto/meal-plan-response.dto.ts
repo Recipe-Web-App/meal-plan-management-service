@@ -1,35 +1,49 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import { IsString, IsNumber, IsOptional, IsEnum, IsDate, Min, Max } from 'class-validator';
 import { MealType, MEAL_TYPE_VALUES } from '../enums/meal-type.enum';
-import { RecipeDifficulty, RECIPE_DIFFICULTY_VALUES } from '../enums/recipe-difficulty.enum';
 
 export class MealPlanRecipeResponseDto {
   @ApiProperty({
-    description: 'Recipe ID',
-    example: '123e4567-e89b-12d3-a456-426614174001',
+    description: 'Meal plan recipe ID',
+    example: '1',
   })
+  @IsString()
+  @Expose()
+  mealPlanRecipeId!: string;
+
+  @ApiProperty({
+    description: 'Meal plan ID',
+    example: '123',
+  })
+  @IsString()
+  @Expose()
+  mealPlanId!: string;
+
+  @ApiProperty({
+    description: 'Recipe ID',
+    example: '456',
+  })
+  @IsString()
   @Expose()
   recipeId!: string;
 
   @ApiProperty({
-    description: 'Recipe name',
-    example: 'Overnight Oats with Berries',
+    description: 'Meal date',
+    type: 'string',
+    format: 'date',
   })
+  @Type(() => Date)
+  @IsDate()
   @Expose()
-  recipeName!: string;
-
-  @ApiProperty({
-    description: 'Day of the meal plan (1-7)',
-    example: 1,
-  })
-  @Expose()
-  day!: number;
+  mealDate!: Date;
 
   @ApiProperty({
     description: 'Meal type',
     example: MealType.BREAKFAST,
     enum: MEAL_TYPE_VALUES,
   })
+  @IsEnum(MealType)
   @Expose()
   mealType!: MealType;
 
@@ -37,6 +51,9 @@ export class MealPlanRecipeResponseDto {
     description: 'Number of servings',
     example: 4,
   })
+  @IsNumber()
+  @Min(1)
+  @Max(100)
   @Expose()
   servings!: number;
 
@@ -44,30 +61,26 @@ export class MealPlanRecipeResponseDto {
     description: 'Additional notes',
     example: 'Prepare the night before',
   })
+  @IsOptional()
+  @IsString()
   @Expose()
   notes?: string;
 
   @ApiProperty({
-    description: 'Recipe preparation time in minutes',
-    example: 15,
+    description: 'Created at timestamp',
   })
+  @Type(() => Date)
+  @IsDate()
   @Expose()
-  prepTime?: number;
+  createdAt!: Date;
 
   @ApiProperty({
-    description: 'Recipe cooking time in minutes',
-    example: 0,
+    description: 'Updated at timestamp',
   })
+  @Type(() => Date)
+  @IsDate()
   @Expose()
-  cookTime?: number;
-
-  @ApiProperty({
-    description: 'Recipe difficulty level',
-    example: RecipeDifficulty.EASY,
-    enum: RECIPE_DIFFICULTY_VALUES,
-  })
-  @Expose()
-  difficulty?: RecipeDifficulty;
+  updatedAt!: Date;
 }
 
 export class MealPlanResponseDto {
