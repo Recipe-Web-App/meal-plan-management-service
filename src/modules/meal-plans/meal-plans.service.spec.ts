@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { MealPlansService } from './meal-plans.service';
 import { MealPlansRepository } from './meal-plans.repository';
 import { MealPlanValidationService } from './services/meal-plan-validation.service';
@@ -21,10 +21,14 @@ describe('MealPlansService', () => {
     findRecipesForDateRange: jest.fn(),
     findRecipesForWeek: jest.fn(),
     findRecipesForMonth: jest.fn(),
+    create: jest.fn(),
+    addRecipeToMealPlan: jest.fn(),
+    findByIdWithRecipes: jest.fn(),
   };
 
   const mockValidationService = {
     validateMealPlanAccess: jest.fn(),
+    validateCreateMealPlan: jest.fn(),
   };
 
   const mockMealPlan = {
@@ -123,6 +127,187 @@ describe('MealPlansService', () => {
 
       expect(result.data).toEqual([]);
       expect(result.meta.total).toBe(0);
+    });
+  });
+
+  describe('createMealPlan', () => {
+    const userId = 'test-user-id';
+    const createMealPlanDto = {
+      name: 'Test Meal Plan',
+      description: 'A test meal plan',
+      startDate: new Date('2024-03-10'),
+      endDate: new Date('2024-03-16'),
+      recipes: [
+        {
+          recipeId: '456',
+          day: 1,
+          mealType: 'BREAKFAST',
+          servings: 2,
+        },
+      ],
+    };
+
+    it('should create a meal plan successfully', async () => {
+      const validationResult = {
+        isValid: true,
+        sanitizedData: {
+          name: createMealPlanDto.name,
+          description: createMealPlanDto.description,
+          startDate: createMealPlanDto.startDate,
+          endDate: createMealPlanDto.endDate,
+        },
+        errors: [],
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+      mockRepository.create.mockResolvedValue(mockMealPlan);
+      mockRepository.addRecipeToMealPlan.mockResolvedValue({
+        mealPlanId: BigInt(123),
+        recipeId: BigInt(456),
+        mealDate: new Date('2024-03-10'),
+        mealType: 'BREAKFAST',
+      });
+      mockRepository.findByIdWithRecipes.mockResolvedValue(mockMealPlanWithRecipes);
+
+      const result = await service.createMealPlan(createMealPlanDto as any, userId);
+
+      expect(mockValidationService.validateCreateMealPlan).toHaveBeenCalledWith(createMealPlanDto, {
+        userId,
+      });
+      expect(mockRepository.create).toHaveBeenCalledWith({
+        userId,
+        name: 'Test Meal Plan',
+        description: 'A test meal plan',
+        startDate: createMealPlanDto.startDate,
+        endDate: createMealPlanDto.endDate,
+      });
+      expect(mockRepository.addRecipeToMealPlan).toHaveBeenCalledWith({
+        mealPlanId: BigInt(123),
+        recipeId: BigInt(456),
+        mealDate: new Date('2024-03-01'), // Day 1 of the mock meal plan (starts 2024-03-01)
+        mealType: 'BREAKFAST',
+      });
+      expect(result).toBeDefined();
+    });
+
+    it('should create a meal plan without recipes', async () => {
+      const createMealPlanDtoWithoutRecipes = {
+        name: 'Simple Meal Plan',
+        description: 'No recipes',
+        startDate: new Date('2024-03-10'),
+        endDate: new Date('2024-03-16'),
+      };
+
+      const validationResult = {
+        isValid: true,
+        sanitizedData: createMealPlanDtoWithoutRecipes,
+        errors: [],
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+      mockRepository.create.mockResolvedValue(mockMealPlan);
+
+      const result = await service.createMealPlan(createMealPlanDtoWithoutRecipes as any, userId);
+
+      expect(mockRepository.create).toHaveBeenCalled();
+      expect(mockRepository.addRecipeToMealPlan).not.toHaveBeenCalled();
+      expect(mockRepository.findByIdWithRecipes).not.toHaveBeenCalled();
+      expect(result).toBeDefined();
+    });
+
+    it('should throw BadRequestException when validation fails', async () => {
+      const validationResult = {
+        isValid: false,
+        errors: ['Name is required'],
+        sanitizedData: null,
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+
+      await expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when meal plan has no start date and recipes are provided', async () => {
+      const invalidDto = {
+        ...createMealPlanDto,
+        startDate: null,
+      };
+
+      const validationResult = {
+        isValid: true,
+        sanitizedData: {
+          name: invalidDto.name,
+          description: invalidDto.description,
+          startDate: null,
+          endDate: invalidDto.endDate,
+        },
+        errors: [],
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+      mockRepository.create.mockResolvedValue({
+        ...mockMealPlan,
+        startDate: null,
+      });
+
+      await expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw BadRequestException when day is outside meal plan range', async () => {
+      const invalidDto = {
+        ...createMealPlanDto,
+        recipes: [
+          {
+            recipeId: '456',
+            day: 10, // Outside 7-day range
+            mealType: 'BREAKFAST',
+          },
+        ],
+      };
+
+      const validationResult = {
+        isValid: true,
+        sanitizedData: {
+          name: invalidDto.name,
+          description: invalidDto.description,
+          startDate: invalidDto.startDate,
+          endDate: invalidDto.endDate,
+        },
+        errors: [],
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+      mockRepository.create.mockResolvedValue(mockMealPlan);
+
+      await expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should handle repository errors', async () => {
+      const validationResult = {
+        isValid: true,
+        sanitizedData: {
+          name: createMealPlanDto.name,
+          description: createMealPlanDto.description,
+          startDate: createMealPlanDto.startDate,
+          endDate: createMealPlanDto.endDate,
+        },
+        errors: [],
+      };
+
+      mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
+      mockRepository.create.mockRejectedValue(new Error('Database error'));
+
+      await expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

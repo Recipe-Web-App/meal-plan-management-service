@@ -7,6 +7,8 @@ import {
   MealPlanByIdQueryDto,
   PaginatedMealPlansResponseDto,
   MealPlanQueryResponseDto,
+  CreateMealPlanDto,
+  MealPlanResponseDto,
 } from './dto';
 import { MealType } from './enums/meal-type.enum';
 
@@ -17,6 +19,7 @@ describe('MealPlansController', () => {
   const mockService = {
     findMealPlans: jest.fn(),
     findMealPlanById: jest.fn(),
+    createMealPlan: jest.fn(),
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
@@ -501,6 +504,216 @@ describe('MealPlansController', () => {
         await controller.getMealPlanById('123', complexQuery);
 
         expect(service.findMealPlanById).toHaveBeenCalledWith('123', complexQuery, 'temp-user-id');
+      });
+    });
+  });
+
+  describe('createMealPlan', () => {
+    const createMealPlanDto: CreateMealPlanDto = {
+      name: 'Test Meal Plan',
+      description: 'A test meal plan description',
+      startDate: new Date('2024-03-10'),
+      endDate: new Date('2024-03-16'),
+      recipes: [
+        {
+          recipeId: '456e789a-12b3-45c6-789d-0123456789ef',
+          day: 1,
+          mealType: MealType.BREAKFAST,
+          servings: 2,
+          notes: 'Test recipe notes',
+        },
+      ],
+    } as any;
+
+    const expectedResponse: MealPlanResponseDto = {
+      mealPlanId: '123',
+      name: 'Test Meal Plan',
+      description: 'A test meal plan description',
+      userId: 'temp-user-id',
+      startDate: new Date('2024-03-10'),
+      endDate: new Date('2024-03-16'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      recipes: [],
+    };
+
+    it('should create a meal plan successfully', async () => {
+      service.createMealPlan.mockResolvedValue(expectedResponse);
+
+      const result = await controller.createMealPlan(createMealPlanDto);
+
+      expect(service.createMealPlan).toHaveBeenCalledWith(createMealPlanDto, 'temp-user-id');
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should create a meal plan without recipes', async () => {
+      const simpleDto: CreateMealPlanDto = {
+        name: 'Simple Meal Plan',
+        description: 'No recipes',
+        startDate: new Date('2024-03-10'),
+        endDate: new Date('2024-03-16'),
+      } as any;
+
+      const simpleResponse = {
+        ...expectedResponse,
+        name: 'Simple Meal Plan',
+        description: 'No recipes',
+        recipes: [],
+      };
+
+      service.createMealPlan.mockResolvedValue(simpleResponse);
+
+      const result = await controller.createMealPlan(simpleDto);
+
+      expect(service.createMealPlan).toHaveBeenCalledWith(simpleDto, 'temp-user-id');
+      expect(result).toEqual(simpleResponse);
+    });
+
+    it('should create a meal plan with minimal data', async () => {
+      const minimalDto: CreateMealPlanDto = {
+        name: 'Minimal Meal Plan',
+        startDate: new Date('2024-03-10'),
+        endDate: new Date('2024-03-16'),
+      } as any;
+
+      const minimalResponse = {
+        ...expectedResponse,
+        name: 'Minimal Meal Plan',
+        description: null,
+      };
+
+      service.createMealPlan.mockResolvedValue(minimalResponse);
+
+      const result = await controller.createMealPlan(minimalDto);
+
+      expect(service.createMealPlan).toHaveBeenCalledWith(minimalDto, 'temp-user-id');
+      expect(result).toEqual(minimalResponse);
+    });
+
+    describe('error handling', () => {
+      it('should throw BadRequestException when validation fails', async () => {
+        const invalidDto = {
+          // Missing required name field
+          description: 'Invalid meal plan',
+          startDate: new Date('2024-03-10'),
+          endDate: new Date('2024-03-16'),
+        } as any;
+
+        const error = new Error('Validation failed: Name is required');
+        error.name = 'BadRequestException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(invalidDto)).rejects.toThrow(error);
+        expect(service.createMealPlan).toHaveBeenCalledWith(invalidDto, 'temp-user-id');
+      });
+
+      it('should throw BadRequestException for date range conflicts', async () => {
+        const conflictDto = {
+          ...createMealPlanDto,
+          startDate: new Date('2024-03-16'),
+          endDate: new Date('2024-03-10'), // End before start
+        };
+
+        const error = new Error('Invalid date range: end date must be after start date');
+        error.name = 'BadRequestException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(conflictDto)).rejects.toThrow(error);
+      });
+
+      it('should throw ConflictException for overlapping meal plans', async () => {
+        const overlappingDto = {
+          ...createMealPlanDto,
+          startDate: new Date('2024-03-05'),
+          endDate: new Date('2024-03-12'),
+        };
+
+        const error = new Error('Meal plan overlaps with existing plan');
+        error.name = 'ConflictException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(overlappingDto)).rejects.toThrow(error);
+      });
+
+      it('should handle database errors', async () => {
+        const error = new Error('Database connection failed');
+        error.name = 'InternalServerErrorException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(createMealPlanDto)).rejects.toThrow(error);
+      });
+    });
+
+    describe('recipe validation', () => {
+      it('should create meal plan with multiple recipes on different days', async () => {
+        const multiRecipeDto = {
+          ...createMealPlanDto,
+          recipes: [
+            {
+              recipeId: '456e789a-12b3-45c6-789d-0123456789ef',
+              day: 1,
+              mealType: MealType.BREAKFAST,
+              servings: 2,
+            },
+            {
+              recipeId: '789e012b-34c5-67d8-901e-23456789abcd',
+              day: 2,
+              mealType: MealType.LUNCH,
+              servings: 4,
+            },
+            {
+              recipeId: '012e345c-67d8-90e1-234f-56789abcdef0',
+              day: 1,
+              mealType: MealType.DINNER,
+              servings: 3,
+            },
+          ],
+        };
+
+        service.createMealPlan.mockResolvedValue(expectedResponse);
+
+        const result = await controller.createMealPlan(multiRecipeDto);
+
+        expect(service.createMealPlan).toHaveBeenCalledWith(multiRecipeDto, 'temp-user-id');
+        expect(result).toEqual(expectedResponse);
+      });
+
+      it('should handle invalid recipe IDs', async () => {
+        const invalidRecipeDto = {
+          ...createMealPlanDto,
+          recipes: [
+            {
+              recipeId: 'invalid-uuid',
+              day: 1,
+              mealType: MealType.BREAKFAST,
+            },
+          ],
+        };
+
+        const error = new Error('Invalid recipe ID format');
+        error.name = 'BadRequestException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(invalidRecipeDto)).rejects.toThrow(error);
+      });
+
+      it('should handle invalid day numbers', async () => {
+        const invalidDayDto = {
+          ...createMealPlanDto,
+          recipes: [
+            {
+              recipeId: '456e789a-12b3-45c6-789d-0123456789ef',
+              day: 8, // Invalid day (> 7)
+              mealType: MealType.BREAKFAST,
+            },
+          ],
+        };
+
+        const error = new Error('Day 8 is outside the meal plan date range');
+        error.name = 'BadRequestException';
+        service.createMealPlan.mockRejectedValue(error);
+
+        await expect(controller.createMealPlan(invalidDayDto)).rejects.toThrow(error);
       });
     });
   });

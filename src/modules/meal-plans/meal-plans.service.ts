@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { MealPlansRepository, RecipeFilters } from './meal-plans.repository';
+import { MealPlansRepository, RecipeFilters, CreateMealPlanData } from './meal-plans.repository';
 import { MealPlanValidationService } from './services/meal-plan-validation.service';
 import {
   MealPlanQueryDto,
@@ -19,8 +19,10 @@ import {
   MonthViewResponseDto,
   MealPlanStatisticsDto,
   MealTypeBreakdownDto,
+  CreateMealPlanDto,
 } from './dto';
 import { MealType } from '@prisma/client';
+import { RawMealPlanInput } from './types/validation.types';
 
 export interface MealPlanFilters {
   userId?: string;
@@ -85,6 +87,75 @@ export class MealPlansService {
     private readonly repository: MealPlansRepository,
     private readonly validationService: MealPlanValidationService,
   ) {}
+
+  async createMealPlan(
+    createMealPlanDto: CreateMealPlanDto,
+    userId: string,
+  ): Promise<MealPlanResponseDto> {
+    // Validate and sanitize the input data
+    const validationResult = await this.validationService.validateCreateMealPlan(
+      createMealPlanDto as RawMealPlanInput,
+      { userId },
+    );
+
+    if (!validationResult.isValid) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        errors: validationResult.errors,
+      });
+    }
+
+    try {
+      // Create the meal plan
+      const createData: CreateMealPlanData = {
+        userId,
+        name: validationResult.sanitizedData!.name,
+        startDate: validationResult.sanitizedData!.startDate,
+        endDate: validationResult.sanitizedData!.endDate,
+      };
+
+      // Only add description if it exists
+      if (validationResult.sanitizedData!.description) {
+        createData.description = validationResult.sanitizedData!.description;
+      }
+
+      const mealPlan = await this.repository.create(createData);
+
+      // If recipes are provided, add them to the meal plan
+      if (createMealPlanDto.recipes && createMealPlanDto.recipes.length > 0) {
+        for (const recipe of createMealPlanDto.recipes) {
+          // Convert day number to actual date within the meal plan range
+          const mealDate = this.calculateMealDateFromDay(
+            recipe.day,
+            mealPlan.startDate,
+            mealPlan.endDate,
+          );
+
+          await this.repository.addRecipeToMealPlan({
+            mealPlanId: mealPlan.mealPlanId,
+            recipeId: BigInt(recipe.recipeId),
+            mealDate,
+            mealType: recipe.mealType as MealType,
+          });
+        }
+      }
+
+      // Return the created meal plan with recipes if they were added
+      const createdMealPlan =
+        createMealPlanDto.recipes && createMealPlanDto.recipes.length > 0
+          ? await this.repository.findByIdWithRecipes(mealPlan.mealPlanId)
+          : mealPlan;
+
+      return plainToInstance(MealPlanResponseDto, createdMealPlan, {
+        excludeExtraneousValues: true,
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to create meal plan');
+    }
+  }
 
   async findMealPlans(
     queryDto: MealPlanQueryDto,
@@ -725,5 +796,31 @@ export class MealPlansService {
       return this.groupRecipesByMealType(recipes);
     }
     return recipes;
+  }
+
+  /**
+   * Converts a day number (1-7) to an actual date within the meal plan's date range
+   */
+  private calculateMealDateFromDay(
+    day: number,
+    startDate: Date | null,
+    endDate: Date | null,
+  ): Date {
+    if (!startDate) {
+      throw new BadRequestException('Meal plan must have a start date to add recipes by day');
+    }
+
+    // Calculate the date based on the day number (1 = first day of meal plan)
+    const mealDate = new Date(startDate);
+    mealDate.setDate(startDate.getDate() + (day - 1));
+
+    // Validate that the calculated date is within the meal plan range
+    if (endDate && mealDate > endDate) {
+      throw new BadRequestException(
+        `Day ${day} is outside the meal plan date range (${startDate.toDateString()} to ${endDate.toDateString()})`,
+      );
+    }
+
+    return mealDate;
   }
 }

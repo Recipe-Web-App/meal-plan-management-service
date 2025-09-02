@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   Param,
   Query,
   UseInterceptors,
@@ -13,6 +15,7 @@ import {
   ApiParam,
   ApiBearerAuth,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { MealPlansService } from './meal-plans.service';
@@ -23,6 +26,8 @@ import {
   PaginatedMealPlansResponseDto,
   MealPlanQueryResponseDto,
   ErrorResponseDto,
+  CreateMealPlanDto,
+  MealPlanResponseDto,
 } from './dto';
 import { MEAL_TYPE_VALUES } from './enums/meal-type.enum';
 
@@ -151,6 +156,52 @@ export class MealPlansController {
     const userId = 'temp-user-id';
 
     return this.mealPlansService.findMealPlans(queryDto, paginationDto, userId);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create a new meal plan',
+    description: 'Create a new meal plan with optional recipe assignments',
+    operationId: 'createMealPlan',
+  })
+  @ApiBody({
+    type: CreateMealPlanDto,
+    description: 'Meal plan data to create',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Meal plan created successfully',
+    type: MealPlanResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - authentication required',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - meal plan with overlapping dates exists',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+  })
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // Stricter rate limiting for creation
+  async createMealPlan(
+    @Body() createMealPlanDto: CreateMealPlanDto,
+    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+  ): Promise<MealPlanResponseDto> {
+    // TODO: Replace with actual user ID from JWT token
+    const userId = 'temp-user-id';
+
+    return this.mealPlansService.createMealPlan(createMealPlanDto, userId);
   }
 
   @Get(':id')
