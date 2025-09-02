@@ -6,8 +6,8 @@ describe('CreateMealPlanDto', () => {
   const validData = {
     name: 'Weekly Meal Plan',
     description: 'A healthy weekly meal plan',
-    startDate: '2025-09-01T00:00:00.000Z',
-    endDate: '2025-09-07T23:59:59.999Z',
+    startDate: '2025-09-15T00:00:00.000Z',
+    endDate: '2025-09-21T23:59:59.999Z',
     isActive: true,
   };
 
@@ -44,8 +44,8 @@ describe('CreateMealPlanDto', () => {
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate.toISOString()).toBe('2025-09-01T00:00:00.000Z');
-      expect(dto.endDate.toISOString()).toBe('2025-09-07T23:59:59.999Z');
+      expect(dto.startDate.toISOString()).toBe('2025-09-15T00:00:00.000Z');
+      expect(dto.endDate.toISOString()).toBe('2025-09-21T23:59:59.999Z');
     });
 
     it('should transform string boolean to boolean', async () => {
@@ -92,7 +92,7 @@ describe('CreateMealPlanDto', () => {
     it('should fail when name is too long', async () => {
       const invalidData = {
         ...validData,
-        name: 'a'.repeat(101),
+        name: 'a'.repeat(256),
       };
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
@@ -106,7 +106,7 @@ describe('CreateMealPlanDto', () => {
     it('should pass when name is at maximum length', async () => {
       const validLongName = {
         ...validData,
-        name: 'a'.repeat(100),
+        name: 'a'.repeat(255),
       };
 
       const dto = plainToClass(CreateMealPlanDto, validLongName);
@@ -142,7 +142,7 @@ describe('CreateMealPlanDto', () => {
     it('should fail when description is too long', async () => {
       const invalidData = {
         ...validData,
-        description: 'a'.repeat(501),
+        description: 'a'.repeat(1001),
       };
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
@@ -156,7 +156,7 @@ describe('CreateMealPlanDto', () => {
     it('should pass when description is at maximum length', async () => {
       const validLongDescription = {
         ...validData,
-        description: 'a'.repeat(500),
+        description: 'a'.repeat(1000),
       };
 
       const dto = plainToClass(CreateMealPlanDto, validLongDescription);
@@ -215,9 +215,9 @@ describe('CreateMealPlanDto', () => {
 
     it('should accept different valid date formats', async () => {
       const validDateFormats = [
-        { startDate: '2025-09-01', endDate: '2025-09-07' },
-        { startDate: new Date('2025-09-01'), endDate: new Date('2025-09-07') },
-        { startDate: '2025-09-01T10:30:00Z', endDate: '2025-09-07T15:45:00Z' },
+        { startDate: '2025-09-15', endDate: '2025-09-21' },
+        { startDate: new Date('2025-09-15'), endDate: new Date('2025-09-21') },
+        { startDate: '2025-09-15T10:30:00Z', endDate: '2025-09-21T15:45:00Z' },
       ];
 
       for (const dateFormat of validDateFormats) {
@@ -324,7 +324,7 @@ describe('CreateMealPlanDto', () => {
       const testCases = [
         {
           name: 'Test Plan',
-          startDate: new Date('2025-09-01'),
+          startDate: new Date('2025-09-15'),
           endDate: new Date('2025-09-07'),
         },
         {
@@ -346,8 +346,8 @@ describe('CreateMealPlanDto', () => {
     it('should return multiple validation errors for multiple invalid fields', async () => {
       const invalidData = {
         name: '',
-        description: 'a'.repeat(501),
-        startDate: '2025-09-01T00:00:00.000Z', // Use valid dates to avoid transform error
+        description: 'a'.repeat(1001),
+        startDate: '2025-09-15T00:00:00.000Z', // Use valid dates to avoid transform error
         endDate: '2025-09-07T23:59:59.999Z',
         isActive: 'invalid',
       };

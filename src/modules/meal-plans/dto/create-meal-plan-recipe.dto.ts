@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { MealType, MEAL_TYPE_VALUES } from '../enums/meal-type.enum';
 
 export class CreateMealPlanRecipeDto {
   @ApiProperty({
@@ -37,37 +38,37 @@ export class CreateMealPlanRecipeDto {
 
   @ApiProperty({
     description: 'Meal type for this recipe',
-    example: 'breakfast',
-    enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+    example: MealType.BREAKFAST,
+    enum: MEAL_TYPE_VALUES,
   })
   @IsNotEmpty({ message: 'Meal type is required' })
   @IsString({ message: 'Meal type must be a string' })
-  @IsIn(['breakfast', 'lunch', 'dinner', 'snack'], {
-    message: 'Meal type must be one of: breakfast, lunch, dinner, snack',
+  @IsIn(MEAL_TYPE_VALUES, {
+    message: `Meal type must be one of: ${MEAL_TYPE_VALUES.join(', ')}`,
   })
-  mealType!: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  mealType!: MealType;
 
   @ApiPropertyOptional({
     description: 'Number of servings for this recipe in the meal plan',
     example: 4,
     minimum: 1,
-    maximum: 20,
+    maximum: 100,
     default: 1,
   })
   @IsOptional()
   @IsInt({ message: 'Servings must be an integer' })
   @Min(1, { message: 'Servings must be at least 1' })
-  @Max(20, { message: 'Servings cannot exceed 20' })
+  @Max(100, { message: 'Servings cannot exceed 100' })
   @Type(() => Number)
   servings?: number = 1;
 
   @ApiPropertyOptional({
     description: 'Additional notes for this meal plan recipe',
     example: 'Prepare the night before for easier morning prep',
-    maxLength: 300,
+    maxLength: 500,
   })
   @IsOptional()
   @IsString({ message: 'Notes must be a string' })
-  @Length(0, 300, { message: 'Notes cannot exceed 300 characters' })
+  @Length(0, 500, { message: 'Notes cannot exceed 500 characters' })
   notes?: string;
 }

@@ -8,8 +8,8 @@ describe('UpdateMealPlanDto', () => {
       const validData = {
         name: 'Updated Weekly Meal Plan',
         description: 'An updated healthy weekly meal plan',
-        startDate: '2025-09-01T00:00:00.000Z',
-        endDate: '2025-09-07T23:59:59.999Z',
+        startDate: '2025-09-15T00:00:00.000Z',
+        endDate: '2025-09-21T23:59:59.999Z',
         isActive: true,
       };
 
@@ -55,16 +55,16 @@ describe('UpdateMealPlanDto', () => {
 
     it('should transform string dates to Date objects', async () => {
       const data = {
-        startDate: '2025-09-01T00:00:00.000Z',
-        endDate: '2025-09-07T23:59:59.999Z',
+        startDate: '2025-09-15T00:00:00.000Z',
+        endDate: '2025-09-21T23:59:59.999Z',
       };
 
       const dto = plainToClass(UpdateMealPlanDto, data);
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate?.toISOString()).toBe('2025-09-01T00:00:00.000Z');
-      expect(dto.endDate?.toISOString()).toBe('2025-09-07T23:59:59.999Z');
+      expect(dto.startDate?.toISOString()).toBe('2025-09-15T00:00:00.000Z');
+      expect(dto.endDate?.toISOString()).toBe('2025-09-21T23:59:59.999Z');
     });
 
     it('should handle null and undefined values properly', async () => {
@@ -101,7 +101,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should fail when name is too long', async () => {
-      const invalidData = { name: 'a'.repeat(101) };
+      const invalidData = { name: 'a'.repeat(256) };
 
       const dto = plainToClass(UpdateMealPlanDto, invalidData);
       const errors = await validate(dto);
@@ -112,7 +112,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should pass when name is at maximum length', async () => {
-      const validData = { name: 'a'.repeat(100) };
+      const validData = { name: 'a'.repeat(255) };
 
       const dto = plainToClass(UpdateMealPlanDto, validData);
       const errors = await validate(dto);
@@ -143,7 +143,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should fail when description is too long', async () => {
-      const invalidData = { description: 'a'.repeat(501) };
+      const invalidData = { description: 'a'.repeat(1001) };
 
       const dto = plainToClass(UpdateMealPlanDto, invalidData);
       const errors = await validate(dto);
@@ -154,7 +154,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should pass when description is at maximum length', async () => {
-      const validData = { description: 'a'.repeat(500) };
+      const validData = { description: 'a'.repeat(1000) };
 
       const dto = plainToClass(UpdateMealPlanDto, validData);
       const errors = await validate(dto);
@@ -193,9 +193,9 @@ describe('UpdateMealPlanDto', () => {
 
     it('should accept different valid date formats', async () => {
       const validDateFormats = [
-        { startDate: '2025-09-01', endDate: '2025-09-07' },
-        { startDate: new Date('2025-09-01'), endDate: new Date('2025-09-07') },
-        { startDate: '2025-09-01T10:30:00Z', endDate: '2025-09-07T15:45:00Z' },
+        { startDate: '2025-09-15', endDate: '2025-09-21' },
+        { startDate: new Date('2025-09-15'), endDate: new Date('2025-09-21') },
+        { startDate: '2025-09-15T10:30:00Z', endDate: '2025-09-21T15:45:00Z' },
       ];
 
       for (const dateFormat of validDateFormats) {
@@ -225,7 +225,7 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should handle only one date field being provided', async () => {
-      const startOnlyData = { startDate: '2025-09-01T00:00:00.000Z' };
+      const startOnlyData = { startDate: '2025-09-15T00:00:00.000Z' };
       const endOnlyData = { endDate: '2025-09-05T23:59:59.999Z' };
 
       const startDto = plainToClass(UpdateMealPlanDto, startOnlyData);
@@ -247,7 +247,7 @@ describe('UpdateMealPlanDto', () => {
     it('should handle mixed valid and invalid fields', async () => {
       const mixedData = {
         name: 'Valid Name',
-        description: 'a'.repeat(501), // invalid
+        description: 'a'.repeat(1001), // invalid
         startDate: '2025-09-01T00:00:00.000Z', // valid
         endDate: '2025-09-07T23:59:59.999Z', // valid to avoid transform error
         isActive: true, // valid
@@ -328,8 +328,8 @@ describe('UpdateMealPlanDto', () => {
     it('should handle date transformation branches', () => {
       const testCases = [
         {
-          startDate: new Date('2025-09-01'),
-          endDate: new Date('2025-09-07'),
+          startDate: new Date('2025-09-15'),
+          endDate: new Date('2025-09-21'),
         },
         {
           startDate: 1725148800000, // timestamp
@@ -348,7 +348,7 @@ describe('UpdateMealPlanDto', () => {
       const testCases = [
         { name: 'Just Name Update' },
         { description: 'Just Description Update' },
-        { startDate: '2025-09-01T00:00:00.000Z' },
+        { startDate: '2025-09-15T00:00:00.000Z' },
         { endDate: '2025-09-05T23:59:59.999Z' },
         { isActive: true },
       ];

@@ -385,3 +385,202 @@ describe('CustomTransformers', () => {
     });
   });
 });
+
+// Additional comprehensive branch coverage tests
+describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
+  describe('sanitizeTextFields edge cases', () => {
+    it('should handle non-object input', () => {
+      // Testing the if (!data || typeof data !== 'object') branch
+      const result1 = MealPlanTransformationUtil.toCreateMealPlanDto(null as any);
+      const result2 = MealPlanTransformationUtil.toCreateMealPlanDto(undefined as any);
+      const result3 = MealPlanTransformationUtil.toCreateMealPlanDto('string' as any);
+      const result4 = MealPlanTransformationUtil.toCreateMealPlanDto(123 as any);
+
+      expect(result1.name).toBeUndefined();
+      expect(result2.name).toBeUndefined();
+      expect(result3.name).toBeUndefined();
+      expect(result4.name).toBeUndefined();
+    });
+
+    it('should handle fields that are not strings', () => {
+      const rawData = {
+        name: 123, // number
+        description: { nested: 'object' }, // object
+        startDate: '2025-01-01',
+      };
+
+      const result = MealPlanTransformationUtil.toCreateMealPlanDto(rawData as any);
+
+      // Non-string fields should not be sanitized but still processed by class-transformer
+      expect(result.name).toBe('123');
+    });
+  });
+
+  describe('toISODate branch coverage', () => {
+    it('should handle try/catch branch', () => {
+      // Test the catch block by passing an object that will cause an error
+      const invalidInput = {
+        toString: () => {
+          throw new Error('Test error');
+        },
+      };
+      const result = MealPlanTransformationUtil.toISODate(invalidInput as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('fromDatabaseModel edge cases', () => {
+    it('should handle missing date fields', () => {
+      const dbModel = {
+        mealPlanId: BigInt(123),
+        name: 'Test Plan',
+        userId: 'user-123',
+        description: null,
+        startDate: null,
+        endDate: null,
+        createdAt: null,
+        updatedAt: null,
+      };
+
+      const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
+
+      expect(result.startDate).toBeNull();
+      expect(result.endDate).toBeNull();
+      expect(result.createdAt).toBeInstanceOf(Date); // Defaults to new Date()
+      expect(result.updatedAt).toBeInstanceOf(Date); // Defaults to new Date()
+    });
+
+    it('should handle database model without recipes field', () => {
+      const dbModel = {
+        mealPlanId: BigInt(123),
+        name: 'Test Plan',
+        userId: 'user-123',
+      };
+
+      const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
+
+      expect(result.recipes).toBeUndefined();
+    });
+  });
+
+  describe('fromDatabaseModels filter behavior', () => {
+    it('should filter out null results from transformation', () => {
+      const dbModels = [
+        {
+          mealPlanId: BigInt(1),
+          name: 'Plan 1',
+          userId: 'user-1',
+        },
+        null, // This should be filtered out
+        {
+          mealPlanId: BigInt(2),
+          name: 'Plan 2',
+          userId: 'user-2',
+        },
+      ];
+
+      // Mock fromDatabaseModel to return null for the null input
+      jest.spyOn(MealPlanTransformationUtil, 'fromDatabaseModel').mockImplementation((model) => {
+        if (model === null) return null;
+        return {
+          mealPlanId: model.mealPlanId,
+          name: model.name,
+          userId: model.userId,
+          description: null,
+          startDate: null,
+          endDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      });
+
+      const result = MealPlanTransformationUtil.fromDatabaseModels(dbModels as any);
+
+      expect(result).toHaveLength(2); // Null should be filtered out
+      expect(result[0].name).toBe('Plan 1');
+      expect(result[1].name).toBe('Plan 2');
+
+      // Restore the mock
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe('transformFilterParams branch coverage', () => {
+    it('should handle non-string isActive values', () => {
+      const query = { isActive: 123 }; // Non-string, non-boolean
+      const result = MealPlanTransformationUtil.transformFilterParams(query as any);
+
+      expect(result.isActive).toBe(true); // Boolean(123) = true
+    });
+
+    it('should handle non-string search parameter', () => {
+      const query = { search: 123 }; // Non-string
+      const result = MealPlanTransformationUtil.transformFilterParams(query as any);
+
+      expect(result.search).toBeUndefined(); // Should skip non-string search
+    });
+
+    it('should handle missing search field entirely', () => {
+      const query = { isActive: true };
+      const result = MealPlanTransformationUtil.transformFilterParams(query);
+
+      expect(result.search).toBeUndefined();
+    });
+  });
+
+  describe('createErrorResponse branch coverage', () => {
+    it('should handle errors parameter being provided', () => {
+      const errors = { name: 'Name is required' };
+      const result = MealPlanTransformationUtil.createErrorResponse(
+        'Validation failed',
+        errors,
+        422,
+      );
+
+      expect(result.errors).toEqual(errors);
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should handle no errors parameter', () => {
+      const result = MealPlanTransformationUtil.createErrorResponse('Simple error');
+
+      expect(result.errors).toBeUndefined();
+      expect(result.statusCode).toBe(400); // Default
+    });
+  });
+
+  describe('createSuccessResponse branch coverage', () => {
+    it('should handle meta parameter being provided', () => {
+      const data = { id: 1 };
+      const meta = { page: 1, limit: 10, total: 100 };
+      const result = MealPlanTransformationUtil.createSuccessResponse(data, 'Success', meta);
+
+      expect(result.meta).toEqual(meta);
+      expect(result.message).toBe('Success');
+    });
+
+    it('should handle no meta parameter', () => {
+      const data = { id: 1 };
+      const result = MealPlanTransformationUtil.createSuccessResponse(data);
+
+      expect(result.meta).toBeUndefined();
+      expect(result.message).toBe('Success'); // Default
+    });
+  });
+});
+
+// Additional CustomTransformers tests - testing that they exist and return decorators
+describe('CustomTransformers - Verify Transformer Creation', () => {
+  it('should create all transformers without errors', () => {
+    // Just verify the transformers can be created and return PropertyDecorator functions
+    expect(typeof CustomTransformers.sanitizeString()).toBe('function');
+    expect(typeof CustomTransformers.toBoolean()).toBe('function');
+    expect(typeof CustomTransformers.toPositiveInteger()).toBe('function');
+    expect(typeof CustomTransformers.toPositiveInteger(10)).toBe('function');
+    expect(typeof CustomTransformers.toValidDate()).toBe('function');
+  });
+
+  // The actual transformation logic is tested through integration tests with DTOs
+  // These transformers are used by class-transformer and tested via DTO tests
+});

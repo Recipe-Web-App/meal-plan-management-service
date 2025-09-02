@@ -8,6 +8,7 @@ import configuration from '@/config/configuration';
 import { validationSchema } from '@/config/env.validation';
 import { createWinstonLogger } from '@/config/logger.config';
 import { HealthModule } from '@/modules/health/health.module';
+import { MealPlansModule } from '@/modules/meal-plans/meal-plans.module';
 import { SharedModule } from '@/shared';
 
 @Module({
@@ -44,6 +45,7 @@ import { SharedModule } from '@/shared';
     }),
     SharedModule,
     HealthModule,
+    MealPlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],

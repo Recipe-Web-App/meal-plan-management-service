@@ -3,15 +3,20 @@ import { PrismaService } from '@/config/database.config';
 import { MealType } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { PrismaClient } from '@prisma/client';
+import { MealPlansRepository } from './meal-plans.repository';
 
-describe('MealPlans Repository Tests', () => {
+describe('MealPlansRepository', () => {
+  let repository: MealPlansRepository;
   let prisma: DeepMockProxy<PrismaClient>;
+
   const testUserId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-  const testRecipeId = BigInt(1);
+  const testMealPlanId = BigInt(1);
+  const testRecipeId = BigInt(100);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        MealPlansRepository,
         {
           provide: PrismaService,
           useValue: mockDeep<PrismaClient>(),
@@ -19,6 +24,7 @@ describe('MealPlans Repository Tests', () => {
       ],
     }).compile();
 
+    repository = module.get<MealPlansRepository>(MealPlansRepository);
     prisma = module.get(PrismaService);
   });
 
@@ -26,447 +32,930 @@ describe('MealPlans Repository Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('MealPlan CRUD Operations', () => {
-    it('should create a new meal plan', async () => {
-      const expectedMealPlan = {
-        mealPlanId: BigInt(1),
+  describe('create', () => {
+    it('should create a meal plan', async () => {
+      const createData = {
         userId: testUserId,
         name: 'Test Meal Plan',
-        description: 'A test meal plan for unit testing',
+        description: 'Test Description',
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-01-07'),
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
-      prisma.mealPlan.create.mockResolvedValue(expectedMealPlan);
+      const expectedMealPlan = {
+        mealPlanId: testMealPlanId,
+        ...createData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
+      };
 
-      const result = await prisma.mealPlan.create({
+      prisma.mealPlan.create.mockResolvedValue(expectedMealPlan as any);
+
+      const result = await repository.create(createData);
+
+      expect(result).toEqual(expectedMealPlan);
+      expect(prisma.mealPlan.create).toHaveBeenCalledWith({
         data: {
-          name: 'Test Meal Plan',
-          description: 'A test meal plan for unit testing',
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-07'),
+          name: createData.name,
+          description: createData.description,
+          startDate: createData.startDate,
+          endDate: createData.endDate,
           user: {
-            connect: { userId: testUserId },
+            connect: { userId: createData.userId },
           },
         },
       });
-
-      expect(result).toEqual(expectedMealPlan);
-      expect(prisma.mealPlan.create).toHaveBeenCalledTimes(1);
-      expect(prisma.mealPlan.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          name: 'Test Meal Plan',
-          description: 'A test meal plan for unit testing',
-        }),
-      });
-    });
-
-    it('should find meal plans by user', async () => {
-      const expectedMealPlans = [
-        {
-          mealPlanId: BigInt(1),
-          userId: testUserId,
-          name: 'Weekly Plan 1',
-          description: null,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          mealPlanId: BigInt(2),
-          userId: testUserId,
-          name: 'Weekly Plan 2',
-          description: null,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-
-      prisma.mealPlan.findMany.mockResolvedValue(expectedMealPlans);
-
-      const result = await prisma.mealPlan.findMany({
-        where: { userId: testUserId },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      expect(result).toEqual(expectedMealPlans);
-      expect(result).toHaveLength(2);
-      expect(prisma.mealPlan.findMany).toHaveBeenCalledWith({
-        where: { userId: testUserId },
-        orderBy: { createdAt: 'desc' },
-      });
-    });
-
-    it('should update a meal plan', async () => {
-      const mealPlanId = BigInt(1);
-      const updatedMealPlan = {
-        mealPlanId,
-        userId: testUserId,
-        name: 'Updated Name',
-        description: 'Updated Description',
-        startDate: null,
-        endDate: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      prisma.mealPlan.update.mockResolvedValue(updatedMealPlan);
-
-      const result = await prisma.mealPlan.update({
-        where: { mealPlanId },
-        data: {
-          name: 'Updated Name',
-          description: 'Updated Description',
-        },
-      });
-
-      expect(result.name).toBe('Updated Name');
-      expect(result.description).toBe('Updated Description');
-      expect(prisma.mealPlan.update).toHaveBeenCalledTimes(1);
-    });
-
-    it('should delete a meal plan', async () => {
-      const mealPlanId = BigInt(1);
-      const deletedMealPlan = {
-        mealPlanId,
-        userId: testUserId,
-        name: 'To Be Deleted',
-        description: null,
-        startDate: null,
-        endDate: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      prisma.mealPlan.delete.mockResolvedValue(deletedMealPlan);
-
-      const result = await prisma.mealPlan.delete({
-        where: { mealPlanId },
-      });
-
-      expect(result).toEqual(deletedMealPlan);
-      expect(prisma.mealPlan.delete).toHaveBeenCalledWith({
-        where: { mealPlanId },
-      });
-    });
-
-    it('should find meal plans within a date range', async () => {
-      const februaryPlan = {
-        mealPlanId: BigInt(2),
-        userId: testUserId,
-        name: 'February Plan',
-        description: null,
-        startDate: new Date('2024-02-01'),
-        endDate: new Date('2024-02-29'),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      prisma.mealPlan.findMany.mockResolvedValue([februaryPlan]);
-
-      const result = await prisma.mealPlan.findMany({
-        where: {
-          userId: testUserId,
-          AND: [
-            {
-              OR: [{ startDate: { lte: new Date('2024-02-29') } }, { startDate: null }],
-            },
-            {
-              OR: [{ endDate: { gte: new Date('2024-02-01') } }, { endDate: null }],
-            },
-          ],
-        },
-      });
-
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('February Plan');
-      expect(prisma.mealPlan.findMany).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('MealPlanRecipe Operations', () => {
-    const mealPlanId = BigInt(1);
-
-    it('should add a recipe to a meal plan', async () => {
-      const expectedMealPlanRecipe = {
-        mealPlanId,
-        recipeId: testRecipeId,
-        mealDate: new Date('2024-01-02'),
-        mealType: MealType.LUNCH,
-      };
-
-      prisma.mealPlanRecipe.create.mockResolvedValue(expectedMealPlanRecipe);
-
-      const result = await prisma.mealPlanRecipe.create({
-        data: {
-          mealPlanId,
-          recipeId: testRecipeId,
-          mealDate: new Date('2024-01-02'),
-          mealType: MealType.LUNCH,
-        },
-      });
-
-      expect(result).toEqual(expectedMealPlanRecipe);
-      expect(result.mealType).toBe(MealType.LUNCH);
-      expect(prisma.mealPlanRecipe.create).toHaveBeenCalledTimes(1);
-    });
-
-    it('should find all recipes in a meal plan with includes', async () => {
-      const mealPlanWithRecipes = {
-        mealPlanId,
+  describe('findById', () => {
+    it('should return meal plan by id', async () => {
+      const mockMealPlan = {
+        mealPlanId: testMealPlanId,
         userId: testUserId,
-        name: 'Recipe Test Plan',
+        name: 'Test Plan',
         description: null,
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-01-07'),
         createdAt: new Date(),
         updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlan as any);
+
+      const result = await repository.findById(testMealPlanId);
+
+      expect(result).toEqual(mockMealPlan);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+      });
+    });
+
+    it('should return null when meal plan not found', async () => {
+      prisma.mealPlan.findUnique.mockResolvedValue(null);
+
+      const result = await repository.findById(testMealPlanId);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findByIdWithRecipes', () => {
+    it('should return meal plan with recipes', async () => {
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        description: null,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-01-07'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
         mealPlanRecipes: [
           {
-            mealPlanId,
+            mealPlanRecipeId: BigInt(1),
+            mealPlanId: testMealPlanId,
             recipeId: testRecipeId,
-            mealDate: new Date('2024-01-02'),
+            mealDate: new Date('2024-01-01'),
             mealType: MealType.BREAKFAST,
+            servings: 2,
             recipe: {
               recipeId: testRecipeId,
+              title: 'Test Recipe',
               userId: testUserId,
-              title: 'Test Recipe for Meal Plans',
-            },
-          },
-          {
-            mealPlanId,
-            recipeId: testRecipeId,
-            mealDate: new Date('2024-01-02'),
-            mealType: MealType.LUNCH,
-            recipe: {
-              recipeId: testRecipeId,
-              userId: testUserId,
-              title: 'Test Recipe for Meal Plans',
             },
           },
         ],
       };
 
-      prisma.mealPlan.findUnique.mockResolvedValue(mealPlanWithRecipes);
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
 
-      const result = await prisma.mealPlan.findUnique({
-        where: { mealPlanId },
+      const result = await repository.findByIdWithRecipes(testMealPlanId);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
         include: {
           mealPlanRecipes: {
             include: {
-              recipe: true,
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
             },
             orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
           },
         },
       });
-
-      expect(result).toBeDefined();
-      expect(result.mealPlanRecipes).toHaveLength(2);
-      expect(result.mealPlanRecipes[0].recipe.title).toBe('Test Recipe for Meal Plans');
-      expect(prisma.mealPlan.findUnique).toHaveBeenCalledTimes(1);
-    });
-
-    it('should remove a recipe from a meal plan', async () => {
-      const deletedRecipe = {
-        mealPlanId,
-        recipeId: testRecipeId,
-        mealDate: new Date('2024-01-03'),
-        mealType: MealType.DINNER,
-      };
-
-      prisma.mealPlanRecipe.delete.mockResolvedValue(deletedRecipe);
-
-      const result = await prisma.mealPlanRecipe.delete({
-        where: {
-          mealPlanId_recipeId_mealDate: {
-            mealPlanId,
-            recipeId: testRecipeId,
-            mealDate: new Date('2024-01-03'),
-          },
-        },
-      });
-
-      expect(result).toEqual(deletedRecipe);
-      expect(prisma.mealPlanRecipe.delete).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle multiple recipes for the same meal date', async () => {
-      const mealDate = new Date('2024-01-04');
-      const expectedRecipes = [
-        {
-          mealPlanId,
-          recipeId: testRecipeId,
-          mealDate,
-          mealType: MealType.BREAKFAST,
-        },
-        {
-          mealPlanId,
-          recipeId: testRecipeId,
-          mealDate,
-          mealType: MealType.LUNCH,
-        },
-      ];
-
-      prisma.mealPlanRecipe.findMany.mockResolvedValue(expectedRecipes);
-
-      const result = await prisma.mealPlanRecipe.findMany({
-        where: {
-          mealPlanId,
-          mealDate,
-        },
-        orderBy: { mealType: 'asc' },
-      });
-
-      expect(result).toHaveLength(2);
-      expect(result[0].mealType).toBe(MealType.BREAKFAST);
-      expect(result[1].mealType).toBe(MealType.LUNCH);
-    });
-
-    it('should verify cascade delete behavior', async () => {
-      // When a meal plan is deleted, we expect associated recipes to be deleted
-      // This is handled by the database, but we can verify the mock behavior
-
-      prisma.mealPlanRecipe.findMany.mockResolvedValue([]);
-
-      const result = await prisma.mealPlanRecipe.findMany({
-        where: { mealPlanId },
-      });
-
-      expect(result).toHaveLength(0);
     });
   });
 
-  describe('Complex Queries', () => {
-    it('should find meal plans with specific recipes', async () => {
-      const mealPlansWithRecipe = [
+  describe('findByUser', () => {
+    it('should return meal plans for user', async () => {
+      const mockMealPlans = [
         {
-          mealPlanId: BigInt(1),
+          mealPlanId: testMealPlanId,
           userId: testUserId,
-          name: 'Complex Query Test',
+          name: 'Plan 1',
           description: null,
-          startDate: null,
-          endDate: null,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-07'),
           createdAt: new Date(),
           updatedAt: new Date(),
-          mealPlanRecipes: [
-            {
-              mealPlanId: BigInt(1),
-              recipeId: testRecipeId,
-              mealDate: new Date('2024-01-06'),
-              mealType: MealType.LUNCH,
-            },
-          ],
+          isActive: true,
+          isArchived: false,
         },
       ];
 
-      prisma.mealPlan.findMany.mockResolvedValue(mealPlansWithRecipe);
+      prisma.mealPlan.findMany.mockResolvedValue(mockMealPlans as any);
 
-      const result = await prisma.mealPlan.findMany({
+      const result = await repository.findByUser(testUserId);
+
+      expect(result).toEqual(mockMealPlans);
+      expect(prisma.mealPlan.findMany).toHaveBeenCalledWith({
+        where: { userId: testUserId },
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('should update meal plan', async () => {
+      const updateData = {
+        name: 'Updated Plan',
+        description: 'Updated Description',
+      };
+
+      const updatedMealPlan = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        ...updateData,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-01-07'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
+      };
+
+      prisma.mealPlan.update.mockResolvedValue(updatedMealPlan as any);
+
+      const result = await repository.update(testMealPlanId, updateData);
+
+      expect(result).toEqual(updatedMealPlan);
+      expect(prisma.mealPlan.update).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        data: updateData,
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete meal plan', async () => {
+      const deletedMealPlan = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Deleted Plan',
+        description: null,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-01-07'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
+      };
+
+      prisma.mealPlan.delete.mockResolvedValue(deletedMealPlan as any);
+
+      const result = await repository.delete(testMealPlanId);
+
+      expect(result).toEqual(deletedMealPlan);
+      expect(prisma.mealPlan.delete).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+      });
+    });
+  });
+
+  describe('addRecipeToMealPlan', () => {
+    it('should add recipe to meal plan', async () => {
+      const addData = {
+        mealPlanId: testMealPlanId,
+        recipeId: testRecipeId,
+        mealDate: new Date('2024-01-01'),
+        mealType: MealType.BREAKFAST,
+      };
+
+      const expectedRecipe = {
+        mealPlanRecipeId: BigInt(1),
+        ...addData,
+        servings: null,
+      };
+
+      prisma.mealPlanRecipe.create.mockResolvedValue(expectedRecipe as any);
+
+      const result = await repository.addRecipeToMealPlan(addData);
+
+      expect(result).toEqual(expectedRecipe);
+      expect(prisma.mealPlanRecipe.create).toHaveBeenCalledWith({
+        data: {
+          mealPlanId: addData.mealPlanId,
+          recipeId: addData.recipeId,
+          mealDate: addData.mealDate,
+          mealType: addData.mealType,
+        },
+      });
+    });
+  });
+
+  describe('removeRecipeFromMealPlan', () => {
+    it('should remove recipe from meal plan', async () => {
+      const removeData = {
+        mealPlanId: testMealPlanId,
+        recipeId: testRecipeId,
+        mealDate: new Date('2024-01-01'),
+        mealType: MealType.BREAKFAST,
+      };
+
+      const deletedRecipe = {
+        mealPlanRecipeId: BigInt(1),
+        ...removeData,
+        servings: 2,
+      };
+
+      prisma.mealPlanRecipe.delete.mockResolvedValue(deletedRecipe as any);
+
+      const result = await repository.removeRecipeFromMealPlan(
+        removeData.mealPlanId,
+        removeData.recipeId,
+        removeData.mealDate,
+      );
+
+      expect(result).toEqual(deletedRecipe);
+      expect(prisma.mealPlanRecipe.delete).toHaveBeenCalledWith({
         where: {
+          mealPlanId_recipeId_mealDate: {
+            mealPlanId: removeData.mealPlanId,
+            recipeId: removeData.recipeId,
+            mealDate: removeData.mealDate,
+          },
+        },
+      });
+    });
+  });
+
+  describe('existsByIdAndUser', () => {
+    it('should return true when meal plan exists for user', async () => {
+      prisma.mealPlan.count.mockResolvedValue(1);
+
+      const result = await repository.existsByIdAndUser(testMealPlanId, testUserId);
+
+      expect(result).toBe(true);
+      expect(prisma.mealPlan.count).toHaveBeenCalledWith({
+        where: {
+          mealPlanId: testMealPlanId,
           userId: testUserId,
-          mealPlanRecipes: {
-            some: {
-              recipeId: testRecipeId,
-            },
+        },
+      });
+    });
+
+    it('should return false when meal plan does not exist for user', async () => {
+      prisma.mealPlan.count.mockResolvedValue(0);
+
+      const result = await repository.existsByIdAndUser(testMealPlanId, testUserId);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('findManyWithFilters', () => {
+    it('should find meal plans with filters', async () => {
+      const filters = {
+        userId: testUserId,
+        isActive: true,
+        includeRecipes: true,
+      };
+
+      const sorting = {
+        sortBy: 'createdAt' as const,
+        sortOrder: 'desc' as const,
+      };
+
+      const pagination = {
+        skip: 0,
+        take: 20,
+      };
+
+      const mockMealPlans = [
+        {
+          mealPlanId: testMealPlanId,
+          userId: testUserId,
+          name: 'Filtered Plan',
+          description: null,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-07'),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isActive: true,
+          isArchived: false,
+        },
+      ];
+
+      prisma.mealPlan.findMany.mockResolvedValue(mockMealPlans as any);
+
+      const result = await repository.findManyWithFilters(filters, sorting, pagination);
+
+      expect(result).toEqual(mockMealPlans);
+      expect(prisma.mealPlan.findMany).toHaveBeenCalled();
+    });
+  });
+
+  describe('countMealPlans', () => {
+    it('should count meal plans with filters', async () => {
+      const filters = {
+        userId: testUserId,
+        isActive: true,
+      };
+
+      prisma.mealPlan.count.mockResolvedValue(5);
+
+      const result = await repository.countMealPlans(filters);
+
+      expect(result).toBe(5);
+      expect(prisma.mealPlan.count).toHaveBeenCalled();
+    });
+  });
+
+  describe('getMealPlanStatistics', () => {
+    it('should get meal plan statistics', async () => {
+      const mockStats = {
+        totalRecipes: 10,
+        mealTypeCounts: [
+          { mealType: MealType.BREAKFAST, count: 5 },
+          { mealType: MealType.LUNCH, count: 3 },
+          { mealType: MealType.DINNER, count: 2 },
+        ],
+        uniqueDates: [new Date('2024-01-01'), new Date('2024-01-02'), new Date('2024-01-03')],
+      };
+
+      prisma.mealPlanRecipe.count.mockResolvedValue(mockStats.totalRecipes);
+      prisma.mealPlanRecipe.groupBy.mockResolvedValue(
+        mockStats.mealTypeCounts.map((item) => ({
+          mealType: item.mealType,
+          _count: { mealType: item.count },
+        })) as any,
+      );
+      prisma.mealPlanRecipe.findMany.mockResolvedValue(
+        mockStats.uniqueDates.map((date) => ({ mealDate: date })) as any,
+      );
+
+      const result = await repository.getMealPlanStatistics(testMealPlanId);
+
+      expect(result).toEqual({
+        totalRecipes: mockStats.totalRecipes,
+        daysWithMeals: mockStats.uniqueDates.length,
+        mealTypeCounts: mockStats.mealTypeCounts,
+        uniqueDates: mockStats.uniqueDates,
+      });
+    });
+  });
+
+  describe('verifyMealPlanOwnership', () => {
+    it('should return true when user owns meal plan', async () => {
+      prisma.mealPlan.count.mockResolvedValue(1);
+
+      const result = await repository.verifyMealPlanOwnership(testMealPlanId, testUserId);
+
+      expect(result).toBe(true);
+      expect(prisma.mealPlan.count).toHaveBeenCalledWith({
+        where: {
+          mealPlanId: testMealPlanId,
+          userId: testUserId,
+        },
+      });
+    });
+
+    it('should return false when user does not own meal plan', async () => {
+      prisma.mealPlan.count.mockResolvedValue(0);
+
+      const result = await repository.verifyMealPlanOwnership(testMealPlanId, testUserId);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when meal plan not found', async () => {
+      prisma.mealPlan.count.mockResolvedValue(0);
+
+      const result = await repository.verifyMealPlanOwnership(testMealPlanId, testUserId);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('checkMealPlanExists', () => {
+    it('should return true when meal plan exists', async () => {
+      prisma.mealPlan.count.mockResolvedValue(1);
+
+      const result = await repository.checkMealPlanExists(testMealPlanId);
+
+      expect(result).toBe(true);
+      expect(prisma.mealPlan.count).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+      });
+    });
+
+    it('should return false when meal plan does not exist', async () => {
+      prisma.mealPlan.count.mockResolvedValue(0);
+
+      const result = await repository.checkMealPlanExists(testMealPlanId);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('findRecipesForDateRange', () => {
+    it('should find recipes for date range', async () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-07');
+
+      const mockRecipes = [
+        {
+          mealPlanRecipeId: BigInt(1),
+          mealPlanId: testMealPlanId,
+          recipeId: testRecipeId,
+          mealDate: new Date('2024-01-01'),
+          mealType: MealType.BREAKFAST,
+          servings: 2,
+        },
+      ];
+
+      prisma.mealPlanRecipe.findMany.mockResolvedValue(mockRecipes as any);
+
+      const result = await repository.findRecipesForDateRange(
+        testMealPlanId,
+        startDate,
+        endDate,
+        {},
+      );
+
+      expect(result).toEqual(mockRecipes);
+      expect(prisma.mealPlanRecipe.findMany).toHaveBeenCalledWith({
+        where: {
+          mealPlanId: testMealPlanId,
+          mealDate: {
+            gte: startDate,
+            lte: endDate,
           },
         },
         include: {
-          mealPlanRecipes: true,
+          recipe: {
+            select: expect.any(Object),
+          },
         },
+        orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
       });
-
-      expect(result).toHaveLength(1);
-      expect(result[0].mealPlanRecipes).toHaveLength(1);
-      expect(prisma.mealPlan.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it('should aggregate meal types in a meal plan', async () => {
-      const mealPlanId = BigInt(1);
-      const aggregationResult = [
+    it('should find recipes for date range with meal type filter', async () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-07');
+      const filters = { mealType: MealType.BREAKFAST };
+
+      const mockRecipes = [
         {
+          mealPlanRecipeId: BigInt(1),
+          mealPlanId: testMealPlanId,
+          recipeId: testRecipeId,
+          mealDate: new Date('2024-01-01'),
           mealType: MealType.BREAKFAST,
-          _count: {
-            mealType: 2,
-          },
-        },
-        {
-          mealType: MealType.LUNCH,
-          _count: {
-            mealType: 1,
-          },
+          servings: 2,
         },
       ];
 
-      prisma.mealPlanRecipe.groupBy.mockResolvedValue(aggregationResult as any);
+      prisma.mealPlanRecipe.findMany.mockResolvedValue(mockRecipes as any);
 
-      const result = await prisma.mealPlanRecipe.groupBy({
-        by: ['mealType'],
+      const result = await repository.findRecipesForDateRange(
+        testMealPlanId,
+        startDate,
+        endDate,
+        filters,
+      );
+
+      expect(result).toEqual(mockRecipes);
+      expect(prisma.mealPlanRecipe.findMany).toHaveBeenCalledWith({
         where: {
-          mealPlanId,
+          mealPlanId: testMealPlanId,
+          mealDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+          mealType: MealType.BREAKFAST,
         },
-        _count: {
-          mealType: true,
+        include: {
+          recipe: {
+            select: expect.any(Object),
+          },
         },
+        orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
       });
-
-      expect(result).toHaveLength(2);
-      const breakfastCount = result.find((mt) => mt.mealType === MealType.BREAKFAST);
-      const lunchCount = result.find((mt) => mt.mealType === MealType.LUNCH);
-      expect(breakfastCount._count.mealType).toBe(2);
-      expect(lunchCount._count.mealType).toBe(1);
-      expect(prisma.mealPlanRecipe.groupBy).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle database connection errors', async () => {
-      const error = new Error('Database connection failed');
-      prisma.mealPlan.create.mockRejectedValue(error);
+  describe('findRecipesForWeek', () => {
+    it('should find recipes for week', async () => {
+      const startDate = new Date('2024-01-01');
+      const filters = { mealType: MealType.LUNCH };
 
-      await expect(
-        prisma.mealPlan.create({
-          data: {
-            name: 'Test Plan',
-            userId: testUserId,
+      const mockRecipes = [
+        {
+          mealPlanRecipeId: BigInt(1),
+          mealPlanId: testMealPlanId,
+          recipeId: testRecipeId,
+          mealDate: new Date('2024-01-02'),
+          mealType: MealType.LUNCH,
+          servings: 2,
+        },
+      ];
+
+      prisma.mealPlanRecipe.findMany.mockResolvedValue(mockRecipes as any);
+
+      const result = await repository.findRecipesForWeek(testMealPlanId, startDate, filters);
+
+      expect(result).toEqual(mockRecipes);
+      expect(prisma.mealPlanRecipe.findMany).toHaveBeenCalledWith({
+        where: {
+          mealPlanId: testMealPlanId,
+          mealDate: {
+            gte: startDate,
+            lte: expect.any(Date), // Should be startDate + 6 days, end of day
           },
-        }),
-      ).rejects.toThrow('Database connection failed');
+          mealType: MealType.LUNCH,
+        },
+        include: {
+          recipe: {
+            select: expect.any(Object),
+          },
+        },
+        orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+      });
+    });
+  });
+
+  describe('findRecipesForMonth', () => {
+    it('should find recipes for month', async () => {
+      const year = 2024;
+      const month = 1;
+      const filters = {};
+
+      const mockRecipes = [
+        {
+          mealPlanRecipeId: BigInt(1),
+          mealPlanId: testMealPlanId,
+          recipeId: testRecipeId,
+          mealDate: new Date('2024-01-15'),
+          mealType: MealType.DINNER,
+          servings: 4,
+        },
+      ];
+
+      prisma.mealPlanRecipe.findMany.mockResolvedValue(mockRecipes as any);
+
+      const result = await repository.findRecipesForMonth(testMealPlanId, year, month, filters);
+
+      expect(result).toEqual(mockRecipes);
+      expect(prisma.mealPlanRecipe.findMany).toHaveBeenCalledWith({
+        where: {
+          mealPlanId: testMealPlanId,
+          mealDate: {
+            gte: new Date(year, month - 1, 1),
+            lte: expect.any(Date), // Should be end of month
+          },
+        },
+        include: {
+          recipe: {
+            select: expect.any(Object),
+          },
+        },
+        orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+      });
+    });
+  });
+
+  describe('error scenarios', () => {
+    it('should handle database errors in create', async () => {
+      const createData = {
+        userId: testUserId,
+        name: 'Test Plan',
+      };
+
+      const dbError = new Error('Database connection failed');
+      prisma.mealPlan.create.mockRejectedValue(dbError);
+
+      await expect(repository.create(createData)).rejects.toThrow('Database connection failed');
     });
 
-    it('should handle unique constraint violations', async () => {
-      const error = new Error('Unique constraint failed');
-      prisma.mealPlanRecipe.create.mockRejectedValue(error);
+    it('should handle constraint violations in addRecipeToMealPlan', async () => {
+      const addData = {
+        mealPlanId: testMealPlanId,
+        recipeId: testRecipeId,
+        mealDate: new Date('2024-01-01'),
+        mealType: MealType.BREAKFAST,
+        servings: 2,
+      };
 
-      await expect(
-        prisma.mealPlanRecipe.create({
-          data: {
-            mealPlanId: BigInt(1),
-            recipeId: testRecipeId,
-            mealDate: new Date('2024-01-01'),
-            mealType: MealType.BREAKFAST,
+      const constraintError = new Error('Unique constraint violation');
+      prisma.mealPlanRecipe.create.mockRejectedValue(constraintError);
+
+      await expect(repository.addRecipeToMealPlan(addData)).rejects.toThrow(
+        'Unique constraint violation',
+      );
+    });
+  });
+
+  describe('additional branch coverage tests', () => {
+    it('should handle findByIdWithRecipesFiltered with no filters', async () => {
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        description: null,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-01-07'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        isArchived: false,
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, undefined);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: {},
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
           },
-        }),
-      ).rejects.toThrow('Unique constraint failed');
+        },
+      });
     });
 
-    it('should handle foreign key constraint violations', async () => {
-      const error = new Error('Foreign key constraint failed');
-      prisma.mealPlan.create.mockRejectedValue(error);
+    it('should handle findByIdWithRecipesFiltered with meal type filter only', async () => {
+      const filters = { mealType: MealType.BREAKFAST };
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
 
-      await expect(
-        prisma.mealPlan.create({
-          data: {
-            name: 'Test Plan',
-            userId: 'non-existent-user',
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: { mealType: MealType.BREAKFAST },
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
           },
-        }),
-      ).rejects.toThrow('Foreign key constraint failed');
+        },
+      });
+    });
+
+    it('should handle findByIdWithRecipesFiltered with date range filter only', async () => {
+      const filters = {
+        dateRange: {
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-07'),
+        },
+      };
+
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: {
+              mealDate: {
+                gte: new Date('2024-01-01'),
+                lte: new Date('2024-01-07'),
+              },
+            },
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        },
+      });
+    });
+
+    it('should handle findByIdWithRecipesFiltered with both meal type and date range filters', async () => {
+      const filters = {
+        mealType: MealType.DINNER,
+        dateRange: {
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-07'),
+        },
+      };
+
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: {
+              mealType: MealType.DINNER,
+              mealDate: {
+                gte: new Date('2024-01-01'),
+                lte: new Date('2024-01-07'),
+              },
+            },
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        },
+      });
+    });
+
+    it('should handle date range filter with only start date', async () => {
+      const filters = {
+        dateRange: {
+          startDate: new Date('2024-01-01'),
+        },
+      };
+
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: {
+              mealDate: {
+                gte: new Date('2024-01-01'),
+              },
+            },
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        },
+      });
+    });
+
+    it('should handle date range filter with only end date', async () => {
+      const filters = {
+        dateRange: {
+          endDate: new Date('2024-01-07'),
+        },
+      };
+
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+      expect(prisma.mealPlan.findUnique).toHaveBeenCalledWith({
+        where: { mealPlanId: testMealPlanId },
+        include: {
+          mealPlanRecipes: {
+            where: {
+              mealDate: {
+                lte: new Date('2024-01-07'),
+              },
+            },
+            include: {
+              recipe: {
+                select: {
+                  recipeId: true,
+                  title: true,
+                  userId: true,
+                },
+              },
+            },
+            orderBy: [{ mealDate: 'asc' }, { mealType: 'asc' }],
+          },
+        },
+      });
+    });
+
+    it('should handle empty date range object', async () => {
+      const filters = { dateRange: {} };
+
+      const mockMealPlanWithRecipes = {
+        mealPlanId: testMealPlanId,
+        userId: testUserId,
+        name: 'Test Plan',
+        mealPlanRecipes: [],
+      };
+
+      prisma.mealPlan.findUnique.mockResolvedValue(mockMealPlanWithRecipes as any);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, filters);
+
+      expect(result).toEqual(mockMealPlanWithRecipes);
+    });
+
+    it('should handle return null when meal plan not found', async () => {
+      prisma.mealPlan.findUnique.mockResolvedValue(null);
+
+      const result = await repository.findByIdWithRecipesFiltered(testMealPlanId, undefined);
+
+      expect(result).toBeNull();
     });
   });
 });
