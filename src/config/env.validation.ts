@@ -35,6 +35,21 @@ export const validationSchema = Joi.object({
   // CORS
   CORS_ORIGINS: Joi.string().default('*'),
 
+  // OAuth2 Configuration
+  OAUTH2_SERVICE_ENABLED: Joi.boolean().default(false),
+  OAUTH2_SERVICE_TO_SERVICE_ENABLED: Joi.boolean().default(false),
+  OAUTH2_INTROSPECTION_ENABLED: Joi.boolean().default(false),
+  OAUTH2_CLIENT_ID: Joi.string().when('OAUTH2_SERVICE_ENABLED', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  }),
+  OAUTH2_CLIENT_SECRET: Joi.string().when('OAUTH2_SERVICE_ENABLED', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  }),
+
   // Logging
   LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'debug', 'verbose').default('info'),
   MEAL_PLAN_SERVICE_LOGGING_LEVEL: Joi.string()

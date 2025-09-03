@@ -11,6 +11,7 @@ import {
   HttpStatus,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,15 +37,15 @@ import {
 } from './dto';
 import { MEAL_TYPE_VALUES } from './enums/meal-type.enum';
 
-// TODO: Implement JwtAuthGuard when authentication is ready
-// import { JwtAuthGuard } from '@/shared/guards/jwt-auth.guard';
-// import { CurrentUser } from '@/shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '@/modules/auth/interfaces/jwt-payload.interface';
 
 @ApiTags('meal-plans')
 @Controller('api/v1/meal-plans')
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
-// @UseGuards(JwtAuthGuard) // TODO: Enable when authentication is ready
+@UseGuards(JwtAuthGuard)
 @Throttle({ default: { limit: 100, ttl: 60000 } })
 export class MealPlansController {
   constructor(private readonly mealPlansService: MealPlansService) {}
@@ -155,10 +156,9 @@ export class MealPlansController {
   async listMealPlans(
     @Query() queryDto: MealPlanQueryDto,
     @Query() paginationDto: PaginationDto,
-    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<PaginatedMealPlansResponseDto> {
-    // TODO: Replace with actual user ID from JWT token
-    const userId = 'temp-user-id';
+    const userId = user.id;
 
     return this.mealPlansService.findMealPlans(queryDto, paginationDto, userId);
   }
@@ -201,10 +201,9 @@ export class MealPlansController {
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // Stricter rate limiting for creation
   async createMealPlan(
     @Body() createMealPlanDto: CreateMealPlanDto,
-    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<MealPlanResponseDto> {
-    // TODO: Replace with actual user ID from JWT token
-    const userId = 'temp-user-id';
+    const userId = user.id;
 
     return this.mealPlansService.createMealPlan(createMealPlanDto, userId);
   }
@@ -264,10 +263,9 @@ export class MealPlansController {
   async updateMealPlan(
     @Param('id') id: string,
     @Body() updateMealPlanDto: UpdateMealPlanDto,
-    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<MealPlanResponseDto> {
-    // TODO: Replace with actual user ID from JWT token
-    const userId = 'temp-user-id';
+    const userId = user.id;
 
     return this.mealPlansService.updateMealPlan(id, updateMealPlanDto, userId);
   }
@@ -383,10 +381,9 @@ export class MealPlansController {
   async getMealPlanById(
     @Param('id') id: string,
     @Query() queryDto: MealPlanByIdQueryDto,
-    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<MealPlanQueryResponseDto> {
-    // TODO: Replace with actual user ID from JWT token
-    const userId = 'temp-user-id';
+    const userId = user.id;
 
     return this.mealPlansService.findMealPlanById(id, queryDto, userId);
   }
@@ -436,10 +433,9 @@ export class MealPlansController {
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // Stricter rate limiting for deletions
   async deleteMealPlan(
     @Param('id') id: string,
-    // @CurrentUser('userId') userId: string, // TODO: Enable when authentication is ready
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<void> {
-    // TODO: Replace with actual user ID from JWT token
-    const userId = 'temp-user-id';
+    const userId = user.id;
 
     await this.mealPlansService.deleteMealPlan(id, userId);
   }
