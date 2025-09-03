@@ -42,6 +42,12 @@ export class TokenValidationService {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Token validation failed: ${errorMessage}`);
+
+      // Re-throw UnauthorizedException as-is to preserve specific error messages
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      // For other errors, throw generic message
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
@@ -99,7 +105,7 @@ export class TokenValidationService {
 
     if (cached && cached.expires > Date.now()) {
       if (!cached.data.active) {
-        throw new UnauthorizedException('Token is not active');
+        throw new Error('Token is not active');
       }
       return this.mapIntrospectionToUser(cached.data);
     }
@@ -131,14 +137,14 @@ export class TokenValidationService {
       });
 
       if (!introspectionData.active) {
-        throw new UnauthorizedException('Token is not active');
+        throw new Error('Token is not active');
       }
 
       return this.mapIntrospectionToUser(introspectionData);
     } catch (error: unknown) {
       const axiosError = error as { response?: { status?: number; data?: unknown } };
       if (axiosError.response?.status === 401) {
-        throw new UnauthorizedException('Invalid token');
+        throw new Error('Invalid token');
       }
       if (axiosError.response?.status) {
         this.logger.error(
@@ -148,7 +154,7 @@ export class TokenValidationService {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         this.logger.error(`Introspection request failed: ${errorMessage}`);
       }
-      throw new UnauthorizedException('Token validation failed');
+      throw new Error('Token validation failed');
     }
   }
 

@@ -33,20 +33,26 @@ export class ServiceAuthGuard implements CanActivate {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
+    if (!token || token.trim() === '') {
+      throw new UnauthorizedException('Missing or invalid authorization header');
+    }
+
+    let user: AuthenticatedUser;
     try {
-      const user = await this.tokenValidationService.validateToken(token);
-
-      // For service-to-service calls, we expect specific client credentials
-      // You might want to check for specific scopes or client IDs here
-      if (!user.scopes.includes('read') && !user.scopes.includes('write')) {
-        throw new UnauthorizedException('Insufficient permissions for service access');
-      }
-
-      // Attach user to request for use in controllers
-      request.user = user;
-      return true;
+      user = await this.tokenValidationService.validateToken(token);
     } catch {
+      // Token validation errors should be generic
       throw new UnauthorizedException('Service authentication failed');
     }
+
+    // For service-to-service calls, we expect specific client credentials
+    // You might want to check for specific scopes or client IDs here
+    if (!user.scopes.includes('read') && !user.scopes.includes('write')) {
+      throw new UnauthorizedException('Insufficient permissions for service access');
+    }
+
+    // Attach user to request for use in controllers
+    request.user = user;
+    return true;
   }
 }
