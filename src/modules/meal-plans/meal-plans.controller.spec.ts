@@ -12,6 +12,7 @@ import {
   MealPlanResponseDto,
 } from './dto';
 import { MealType } from './enums/meal-type.enum';
+import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 
 describe('MealPlansController', () => {
   let controller: MealPlansController;
@@ -65,6 +66,14 @@ describe('MealPlansController', () => {
     },
   };
 
+  const mockUser: AuthenticatedUser = {
+    id: 'temp-user-id',
+    sub: 'temp-user-id',
+    clientId: 'test-client',
+    scopes: ['read', 'write'],
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MealPlansController],
@@ -101,7 +110,7 @@ describe('MealPlansController', () => {
     it('should return paginated meal plans', async () => {
       service.findMealPlans.mockResolvedValue(mockPaginatedResponse);
 
-      const result = await controller.listMealPlans(queryDto, paginationDto);
+      const result = await controller.listMealPlans(queryDto, paginationDto, mockUser);
 
       expect(result).toEqual(mockPaginatedResponse);
       expect(service.findMealPlans).toHaveBeenCalledWith(
@@ -127,7 +136,7 @@ describe('MealPlansController', () => {
         },
       });
 
-      const result = await controller.listMealPlans(emptyQuery, defaultPagination);
+      const result = await controller.listMealPlans(emptyQuery, defaultPagination, mockUser);
 
       expect(result.data).toEqual([]);
       expect(service.findMealPlans).toHaveBeenCalledWith(
@@ -148,7 +157,7 @@ describe('MealPlansController', () => {
 
       service.findMealPlans.mockResolvedValue(mockPaginatedResponse);
 
-      await controller.listMealPlans(filterQuery, paginationDto);
+      await controller.listMealPlans(filterQuery, paginationDto, mockUser);
 
       expect(service.findMealPlans).toHaveBeenCalledWith(
         filterQuery,
@@ -167,7 +176,7 @@ describe('MealPlansController', () => {
     it('should return meal plan by id', async () => {
       service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-      const result = await controller.getMealPlanById('123', queryDto);
+      const result = await controller.getMealPlanById('123', queryDto, mockUser);
 
       expect(result).toEqual(mockMealPlanResponse);
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', queryDto, 'temp-user-id');
@@ -182,7 +191,7 @@ describe('MealPlansController', () => {
 
       service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-      await controller.getMealPlanById('123', dayQuery);
+      await controller.getMealPlanById('123', dayQuery, mockUser);
 
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', dayQuery, 'temp-user-id');
     });
@@ -196,7 +205,7 @@ describe('MealPlansController', () => {
 
       service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-      await controller.getMealPlanById('123', weekQuery);
+      await controller.getMealPlanById('123', weekQuery, mockUser);
 
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', weekQuery, 'temp-user-id');
     });
@@ -211,7 +220,7 @@ describe('MealPlansController', () => {
 
       service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-      await controller.getMealPlanById('123', monthQuery);
+      await controller.getMealPlanById('123', monthQuery, mockUser);
 
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', monthQuery, 'temp-user-id');
     });
@@ -225,7 +234,7 @@ describe('MealPlansController', () => {
 
       service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-      await controller.getMealPlanById('123', filteredQuery);
+      await controller.getMealPlanById('123', filteredQuery, mockUser);
 
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', filteredQuery, 'temp-user-id');
     });
@@ -241,7 +250,9 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto)).rejects.toThrow(error);
+        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
+          error,
+        );
         expect(service.findMealPlans).toHaveBeenCalledWith(queryDto, paginationDto, 'temp-user-id');
       });
 
@@ -250,7 +261,9 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto)).rejects.toThrow(error);
+        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should throw BadRequestException when service throws BadRequestException', async () => {
@@ -258,14 +271,18 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto)).rejects.toThrow(error);
+        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should throw InternalServerErrorException when service throws unexpected error', async () => {
         const error = new Error('Database connection failed');
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto)).rejects.toThrow(error);
+        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
     });
 
@@ -277,7 +294,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('999', queryDto)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('999', queryDto, mockUser)).rejects.toThrow(error);
         expect(service.findMealPlanById).toHaveBeenCalledWith('999', queryDto, 'temp-user-id');
       });
 
@@ -286,7 +303,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', queryDto)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when meal plan ID is invalid', async () => {
@@ -294,7 +311,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('invalid-id', queryDto)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('invalid-id', queryDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should throw BadRequestException when view mode parameters are invalid', async () => {
@@ -303,7 +322,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should throw BadRequestException when date range is invalid', async () => {
@@ -316,7 +337,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should throw BadRequestException when month/year parameters are invalid', async () => {
@@ -329,7 +352,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should handle database timeout errors', async () => {
@@ -337,7 +362,7 @@ describe('MealPlansController', () => {
         error.name = 'TimeoutError';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', queryDto)).rejects.toThrow(error);
+        await expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
       });
     });
   });
@@ -360,7 +385,7 @@ describe('MealPlansController', () => {
           },
         });
 
-        const result = await controller.listMealPlans(queryDto, maxPagination);
+        const result = await controller.listMealPlans(queryDto, maxPagination, mockUser);
 
         expect(result.meta.limit).toBe(100);
         expect(service.findMealPlans).toHaveBeenCalledWith(queryDto, maxPagination, 'temp-user-id');
@@ -382,7 +407,7 @@ describe('MealPlansController', () => {
           },
         });
 
-        const result = await controller.listMealPlans(queryDto, largePagination);
+        const result = await controller.listMealPlans(queryDto, largePagination, mockUser);
 
         expect(result.meta.page).toBe(1000);
         expect(result.data).toEqual([]);
@@ -407,7 +432,7 @@ describe('MealPlansController', () => {
           },
         });
 
-        await controller.listMealPlans(queryDto, paginationDto);
+        await controller.listMealPlans(queryDto, paginationDto, mockUser);
 
         expect(service.findMealPlans).toHaveBeenCalledWith(queryDto, paginationDto, 'temp-user-id');
       });
@@ -431,7 +456,7 @@ describe('MealPlansController', () => {
           },
         });
 
-        await controller.listMealPlans(queryDto, paginationDto);
+        await controller.listMealPlans(queryDto, paginationDto, mockUser);
 
         expect(service.findMealPlans).toHaveBeenCalledWith(queryDto, paginationDto, 'temp-user-id');
       });
@@ -444,7 +469,7 @@ describe('MealPlansController', () => {
 
         service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-        await controller.getMealPlanById(largeId, queryDto);
+        await controller.getMealPlanById(largeId, queryDto, mockUser);
 
         expect(service.findMealPlanById).toHaveBeenCalledWith(largeId, queryDto, 'temp-user-id');
       });
@@ -457,7 +482,7 @@ describe('MealPlansController', () => {
 
         service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-        await controller.getMealPlanById('123', queryDto);
+        await controller.getMealPlanById('123', queryDto, mockUser);
 
         expect(service.findMealPlanById).toHaveBeenCalledWith('123', queryDto, 'temp-user-id');
       });
@@ -471,7 +496,7 @@ describe('MealPlansController', () => {
 
         service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-        await controller.getMealPlanById('123', queryDto);
+        await controller.getMealPlanById('123', queryDto, mockUser);
 
         expect(service.findMealPlanById).toHaveBeenCalledWith('123', queryDto, 'temp-user-id');
       });
@@ -485,7 +510,7 @@ describe('MealPlansController', () => {
 
           service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-          await controller.getMealPlanById('123', queryDto);
+          await controller.getMealPlanById('123', queryDto, mockUser);
 
           expect(service.findMealPlanById).toHaveBeenCalledWith('123', queryDto, 'temp-user-id');
         }
@@ -504,7 +529,7 @@ describe('MealPlansController', () => {
 
         service.findMealPlanById.mockResolvedValue(mockMealPlanResponse);
 
-        await controller.getMealPlanById('123', complexQuery);
+        await controller.getMealPlanById('123', complexQuery, mockUser);
 
         expect(service.findMealPlanById).toHaveBeenCalledWith('123', complexQuery, 'temp-user-id');
       });
@@ -543,7 +568,7 @@ describe('MealPlansController', () => {
     it('should create a meal plan successfully', async () => {
       service.createMealPlan.mockResolvedValue(expectedResponse);
 
-      const result = await controller.createMealPlan(createMealPlanDto);
+      const result = await controller.createMealPlan(createMealPlanDto, mockUser);
 
       expect(service.createMealPlan).toHaveBeenCalledWith(createMealPlanDto, 'temp-user-id');
       expect(result).toEqual(expectedResponse);
@@ -566,7 +591,7 @@ describe('MealPlansController', () => {
 
       service.createMealPlan.mockResolvedValue(simpleResponse);
 
-      const result = await controller.createMealPlan(simpleDto);
+      const result = await controller.createMealPlan(simpleDto, mockUser);
 
       expect(service.createMealPlan).toHaveBeenCalledWith(simpleDto, 'temp-user-id');
       expect(result).toEqual(simpleResponse);
@@ -587,7 +612,7 @@ describe('MealPlansController', () => {
 
       service.createMealPlan.mockResolvedValue(minimalResponse);
 
-      const result = await controller.createMealPlan(minimalDto);
+      const result = await controller.createMealPlan(minimalDto, mockUser);
 
       expect(service.createMealPlan).toHaveBeenCalledWith(minimalDto, 'temp-user-id');
       expect(result).toEqual(minimalResponse);
@@ -606,7 +631,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(invalidDto, mockUser)).rejects.toThrow(error);
         expect(service.createMealPlan).toHaveBeenCalledWith(invalidDto, 'temp-user-id');
       });
 
@@ -621,7 +646,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(conflictDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(conflictDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw ConflictException for overlapping meal plans', async () => {
@@ -635,7 +660,7 @@ describe('MealPlansController', () => {
         error.name = 'ConflictException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(overlappingDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(overlappingDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should handle database errors', async () => {
@@ -643,7 +668,7 @@ describe('MealPlansController', () => {
         error.name = 'InternalServerErrorException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(createMealPlanDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(createMealPlanDto, mockUser)).rejects.toThrow(error);
       });
     });
 
@@ -675,7 +700,7 @@ describe('MealPlansController', () => {
 
         service.createMealPlan.mockResolvedValue(expectedResponse);
 
-        const result = await controller.createMealPlan(multiRecipeDto);
+        const result = await controller.createMealPlan(multiRecipeDto, mockUser);
 
         expect(service.createMealPlan).toHaveBeenCalledWith(multiRecipeDto, 'temp-user-id');
         expect(result).toEqual(expectedResponse);
@@ -697,7 +722,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidRecipeDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(invalidRecipeDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should handle invalid day numbers', async () => {
@@ -716,7 +741,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidDayDto)).rejects.toThrow(error);
+        await expect(controller.createMealPlan(invalidDayDto, mockUser)).rejects.toThrow(error);
       });
     });
   });
@@ -753,7 +778,7 @@ describe('MealPlansController', () => {
       it('should update a meal plan successfully with all fields', async () => {
         service.updateMealPlan.mockResolvedValue(expectedResponse);
 
-        const result = await controller.updateMealPlan(mockMealPlanId, updateMealPlanDto);
+        const result = await controller.updateMealPlan(mockMealPlanId, updateMealPlanDto, mockUser);
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(
           mockMealPlanId,
@@ -771,7 +796,7 @@ describe('MealPlansController', () => {
         const partialResponse = { ...expectedResponse, name: 'Just Update Name' };
         service.updateMealPlan.mockResolvedValue(partialResponse);
 
-        const result = await controller.updateMealPlan(mockMealPlanId, partialUpdateDto);
+        const result = await controller.updateMealPlan(mockMealPlanId, partialUpdateDto, mockUser);
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(
           mockMealPlanId,
@@ -791,7 +816,7 @@ describe('MealPlansController', () => {
           name: 'New Name Only',
         });
 
-        const result = await controller.updateMealPlan(mockMealPlanId, nameOnlyDto);
+        const result = await controller.updateMealPlan(mockMealPlanId, nameOnlyDto, mockUser);
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(
           mockMealPlanId,
@@ -811,7 +836,11 @@ describe('MealPlansController', () => {
           description: 'New description only',
         });
 
-        const result = await controller.updateMealPlan(mockMealPlanId, descriptionOnlyDto);
+        const result = await controller.updateMealPlan(
+          mockMealPlanId,
+          descriptionOnlyDto,
+          mockUser,
+        );
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(
           mockMealPlanId,
@@ -833,7 +862,7 @@ describe('MealPlansController', () => {
           endDate: new Date('2024-04-07T23:59:59.999Z'),
         });
 
-        const result = await controller.updateMealPlan(mockMealPlanId, datesOnlyDto);
+        const result = await controller.updateMealPlan(mockMealPlanId, datesOnlyDto, mockUser);
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(
           mockMealPlanId,
@@ -849,7 +878,7 @@ describe('MealPlansController', () => {
 
         service.updateMealPlan.mockResolvedValue(expectedResponse);
 
-        const result = await controller.updateMealPlan(mockMealPlanId, emptyDto);
+        const result = await controller.updateMealPlan(mockMealPlanId, emptyDto, mockUser);
 
         expect(service.updateMealPlan).toHaveBeenCalledWith(mockMealPlanId, emptyDto, mockUserId);
         expect(result).toEqual(expectedResponse);
@@ -862,7 +891,9 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan('999', updateMealPlanDto)).rejects.toThrow(error);
+        await expect(controller.updateMealPlan('999', updateMealPlanDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should handle forbidden access (user does not own meal plan)', async () => {
@@ -870,9 +901,9 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan(mockMealPlanId, updateMealPlanDto)).rejects.toThrow(
-          error,
-        );
+        await expect(
+          controller.updateMealPlan(mockMealPlanId, updateMealPlanDto, mockUser),
+        ).rejects.toThrow(error);
       });
 
       it('should handle validation errors', async () => {
@@ -885,7 +916,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan(mockMealPlanId, invalidDto)).rejects.toThrow(error);
+        await expect(
+          controller.updateMealPlan(mockMealPlanId, invalidDto, mockUser),
+        ).rejects.toThrow(error);
       });
 
       it('should handle date overlap conflicts', async () => {
@@ -898,7 +931,9 @@ describe('MealPlansController', () => {
         error.name = 'ConflictException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan(mockMealPlanId, conflictDto)).rejects.toThrow(error);
+        await expect(
+          controller.updateMealPlan(mockMealPlanId, conflictDto, mockUser),
+        ).rejects.toThrow(error);
       });
 
       it('should handle invalid date ranges', async () => {
@@ -911,9 +946,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan(mockMealPlanId, invalidDateDto)).rejects.toThrow(
-          error,
-        );
+        await expect(
+          controller.updateMealPlan(mockMealPlanId, invalidDateDto, mockUser),
+        ).rejects.toThrow(error);
       });
 
       it('should handle general service errors', async () => {
@@ -921,9 +956,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan(mockMealPlanId, updateMealPlanDto)).rejects.toThrow(
-          error,
-        );
+        await expect(
+          controller.updateMealPlan(mockMealPlanId, updateMealPlanDto, mockUser),
+        ).rejects.toThrow(error);
       });
     });
 
@@ -937,7 +972,7 @@ describe('MealPlansController', () => {
             mealPlanId: testId,
           });
 
-          const result = await controller.updateMealPlan(testId, updateMealPlanDto);
+          const result = await controller.updateMealPlan(testId, updateMealPlanDto, mockUser);
 
           expect(service.updateMealPlan).toHaveBeenCalledWith(
             testId,
@@ -962,7 +997,7 @@ describe('MealPlansController', () => {
       it('should delete a meal plan successfully', async () => {
         service.deleteMealPlan.mockResolvedValue(undefined);
 
-        const result = await controller.deleteMealPlan(mockMealPlanId);
+        const result = await controller.deleteMealPlan(mockMealPlanId, mockUser);
 
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
         expect(result).toBeUndefined();
@@ -975,7 +1010,7 @@ describe('MealPlansController', () => {
           service.deleteMealPlan.mockClear();
           service.deleteMealPlan.mockResolvedValue(undefined);
 
-          const result = await controller.deleteMealPlan(testId);
+          const result = await controller.deleteMealPlan(testId, mockUser);
 
           expect(service.deleteMealPlan).toHaveBeenCalledWith(testId, mockUserId);
           expect(result).toBeUndefined();
@@ -989,7 +1024,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan('999')).rejects.toThrow(error);
+        await expect(controller.deleteMealPlan('999', mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith('999', mockUserId);
       });
 
@@ -998,7 +1033,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
       });
 
@@ -1007,7 +1042,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan('invalid-id')).rejects.toThrow(error);
+        await expect(controller.deleteMealPlan('invalid-id', mockUser)).rejects.toThrow(error);
       });
 
       it('should handle database errors during deletion', async () => {
@@ -1015,7 +1050,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
       });
 
@@ -1024,7 +1059,7 @@ describe('MealPlansController', () => {
         error.name = 'InternalServerErrorException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(error);
+        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
       });
 
       it('should propagate service exceptions without modification', async () => {
@@ -1032,7 +1067,9 @@ describe('MealPlansController', () => {
         customError.name = 'CustomException';
         service.deleteMealPlan.mockRejectedValue(customError);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId)).rejects.toThrow(customError);
+        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(
+          customError,
+        );
       });
     });
 
@@ -1040,7 +1077,7 @@ describe('MealPlansController', () => {
       it('should pass correct user ID from temporary context', async () => {
         service.deleteMealPlan.mockResolvedValue(undefined);
 
-        await controller.deleteMealPlan(mockMealPlanId);
+        await controller.deleteMealPlan(mockMealPlanId, mockUser);
 
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, 'temp-user-id');
       });
@@ -1059,7 +1096,7 @@ describe('MealPlansController', () => {
           service.deleteMealPlan.mockClear();
           service.deleteMealPlan.mockResolvedValue(undefined);
 
-          await controller.deleteMealPlan(testId);
+          await controller.deleteMealPlan(testId, mockUser);
 
           expect(service.deleteMealPlan).toHaveBeenCalledWith(testId, mockUserId);
         }
@@ -1070,7 +1107,7 @@ describe('MealPlansController', () => {
       it('should return undefined/void for successful deletion', async () => {
         service.deleteMealPlan.mockResolvedValue(undefined);
 
-        const result = await controller.deleteMealPlan(mockMealPlanId);
+        const result = await controller.deleteMealPlan(mockMealPlanId, mockUser);
 
         expect(result).toBeUndefined();
       });
@@ -1078,7 +1115,7 @@ describe('MealPlansController', () => {
       it('should not return any data on successful deletion', async () => {
         service.deleteMealPlan.mockResolvedValue(undefined);
 
-        const result = await controller.deleteMealPlan(mockMealPlanId);
+        const result = await controller.deleteMealPlan(mockMealPlanId, mockUser);
 
         expect(result).not.toBeDefined();
       });

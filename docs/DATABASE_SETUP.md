@@ -2,6 +2,8 @@
 
 Step-by-step guide for setting up the database from scratch.
 
+> **Note**: This service also includes OAuth2 authentication. For authentication configuration, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
 ## Prerequisites
 
 - PostgreSQL 12+ installed and running

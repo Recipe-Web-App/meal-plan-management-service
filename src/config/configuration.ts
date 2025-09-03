@@ -51,6 +51,14 @@ export interface ExternalServicesConfig {
   userServiceUrl?: string;
 }
 
+export interface OAuth2Config {
+  enabled: boolean;
+  serviceToServiceEnabled: boolean;
+  introspectionEnabled: boolean;
+  clientId: string;
+  clientSecret: string;
+}
+
 export default () => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -105,4 +113,12 @@ export default () => ({
     recipeServiceUrl: process.env.RECIPE_SERVICE_URL,
     userServiceUrl: process.env.USER_SERVICE_URL,
   } as ExternalServicesConfig,
+
+  oauth2: {
+    enabled: process.env.OAUTH2_SERVICE_ENABLED === 'true',
+    serviceToServiceEnabled: process.env.OAUTH2_SERVICE_TO_SERVICE_ENABLED === 'true',
+    introspectionEnabled: process.env.OAUTH2_INTROSPECTION_ENABLED === 'true',
+    clientId: process.env.OAUTH2_CLIENT_ID!,
+    clientSecret: process.env.OAUTH2_CLIENT_SECRET!,
+  } as OAuth2Config,
 });

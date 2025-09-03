@@ -2,6 +2,8 @@
 
 Quick commands and code snippets for common database operations.
 
+> **Related**: [AUTHENTICATION.md](./AUTHENTICATION.md) for OAuth2 authentication setup.
+
 ## Setup Commands
 
 ```bash

@@ -2,6 +2,8 @@
 
 This document provides comprehensive guidance for setting up and working with the database integration in the Meal Plan Management Service.
 
+> **Note**: This service also includes a comprehensive OAuth2 authentication system. For authentication setup and configuration, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
 ## Table of Contents
 
 - [Overview](#overview)
