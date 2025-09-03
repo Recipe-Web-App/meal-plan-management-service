@@ -19,7 +19,7 @@ server-side applications.
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The **Meal Plan Management Service** is a comprehensive NestJS microservice for managing meal plans, recipes, and nutritional tracking within the Recipe Web App ecosystem. Built with TypeScript, it provides a robust REST API with OAuth2 authentication, PostgreSQL database integration, and comprehensive monitoring capabilities.
 
 ## Project setup
 
@@ -95,18 +95,82 @@ mau deploy
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than
 managing infrastructure.
 
+## Authentication & Security
+
+This service implements a comprehensive OAuth2 authentication system with JWT tokens:
+
+### 🔐 Authentication Methods
+
+- **JWT Authentication**: OAuth2 with JWT tokens using passport-jwt
+- **Service-to-Service**: Client credentials flow for microservice communication
+- **Token Validation**: Supports both local JWT validation and introspection
+
+### 🛡️ Security Features
+
+- Bearer token authentication on all protected endpoints
+- Configurable OAuth2 with multiple validation strategies
+- Rate limiting with multiple tiers (short/medium/long term)
+- Helmet security headers and CORS protection
+- Request correlation IDs for tracing
+
+### 📖 API Authentication
+
+All API endpoints (except health checks) require Bearer token authentication:
+
+```bash
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     https://api.example.com/api/v1/meal-plans
+```
+
+For detailed authentication setup and configuration, see [`docs/AUTHENTICATION.md`](./docs/AUTHENTICATION.md).
+
+## API Documentation
+
+Interactive API documentation is available at `/docs` when running the service:
+
+- **Swagger UI**: Complete API reference with authentication
+- **Try it out**: Test endpoints directly from the browser
+- **OpenAPI spec**: Full specification with security definitions
+
+## Architecture & Features
+
+### 🏗️ Core Technologies
+
+- **Framework**: NestJS with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: OAuth2 + JWT with Passport.js
+- **Validation**: Class-validator with DTO patterns
+- **Documentation**: OpenAPI/Swagger with full schemas
+
+### 📦 Key Modules
+
+- **Meal Plans**: CRUD operations with advanced filtering and view modes
+- **Authentication**: OAuth2 guards, strategies, and token management
+- **Health Monitoring**: Database and service health endpoints
+- **Database**: Prisma integration with connection pooling and retry logic
+
+### 🎯 API Features
+
+- RESTful endpoints with consistent response format
+- Comprehensive filtering, sorting, and pagination
+- Multiple view modes (full, day, week, month)
+- Detailed error responses with correlation IDs
+- Rate limiting with configurable tiers
+
 ## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
+### Project Documentation
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- [`docs/AUTHENTICATION.md`](./docs/AUTHENTICATION.md) - Complete authentication guide
+- [`docs/DATABASE.md`](./docs/DATABASE.md) - Database setup and usage
+- [`docs/DATABASE_SETUP.md`](./docs/DATABASE_SETUP.md) - Step-by-step installation
+- [`CLAUDE.md`](./CLAUDE.md) - Development guidelines and commands
+
+### NestJS Resources
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy)
+- Check out our official video [courses](https://courses.nestjs.com/) for hands-on experience
 
 ## Support
 

@@ -43,7 +43,7 @@ import type { AuthenticatedUser } from '@/modules/auth/interfaces/jwt-payload.in
 
 @ApiTags('meal-plans')
 @Controller('api/v1/meal-plans')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-Auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(JwtAuthGuard)
 @Throttle({ default: { limit: 100, ttl: 60000 } })
