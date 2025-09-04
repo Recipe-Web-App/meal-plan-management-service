@@ -8,6 +8,7 @@ import { createWinstonLogger } from '@/config/logger.config';
 import { HealthModule } from '@/modules/health/health.module';
 import { MealPlansModule } from '@/modules/meal-plans/meal-plans.module';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { MetricsModule } from '@/modules/metrics/metrics.module';
 import { SharedModule } from '@/shared';
 
 @Module({
@@ -46,6 +47,7 @@ import { SharedModule } from '@/shared';
     AuthModule,
     HealthModule,
     MealPlansModule,
+    MetricsModule,
   ],
   controllers: [],
   providers: [],
