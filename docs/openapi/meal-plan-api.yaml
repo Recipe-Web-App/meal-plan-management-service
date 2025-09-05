@@ -6,20 +6,26 @@ info:
   contact:
     name: Recipe Web App Team
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3000/api/v1/meal-plan-management
     description: Local development server
-  - url: https://api.recipe-app.com
+  - url: https://api.recipe-app.com/api/v1/meal-plan-management
     description: Production server
 
 tags:
   - name: meal-plans
     description: Meal plan management operations
+  - name: health
+    description: Health check and monitoring endpoints
+  - name: metrics
+    description: Prometheus metrics for monitoring and alerting
+  - name: system
+    description: System information and documentation endpoints
 
 security:
   - bearerAuth: []
 
 paths:
-  /api/v1/meal-plans:
+  /meal-plans:
     post:
       tags:
         - meal-plans
@@ -81,7 +87,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/meal-plans/{id}:
+  /meal-plans/{id}:
     get:
       tags:
         - meal-plans
@@ -166,6 +172,12 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - user does not own this meal plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -212,12 +224,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/MealPlanId'
       responses:
-        '200':
+        '204':
           description: Meal plan deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -225,108 +233,162 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/meal-plans/{id}/meals:
-    post:
+  /health:
+    get:
       tags:
-        - meal-plans
-      summary: Add meal to plan
-      description: Add a recipe as a meal to the specified meal plan
-      operationId: addMealToPlan
-      parameters:
-        - $ref: '#/components/parameters/MealPlanId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateMealPlanRecipeDto'
-      responses:
-        '201':
-          description: Meal added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Meal already exists for this date and meal type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-    delete:
-      tags:
-        - meal-plans
-      summary: Clear all meals from plan
-      description: Remove all recipes/meals from the specified meal plan
-      operationId: clearMealPlan
-      parameters:
-        - $ref: '#/components/parameters/MealPlanId'
+        - health
+      summary: Comprehensive health check
+      description: Returns the overall health status of the meal plan management service
+      operationId: getHealth
       responses:
         '200':
-          description: All meals cleared successfully
+          description: Health check successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: '#/components/schemas/HealthCheckResult'
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResult'
 
-  /api/v1/meal-plans/{id}/meals/{recipeId}:
-    delete:
+  /health/ready:
+    get:
       tags:
-        - meal-plans
-      summary: Remove specific meal
-      description: Remove a specific recipe/meal from the meal plan
-      operationId: removeMealFromPlan
-      parameters:
-        - $ref: '#/components/parameters/MealPlanId'
-        - name: recipeId
-          in: path
-          required: true
-          description: ID of the recipe to remove
-          schema:
-            type: string
-            format: uuid
-        - name: mealDate
-          in: query
-          required: true
-          description: Date of the meal to remove
-          schema:
-            type: string
-            format: date
-        - name: mealType
-          in: query
-          required: false
-          description: Type of meal to remove (if multiple instances exist)
-          schema:
-            $ref: '#/components/schemas/MealType'
+        - health
+      summary: Readiness probe
+      description: Readiness probe for Kubernetes - indicates if service is ready to handle requests
+      operationId: getReadiness
       responses:
         '200':
-          description: Meal removed successfully
+          description: Service is ready or degraded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: '#/components/schemas/HealthCheckResult'
 
+  /health/live:
+    get:
+      tags:
+        - health
+      summary: Liveness probe  
+      description: Liveness probe for Kubernetes - indicates if service is alive
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResult'
+        '503':
+          description: Service not alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResult'
+
+  /health/version:
+    get:
+      tags:
+        - health
+      summary: Get service version
+      description: Get service version and environment information
+      operationId: getVersion
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+
+  /metrics:
+    get:
+      tags:
+        - metrics
+      summary: Get Prometheus metrics
+      description: Returns application metrics in Prometheus format for monitoring and alerting systems like Prometheus and Grafana
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Metrics data in Prometheus format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP meal_plan_service_http_requests_total Total number of HTTP requests
+                  # TYPE meal_plan_service_http_requests_total counter
+                  meal_plan_service_http_requests_total{method="GET",route="/api/v1/meal-plans",status_code="200"} 45
+                  
+                  # HELP meal_plan_service_meal_plans_created_total Total number of meal plans created  
+                  # TYPE meal_plan_service_meal_plans_created_total counter
+                  meal_plan_service_meal_plans_created_total{user_id="user123"} 12
+
+  /docs:
+    get:
+      tags:
+        - system
+      summary: Interactive API documentation
+      description: Swagger UI for exploring and testing the API interactively
+      operationId: getSwaggerUI
+      responses:
+        '200':
+          description: Interactive Swagger UI
+          content:
+            text/html:
+              schema:
+                type: string
+                description: HTML page with interactive API documentation
+
+  /docs-json:
+    get:
+      tags:
+        - system
+      summary: OpenAPI JSON schema
+      description: Raw OpenAPI specification in JSON format for programmatic access
+      operationId: getOpenAPIJson
+      responses:
+        '200':
+          description: OpenAPI specification in JSON format
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Complete OpenAPI 3.0 specification
+
+  /info:
+    get:
+      tags:
+        - system
+      summary: Service information
+      description: Basic service information including version, environment, and runtime details
+      operationId: getServiceInfo
+      responses:
+        '200':
+          description: Service information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceInfo'
+
+  /config:
+    get:
+      tags:
+        - system
+      summary: Safe configuration values
+      description: Non-sensitive configuration values for debugging and verification. Sensitive values like secrets and passwords are excluded.
+      operationId: getConfiguration
+      responses:
+        '200':
+          description: Safe configuration values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafeConfiguration'
 
 components:
   securitySchemes:
@@ -602,43 +664,43 @@ components:
     MealPlanRecipeResponseDto:
       type: object
       properties:
+        mealPlanRecipeId:
+          type: string
+          description: Meal plan recipe ID
+          example: '1'
+        mealPlanId:
+          type: string
+          description: Meal plan ID
+          example: '123'
         recipeId:
           type: string
-          format: uuid
           description: Recipe ID
-        recipeName:
+          example: '456'
+        mealDate:
           type: string
-          description: Name of the recipe
-          example: Grilled Chicken Salad
-        day:
-          type: integer
-          minimum: 1
-          maximum: 7
-          description: Day of the week
+          format: date
+          description: Meal date
         mealType:
           $ref: '#/components/schemas/MealType'
         servings:
           type: integer
+          minimum: 1
+          maximum: 100
           description: Number of servings
+          example: 4
         notes:
           type: string
           nullable: true
-          description: Optional notes
-        prepTime:
-          type: integer
-          nullable: true
-          description: Preparation time in minutes
-          example: 15
-        cookTime:
-          type: integer
-          nullable: true
-          description: Cooking time in minutes
-          example: 20
-        difficulty:
+          description: Additional notes
+          example: 'Prepare the night before'
+        createdAt:
           type: string
-          nullable: true
-          enum: [EASY, MEDIUM, HARD]
-          description: Recipe difficulty level
+          format: date-time
+          description: Created at timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Updated at timestamp
 
     PaginationMeta:
       type: object
@@ -879,15 +941,6 @@ components:
           type: string
           example: Meal plan created successfully
 
-    SuccessResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: Operation completed successfully
 
     ErrorResponse:
       type: object
@@ -911,6 +964,184 @@ components:
               example:
                 - Name must be at least 1 character long
                 - End date must be after start date
+
+    HealthCheckResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, error, shutting_down]
+          description: Overall health status
+        info:
+          type: object
+          additionalProperties: true
+          description: Health information for services that are up
+        error:
+          type: object
+          additionalProperties: true
+          description: Health information for services that are down
+        details:
+          type: object
+          additionalProperties: true
+          description: All health information
+      example:
+        status: ok
+        info:
+          database:
+            status: up
+          memory_heap:
+            status: up
+        error: {}
+        details:
+          database:
+            status: up
+          memory_heap:
+            status: up
+
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Service version
+          example: "1.0.0"
+        environment:
+          type: string
+          description: Current environment
+          example: "development"
+        timestamp:
+          type: string
+          description: Current timestamp
+          example: "2024-01-15T10:30:00Z"
+
+    ServiceInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Meal Plan Management Service"
+        version:
+          type: string
+          example: "1.0.0"
+        description:
+          type: string
+          example: "API for managing meal plans, recipes, and nutritional tracking"
+        environment:
+          type: string
+          example: "development"
+        uptime:
+          type: number
+          description: Service uptime in seconds
+          example: 3600.5
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+        nodeVersion:
+          type: string
+          example: "v18.17.0"
+        platform:
+          type: string
+          example: "linux"
+        arch:
+          type: string
+          example: "x64"
+        memory:
+          type: object
+          properties:
+            used:
+              type: number
+              description: Used heap memory in MB
+              example: 45
+            total:
+              type: number
+              description: Total heap memory in MB
+              example: 128
+            external:
+              type: number
+              description: External memory in MB
+              example: 12
+        pid:
+          type: number
+          description: Process ID
+          example: 12345
+
+    SafeConfiguration:
+      type: object
+      properties:
+        environment:
+          type: string
+          example: "development"
+        port:
+          type: number
+          example: 3000
+        logLevel:
+          type: string
+          example: "info"
+        corsOrigins:
+          type: array
+          items:
+            type: string
+          example: ["http://localhost:3000"]
+        rateLimit:
+          type: object
+          properties:
+            ttl:
+              type: number
+              description: Rate limit window in milliseconds
+              example: 60000
+            limit:
+              type: number
+              description: Maximum requests per window
+              example: 100
+        database:
+          type: object
+          properties:
+            maxRetries:
+              type: number
+              example: 5
+            retryDelay:
+              type: number
+              example: 5000
+            healthCheckInterval:
+              type: number
+              example: 30000
+            logQueries:
+              type: boolean
+              example: false
+        oauth2:
+          type: object
+          properties:
+            serviceEnabled:
+              type: boolean
+              example: true
+            serviceToServiceEnabled:
+              type: boolean
+              example: true
+            introspectionEnabled:
+              type: boolean
+              example: false
+            clientId:
+              type: string
+              example: "meal-plan-service"
+        logging:
+          type: object
+          properties:
+            level:
+              type: string
+              example: "info"
+            consoleFormat:
+              type: string
+              example: "pretty"
+            fileEnabled:
+              type: boolean
+              example: false
+            maxSize:
+              type: string
+              example: "20m"
+            maxFiles:
+              type: string
+              example: "14d"
 
   responses:
     BadRequest:
