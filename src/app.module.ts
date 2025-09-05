@@ -9,6 +9,7 @@ import { HealthModule } from '@/modules/health/health.module';
 import { MealPlansModule } from '@/modules/meal-plans/meal-plans.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { MetricsModule } from '@/modules/metrics/metrics.module';
+import { SystemModule } from '@/modules/system/system.module';
 import { SharedModule } from '@/shared';
 
 @Module({
@@ -48,6 +49,7 @@ import { SharedModule } from '@/shared';
     HealthModule,
     MealPlansModule,
     MetricsModule,
+    SystemModule,
   ],
   controllers: [],
   providers: [],
