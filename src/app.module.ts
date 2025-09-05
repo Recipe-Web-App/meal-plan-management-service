@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { WinstonModule } from 'nest-winston';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import configuration from '@/config/configuration';
 import { validationSchema } from '@/config/env.validation';
 import { createWinstonLogger } from '@/config/logger.config';
 import { HealthModule } from '@/modules/health/health.module';
 import { MealPlansModule } from '@/modules/meal-plans/meal-plans.module';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { MetricsModule } from '@/modules/metrics/metrics.module';
+import { SystemModule } from '@/modules/system/system.module';
 import { SharedModule } from '@/shared';
 
 @Module({
@@ -48,8 +48,10 @@ import { SharedModule } from '@/shared';
     AuthModule,
     HealthModule,
     MealPlansModule,
+    MetricsModule,
+    SystemModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

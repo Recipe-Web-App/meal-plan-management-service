@@ -42,7 +42,7 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@/modules/auth/interfaces/jwt-payload.interface';
 
 @ApiTags('meal-plans')
-@Controller('api/v1/meal-plans')
+@Controller('meal-plan-management/meal-plans')
 @ApiBearerAuth('JWT-Auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(JwtAuthGuard)
