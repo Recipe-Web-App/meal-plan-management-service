@@ -47,7 +47,7 @@ spec:
                 name: meal-plan-management-secrets
           readinessProbe:
             httpGet:
-              path: /api/v1/meal-plan-management/ready
+              path: /api/v1/meal-plan-management/health/ready
               port: 3000
             initialDelaySeconds: 15
             periodSeconds: 30
@@ -55,7 +55,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /api/v1/meal-plan-management/live
+              path: /api/v1/meal-plan-management/health/live
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 60
