@@ -11,7 +11,7 @@ updates:
       time: '04:00'
       timezone: 'Etc/UTC'
     # Increase the number of open pull requests for npm from the default of 5
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 100
     # Add assignees and reviewers
     assignees:
       - 'jsamuelsen11'
@@ -91,6 +91,7 @@ updates:
       day: 'monday'
       time: '04:00'
       timezone: 'Etc/UTC'
+    open-pull-requests-limit: 100
     assignees:
       - 'jsamuelsen11'
     commit-message:
@@ -109,6 +110,7 @@ updates:
       day: 'monday'
       time: '04:00'
       timezone: 'Etc/UTC'
+    open-pull-requests-limit: 100
     assignees:
       - 'jsamuelsen11'
     commit-message:
