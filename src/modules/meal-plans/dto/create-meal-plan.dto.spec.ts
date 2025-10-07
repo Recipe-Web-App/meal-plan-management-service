@@ -3,11 +3,26 @@ import { plainToClass } from 'class-transformer';
 import { CreateMealPlanDto } from './create-meal-plan.dto';
 
 describe('CreateMealPlanDto', () => {
+  // Helper function to get future dates for testing
+  const getFutureDates = () => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 7); // 1 week from now
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6); // 6 days after start
+    endDate.setHours(23, 59, 59, 999);
+
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+  };
+
   const validData = {
     name: 'Weekly Meal Plan',
     description: 'A healthy weekly meal plan',
-    startDate: '2025-09-15T00:00:00.000Z',
-    endDate: '2025-09-21T23:59:59.999Z',
+    ...getFutureDates(),
     isActive: true,
   };
 
@@ -44,8 +59,8 @@ describe('CreateMealPlanDto', () => {
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate.toISOString()).toBe('2025-09-15T00:00:00.000Z');
-      expect(dto.endDate.toISOString()).toBe('2025-09-21T23:59:59.999Z');
+      expect(dto.startDate.toISOString()).toBe(validData.startDate);
+      expect(dto.endDate.toISOString()).toBe(validData.endDate);
     });
 
     it('should transform string boolean to boolean', async () => {
@@ -214,10 +229,14 @@ describe('CreateMealPlanDto', () => {
     });
 
     it('should accept different valid date formats', async () => {
+      const dates = getFutureDates();
+      const startDateOnly = dates.startDate.split('T')[0];
+      const endDateOnly = dates.endDate.split('T')[0];
+
       const validDateFormats = [
-        { startDate: '2025-09-15', endDate: '2025-09-21' },
-        { startDate: new Date('2025-09-15'), endDate: new Date('2025-09-21') },
-        { startDate: '2025-09-15T10:30:00Z', endDate: '2025-09-21T15:45:00Z' },
+        { startDate: startDateOnly, endDate: endDateOnly },
+        { startDate: new Date(dates.startDate), endDate: new Date(dates.endDate) },
+        { startDate: dates.startDate, endDate: dates.endDate },
       ];
 
       for (const dateFormat of validDateFormats) {
@@ -321,11 +340,12 @@ describe('CreateMealPlanDto', () => {
 
   describe('date transformation edge cases', () => {
     it('should handle date transformation with non-string values', () => {
+      const dates = getFutureDates();
       const testCases = [
         {
           name: 'Test Plan',
-          startDate: new Date('2025-09-15'),
-          endDate: new Date('2025-09-07'),
+          startDate: new Date(dates.startDate),
+          endDate: new Date(dates.endDate),
         },
         {
           name: 'Test Plan 2',
@@ -344,11 +364,12 @@ describe('CreateMealPlanDto', () => {
 
   describe('combined validation errors', () => {
     it('should return multiple validation errors for multiple invalid fields', async () => {
+      const dates = getFutureDates();
       const invalidData = {
         name: '',
         description: 'a'.repeat(1001),
-        startDate: '2025-09-15T00:00:00.000Z', // Use valid dates to avoid transform error
-        endDate: '2025-09-07T23:59:59.999Z',
+        startDate: dates.endDate, // End date as start - wrong order
+        endDate: dates.startDate, // Start date as end - wrong order
         isActive: 'invalid',
       };
 
@@ -360,8 +381,6 @@ describe('CreateMealPlanDto', () => {
       const errorProperties = errors.map((error) => error.property);
       expect(errorProperties).toContain('name');
       expect(errorProperties).toContain('description');
-      // Dates are now valid, so no date errors expected
-      // isActive might fail or might be transformed, both are valid
     });
   });
 });
