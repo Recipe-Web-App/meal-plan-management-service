@@ -3,13 +3,30 @@ import { plainToClass } from 'class-transformer';
 import { UpdateMealPlanDto } from './update-meal-plan.dto';
 
 describe('UpdateMealPlanDto', () => {
+  // Helper function to get future dates for testing
+  const getFutureDates = () => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 7); // 1 week from now
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6); // 6 days after start
+    endDate.setHours(23, 59, 59, 999);
+
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+  };
+
   describe('valid data', () => {
     it('should pass validation with all valid fields', async () => {
+      const dates = getFutureDates();
       const validData = {
         name: 'Updated Weekly Meal Plan',
         description: 'An updated healthy weekly meal plan',
-        startDate: '2025-09-15T00:00:00.000Z',
-        endDate: '2025-09-21T23:59:59.999Z',
+        startDate: dates.startDate,
+        endDate: dates.endDate,
         isActive: true,
       };
 
@@ -54,17 +71,18 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should transform string dates to Date objects', async () => {
+      const dates = getFutureDates();
       const data = {
-        startDate: '2025-09-15T00:00:00.000Z',
-        endDate: '2025-09-21T23:59:59.999Z',
+        startDate: dates.startDate,
+        endDate: dates.endDate,
       };
 
       const dto = plainToClass(UpdateMealPlanDto, data);
 
       expect(dto.startDate).toBeInstanceOf(Date);
       expect(dto.endDate).toBeInstanceOf(Date);
-      expect(dto.startDate?.toISOString()).toBe('2025-09-15T00:00:00.000Z');
-      expect(dto.endDate?.toISOString()).toBe('2025-09-21T23:59:59.999Z');
+      expect(dto.startDate?.toISOString()).toBe(dates.startDate);
+      expect(dto.endDate?.toISOString()).toBe(dates.endDate);
     });
 
     it('should handle null and undefined values properly', async () => {
@@ -192,10 +210,14 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should accept different valid date formats', async () => {
+      const dates = getFutureDates();
+      const startDateOnly = dates.startDate.split('T')[0];
+      const endDateOnly = dates.endDate.split('T')[0];
+
       const validDateFormats = [
-        { startDate: '2025-09-15', endDate: '2025-09-21' },
-        { startDate: new Date('2025-09-15'), endDate: new Date('2025-09-21') },
-        { startDate: '2025-09-15T10:30:00Z', endDate: '2025-09-21T15:45:00Z' },
+        { startDate: startDateOnly, endDate: endDateOnly },
+        { startDate: new Date(dates.startDate), endDate: new Date(dates.endDate) },
+        { startDate: dates.startDate, endDate: dates.endDate },
       ];
 
       for (const dateFormat of validDateFormats) {
@@ -225,8 +247,9 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should handle only one date field being provided', async () => {
-      const startOnlyData = { startDate: '2025-09-15T00:00:00.000Z' };
-      const endOnlyData = { endDate: '2025-09-05T23:59:59.999Z' };
+      const dates = getFutureDates();
+      const startOnlyData = { startDate: dates.startDate };
+      const endOnlyData = { endDate: dates.endDate };
 
       const startDto = plainToClass(UpdateMealPlanDto, startOnlyData);
       const endDto = plainToClass(UpdateMealPlanDto, endOnlyData);
@@ -245,11 +268,12 @@ describe('UpdateMealPlanDto', () => {
 
   describe('combined scenarios', () => {
     it('should handle mixed valid and invalid fields', async () => {
+      const dates = getFutureDates();
       const mixedData = {
         name: 'Valid Name',
         description: 'a'.repeat(1001), // invalid
-        startDate: '2025-09-01T00:00:00.000Z', // valid
-        endDate: '2025-09-07T23:59:59.999Z', // valid to avoid transform error
+        startDate: dates.startDate, // valid
+        endDate: dates.endDate, // valid
         isActive: true, // valid
       };
 
@@ -260,7 +284,6 @@ describe('UpdateMealPlanDto', () => {
 
       const errorProperties = errors.map((error) => error.property);
       expect(errorProperties).toContain('description');
-      // endDate is now valid, so no date error expected
       expect(errorProperties).not.toContain('name');
       expect(errorProperties).not.toContain('endDate');
       expect(errorProperties).not.toContain('isActive');
@@ -326,14 +349,18 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should handle date transformation branches', () => {
+      const dates = getFutureDates();
+      const start = new Date(dates.startDate);
+      const end = new Date(dates.endDate);
+
       const testCases = [
         {
-          startDate: new Date('2025-09-15'),
-          endDate: new Date('2025-09-21'),
+          startDate: start,
+          endDate: end,
         },
         {
-          startDate: 1725148800000, // timestamp
-          endDate: 1725321600000,
+          startDate: start.getTime(), // timestamp
+          endDate: end.getTime(),
         },
       ];
 
@@ -345,11 +372,12 @@ describe('UpdateMealPlanDto', () => {
     });
 
     it('should allow updating individual fields', async () => {
+      const dates = getFutureDates();
       const testCases = [
         { name: 'Just Name Update' },
         { description: 'Just Description Update' },
-        { startDate: '2025-09-15T00:00:00.000Z' },
-        { endDate: '2025-09-05T23:59:59.999Z' },
+        { startDate: dates.startDate },
+        { endDate: dates.endDate },
         { isActive: true },
       ];
 

@@ -105,8 +105,9 @@ describe('IsDateRangeValidConstraint', () => {
     it('should pass when duration equals maximum', async () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + 31); // Exactly 30 days
+      tomorrow.setHours(0, 0, 0, 0);
+      // Add exactly 30 days worth of milliseconds minus 1ms to ensure Math.ceil rounds to 30
+      const maxDate = new Date(tomorrow.getTime() + 30 * 24 * 60 * 60 * 1000 - 1);
 
       const dto = plainToClass(TestDateRangeDto, {
         startDate: tomorrow,
