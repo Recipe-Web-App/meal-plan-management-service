@@ -236,7 +236,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
 curl -X POST \
      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
      -H "Content-Type: application/json" \
-     -d '{"name": "Weekly Plan", "startDate": "2024-03-01"}' \
+     -d '{"name": "Weekly Plan", "startDate": "2025-03-01"}' \
      https://api.example.com/api/v1/meal-plans
 ```
 
@@ -285,7 +285,7 @@ export class MealPlansController {
   "message": "Unauthorized",
   "error": "Missing or invalid authorization header",
   "correlationId": "req-123456",
-  "timestamp": "2024-03-01T10:00:00.000Z",
+  "timestamp": "2025-03-01T10:00:00.000Z",
   "path": "/api/v1/meal-plans"
 }
 ```
@@ -298,7 +298,7 @@ export class MealPlansController {
   "message": "Forbidden",
   "error": "Insufficient permissions for service access",
   "correlationId": "req-123456",
-  "timestamp": "2024-03-01T10:00:00.000Z",
+  "timestamp": "2025-03-01T10:00:00.000Z",
   "path": "/api/v1/meal-plans"
 }
 ```
