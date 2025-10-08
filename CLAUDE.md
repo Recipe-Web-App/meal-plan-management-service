@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Testing
 
 - `npm run test` - Run unit tests
+- `npm run test -- <test-file-path>` - Run a single test file (e.g., `npm run test -- meal-plans.service.spec`)
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:cov` - Run tests with coverage (must meet 80% threshold)
 - `npm run test:e2e` - Run end-to-end tests
@@ -28,6 +29,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run security:secrets` - Scan for secrets using detect-secrets
 - `npm run security:audit` - Run npm security audit
 - `npm run license:check` - Check dependency licenses
+
+### Database (Prisma)
+
+- `npx prisma migrate dev` - Create and apply migrations in development
+- `npx prisma migrate deploy` - Apply migrations in production
+- `npx prisma generate` - Generate Prisma Client
+- `npx prisma studio` - Open Prisma Studio GUI
+- `npx prisma db seed` - Seed the database with test data
+
+### Git Hooks
+
+- **Husky + lint-staged**: Automatically runs linting and formatting on staged files before commit
+- **commitlint**: Enforces conventional commit messages
 
 ## Architecture
 
@@ -205,12 +219,12 @@ USER_SERVICE_URL=https://user-service.local/api/v1
 
 ### Code Coverage
 
-Minimum 80% coverage required for:
+Minimum coverage thresholds required:
 
-- Branches
-- Functions
-- Lines
-- Statements
+- Branches: 70%
+- Functions: 80%
+- Lines: 80%
+- Statements: 80%
 
 ### ESLint Rules
 
