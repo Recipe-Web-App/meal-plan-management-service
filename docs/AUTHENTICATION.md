@@ -1,6 +1,7 @@
 # Authentication Guide
 
-This document provides comprehensive information about the OAuth2 authentication system implemented in the Meal Plan Management Service.
+This document provides comprehensive information about the OAuth2 authentication system implemented in the
+Meal Plan Management Service.
 
 ## Table of Contents
 
@@ -15,7 +16,9 @@ This document provides comprehensive information about the OAuth2 authentication
 
 ## Overview
 
-The Meal Plan Management Service implements a robust OAuth2 authentication system with JWT tokens, supporting both user authentication and service-to-service communication. The system is built using NestJS with Passport.js and provides flexible configuration options for different deployment environments.
+The Meal Plan Management Service implements a robust OAuth2 authentication system with JWT tokens, supporting both
+user authentication and service-to-service communication. The system is built using NestJS with Passport.js and
+provides flexible configuration options for different deployment environments.
 
 ### Key Features
 
@@ -189,15 +192,17 @@ export const oauth2Config = {
 
 #### Development Profile
 
+Disables authentication for development ease.
+
 ```bash
 OAUTH2_SERVICE_ENABLED=false
 OAUTH2_SERVICE_TO_SERVICE_ENABLED=false
 OAUTH2_INTROSPECTION_ENABLED=false
 ```
 
-_Disables authentication for development ease_
-
 #### Testing Profile
+
+Uses local JWT validation without service-to-service auth.
 
 ```bash
 OAUTH2_SERVICE_ENABLED=true
@@ -206,9 +211,9 @@ OAUTH2_INTROSPECTION_ENABLED=false
 JWT_SECRET=test-secret
 ```
 
-_Uses local JWT validation without service-to-service auth_
-
 #### Production Profile
+
+Full authentication with introspection enabled.
 
 ```bash
 OAUTH2_SERVICE_ENABLED=true
@@ -218,8 +223,6 @@ OAUTH2_AUTH_BASE_URL=https://auth.production.com/api/v1/auth
 OAUTH2_CLIENT_ID=meal-plan-production
 OAUTH2_CLIENT_SECRET=secure-production-secret
 ```
-
-_Full authentication with introspection enabled_
 
 ## API Usage
 
@@ -236,7 +239,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
 curl -X POST \
      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
      -H "Content-Type: application/json" \
-     -d '{"name": "Weekly Plan", "startDate": "2024-03-01"}' \
+     -d '{"name": "Weekly Plan", "startDate": "2025-03-01"}' \
      https://api.example.com/api/v1/meal-plans
 ```
 
@@ -285,7 +288,7 @@ export class MealPlansController {
   "message": "Unauthorized",
   "error": "Missing or invalid authorization header",
   "correlationId": "req-123456",
-  "timestamp": "2024-03-01T10:00:00.000Z",
+  "timestamp": "2025-03-01T10:00:00.000Z",
   "path": "/api/v1/meal-plans"
 }
 ```
@@ -298,7 +301,7 @@ export class MealPlansController {
   "message": "Forbidden",
   "error": "Insufficient permissions for service access",
   "correlationId": "req-123456",
-  "timestamp": "2024-03-01T10:00:00.000Z",
+  "timestamp": "2025-03-01T10:00:00.000Z",
   "path": "/api/v1/meal-plans"
 }
 ```
@@ -487,4 +490,5 @@ console.log('Token info:', tokenInfo);
 5. **Secure Transport**: Always use HTTPS in production
 6. **Log Security Events**: Monitor and alert on security-related events
 
-For additional support or questions, refer to the main [README.md](../README.md) or check the service logs for detailed error information.
+For additional support or questions, refer to the main [README.md](../README.md) or check the service logs for
+detailed error information.

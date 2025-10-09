@@ -273,7 +273,7 @@ paths:
     get:
       tags:
         - health
-      summary: Liveness probe  
+      summary: Liveness probe
       description: Liveness probe for Kubernetes - indicates if service is alive
       operationId: getLiveness
       responses:
@@ -310,7 +310,9 @@ paths:
       tags:
         - metrics
       summary: Get Prometheus metrics
-      description: Returns application metrics in Prometheus format for monitoring and alerting systems like Prometheus and Grafana
+      description: >
+        Returns application metrics in Prometheus format for monitoring and alerting
+        systems like Prometheus and Grafana
       operationId: getMetrics
       responses:
         '200':
@@ -323,8 +325,8 @@ paths:
                   # HELP meal_plan_service_http_requests_total Total number of HTTP requests
                   # TYPE meal_plan_service_http_requests_total counter
                   meal_plan_service_http_requests_total{method="GET",route="/api/v1/meal-plans",status_code="200"} 45
-                  
-                  # HELP meal_plan_service_meal_plans_created_total Total number of meal plans created  
+
+                  # HELP meal_plan_service_meal_plans_created_total Total number of meal plans created
                   # TYPE meal_plan_service_meal_plans_created_total counter
                   meal_plan_service_meal_plans_created_total{user_id="user123"} 12
 
@@ -380,7 +382,9 @@ paths:
       tags:
         - system
       summary: Safe configuration values
-      description: Non-sensitive configuration values for debugging and verification. Sensitive values like secrets and passwords are excluded.
+      description: >
+        Non-sensitive configuration values for debugging and verification.
+        Sensitive values like secrets and passwords are excluded.
       operationId: getConfiguration
       responses:
         '200':
@@ -941,7 +945,6 @@ components:
           type: string
           example: Meal plan created successfully
 
-
     ErrorResponse:
       type: object
       properties:
@@ -1004,31 +1007,31 @@ components:
         version:
           type: string
           description: Service version
-          example: "1.0.0"
+          example: '1.0.0'
         environment:
           type: string
           description: Current environment
-          example: "development"
+          example: 'development'
         timestamp:
           type: string
           description: Current timestamp
-          example: "2024-01-15T10:30:00Z"
+          example: '2024-01-15T10:30:00Z'
 
     ServiceInfo:
       type: object
       properties:
         name:
           type: string
-          example: "Meal Plan Management Service"
+          example: 'Meal Plan Management Service'
         version:
           type: string
-          example: "1.0.0"
+          example: '1.0.0'
         description:
           type: string
-          example: "API for managing meal plans, recipes, and nutritional tracking"
+          example: 'API for managing meal plans, recipes, and nutritional tracking'
         environment:
           type: string
-          example: "development"
+          example: 'development'
         uptime:
           type: number
           description: Service uptime in seconds
@@ -1036,16 +1039,16 @@ components:
         timestamp:
           type: string
           format: date-time
-          example: "2024-01-15T14:30:00Z"
+          example: '2024-01-15T14:30:00Z'
         nodeVersion:
           type: string
-          example: "v18.17.0"
+          example: 'v18.17.0'
         platform:
           type: string
-          example: "linux"
+          example: 'linux'
         arch:
           type: string
-          example: "x64"
+          example: 'x64'
         memory:
           type: object
           properties:
@@ -1071,18 +1074,18 @@ components:
       properties:
         environment:
           type: string
-          example: "development"
+          example: 'development'
         port:
           type: number
           example: 3000
         logLevel:
           type: string
-          example: "info"
+          example: 'info'
         corsOrigins:
           type: array
           items:
             type: string
-          example: ["http://localhost:3000"]
+          example: ['http://localhost:3000']
         rateLimit:
           type: object
           properties:
@@ -1123,25 +1126,25 @@ components:
               example: false
             clientId:
               type: string
-              example: "meal-plan-service"
+              example: 'meal-plan-service'
         logging:
           type: object
           properties:
             level:
               type: string
-              example: "info"
+              example: 'info'
             consoleFormat:
               type: string
-              example: "pretty"
+              example: 'pretty'
             fileEnabled:
               type: boolean
               example: false
             maxSize:
               type: string
-              example: "20m"
+              example: '20m'
             maxFiles:
               type: string
-              example: "14d"
+              example: '14d'
 
   responses:
     BadRequest:

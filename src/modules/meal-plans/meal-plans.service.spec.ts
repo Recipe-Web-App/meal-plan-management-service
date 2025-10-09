@@ -50,15 +50,10 @@ describe('MealPlansService', () => {
     ...mockMealPlan,
     mealPlanRecipes: [
       {
-        mealPlanRecipeId: BigInt(1),
         mealPlanId: BigInt(123),
         recipeId: BigInt(456),
         mealDate: new Date('2024-03-15'),
-        mealType: 'BREAKFAST',
-        servings: 4,
-        notes: 'Test notes',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        mealType: MealType.BREAKFAST,
         recipe: {
           recipeId: BigInt(456),
           title: 'Test Recipe',
@@ -85,7 +80,6 @@ describe('MealPlansService', () => {
 
     service = module.get<MealPlansService>(MealPlansService);
     repository = module.get(MealPlansRepository);
-    validationService = module.get(MealPlanValidationService);
 
     jest.clearAllMocks();
   });
@@ -100,6 +94,7 @@ describe('MealPlansService', () => {
     const paginationDto: PaginationDto = {
       page: 1,
       limit: 20,
+      offset: 0,
     };
 
     it('should return paginated meal plans', async () => {
@@ -1011,9 +1006,9 @@ describe('MealPlansService', () => {
         totalRecipes: 10,
         daysWithMeals: 5,
         mealTypeCounts: [
-          { mealType: 'BREAKFAST', count: 5 },
-          { mealType: 'LUNCH', count: 3 },
-          { mealType: 'DINNER', count: 2 },
+          { mealType: MealType.BREAKFAST, count: 5 },
+          { mealType: MealType.LUNCH, count: 3 },
+          { mealType: MealType.DINNER, count: 2 },
         ],
         uniqueDates: [
           new Date('2024-03-01'),
@@ -1059,20 +1054,26 @@ describe('MealPlansService', () => {
       isActive: true,
       mealPlanRecipes: [
         {
-          mealPlanRecipeId: BigInt(1),
           mealPlanId: BigInt(123),
           recipeId: BigInt(456),
           mealDate: new Date('2024-03-15'),
-          mealType: 'BREAKFAST' as any,
-          servings: 2,
+          mealType: MealType.BREAKFAST,
+          recipe: {
+            recipeId: BigInt(456),
+            title: 'Test Recipe',
+            userId: 'test-user-id',
+          },
         },
         {
-          mealPlanRecipeId: BigInt(2),
           mealPlanId: BigInt(123),
           recipeId: BigInt(789),
           mealDate: new Date('2024-03-15'),
-          mealType: 'LUNCH' as any,
-          servings: 1,
+          mealType: MealType.LUNCH,
+          recipe: {
+            recipeId: BigInt(789),
+            title: 'Test Recipe 2',
+            userId: 'test-user-id',
+          },
         },
       ],
     };
@@ -1280,17 +1281,20 @@ describe('MealPlansService', () => {
     it('should build month weeks structure', () => {
       const recipes = [
         {
+          mealPlanId: BigInt(123),
+          recipeId: BigInt(456),
           mealDate: new Date('2024-03-15'),
-          mealType: 'BREAKFAST' as any,
+          mealType: MealType.BREAKFAST,
         },
       ];
       const result = service['buildMonthWeeks'](2024, 3, recipes);
 
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('weekNumber');
-      expect(result[0]).toHaveProperty('days');
-      expect(result[0].days).toHaveLength(7);
+      expect(result[0]).toBeDefined();
+      expect(result[0]!.weekNumber).toBeDefined();
+      expect(result[0]!.days).toBeDefined();
+      expect(result[0]!.days).toHaveLength(7);
     });
   });
 
@@ -1378,7 +1382,7 @@ describe('MealPlansService', () => {
       const mockStats = {
         totalRecipes: 5,
         daysWithMeals: 3,
-        mealTypeCounts: [{ mealType: 'BREAKFAST', count: 5 }],
+        mealTypeCounts: [{ mealType: MealType.BREAKFAST, count: 5 }],
         uniqueDates: [new Date('2024-03-01'), new Date('2024-03-02'), new Date('2024-03-03')],
       };
 

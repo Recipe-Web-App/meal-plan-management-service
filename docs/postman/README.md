@@ -1,6 +1,7 @@
 # Meal Plan Management API - Postman Collection
 
-This directory contains Postman collection and environment files for comprehensive API testing of the Meal Plan Management Service.
+This directory contains Postman collection and environment files for comprehensive API testing of the
+Meal Plan Management Service.
 
 ## Files Overview
 
@@ -169,7 +170,8 @@ These variables are automatically set by test scripts:
 
 ## Automatic Response Field Extraction
 
-The collection includes robust test scripts that automatically extract important response fields and store them as environment variables for use in subsequent requests:
+The collection includes robust test scripts that automatically extract important response fields and store them as
+environment variables for use in subsequent requests:
 
 ### Authentication Flow
 
@@ -264,4 +266,5 @@ This collection provides complete coverage of the Meal Plan Management Service A
 - Automatic token extraction and management
 - Service-specific authentication flow
 
-This collection provides a foundation for comprehensive API testing with automatic token management, response validation, and seamless request chaining for the Meal Plan Management Service.
+This collection provides a foundation for comprehensive API testing with automatic token management, response
+validation, and seamless request chaining for the Meal Plan Management Service.

@@ -69,7 +69,7 @@ describe('MealPlanValidationService', () => {
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
       expect(result.sanitizedData).toBeDefined();
-      expect(result.sanitizedData.userId).toBe('user-123');
+      expect(result.sanitizedData!.userId).toBe('user-123');
     });
 
     it('should sanitize HTML and normalize whitespace in text fields', async () => {
@@ -84,8 +84,9 @@ describe('MealPlanValidationService', () => {
       const result = await service.validateCreateMealPlan(dataWithHtml, context);
 
       expect(result.isValid).toBe(true);
-      expect(result.sanitizedData.name).toBe('alert("xss")Clean Title');
-      expect(result.sanitizedData.description).toBe('Description with HTML');
+      expect(result.sanitizedData).toBeDefined();
+      expect(result.sanitizedData!.name).toBe('alert("xss")Clean Title');
+      expect(result.sanitizedData!.description).toBe('Description with HTML');
     });
 
     it('should fail validation for invalid date range (validation happens at business rule level)', async () => {
@@ -199,7 +200,8 @@ describe('MealPlanValidationService', () => {
       const result = await service.validateUpdateMealPlan(partialUpdate, context);
 
       expect(result.isValid).toBe(true);
-      expect(result.sanitizedData.name).toBe('New Title Only');
+      expect(result.sanitizedData).toBeDefined();
+      expect(result.sanitizedData!.name).toBe('New Title Only');
     });
   });
 
@@ -294,8 +296,8 @@ describe('MealPlanValidationService', () => {
 
   describe('edge cases', () => {
     it('should handle null and undefined inputs', async () => {
-      const nullResult = await service.validateCreateMealPlan(null, { userId: 'user-123' });
-      const undefinedResult = await service.validateCreateMealPlan(undefined, {
+      const nullResult = await service.validateCreateMealPlan(null as any, { userId: 'user-123' });
+      const undefinedResult = await service.validateCreateMealPlan(undefined as any, {
         userId: 'user-123',
       });
 
@@ -349,7 +351,8 @@ describe('MealPlanValidationService', () => {
       const result = await service.validateCreateMealPlan(validData, { userId: 'user-123' });
 
       expect(result.isValid).toBe(true);
-      expect(result.sanitizedData.name).toBe('Test Plan');
+      expect(result.sanitizedData).toBeDefined();
+      expect(result.sanitizedData!.name).toBe('Test Plan');
     });
   });
 });

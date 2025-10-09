@@ -78,8 +78,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('page');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when page is less than 1', async () => {
@@ -89,8 +89,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('page');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should fail when page is greater than 1000', async () => {
@@ -100,8 +100,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.property).toBe('page');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
 
     it('should fail when page is not a number', async () => {
@@ -111,8 +111,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('page');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when page is negative', async () => {
@@ -122,8 +122,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('page');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
   });
 
@@ -135,8 +135,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('limit');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('limit');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when limit is less than 1', async () => {
@@ -146,8 +146,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('limit');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('limit');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should fail when limit is greater than 100', async () => {
@@ -157,8 +157,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('limit');
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.property).toBe('limit');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
 
     it('should fail when limit is not a number', async () => {
@@ -168,8 +168,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('limit');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('limit');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when limit is negative', async () => {
@@ -179,8 +179,8 @@ describe('PaginationDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('limit');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('limit');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
   });
 

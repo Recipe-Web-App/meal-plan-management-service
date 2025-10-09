@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Testing
 
 - `npm run test` - Run unit tests
+- `npm run test -- <test-file-path>` - Run a single test file (e.g., `npm run test -- meal-plans.service.spec`)
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:cov` - Run tests with coverage (must meet 80% threshold)
 - `npm run test:e2e` - Run end-to-end tests
@@ -28,6 +29,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run security:secrets` - Scan for secrets using detect-secrets
 - `npm run security:audit` - Run npm security audit
 - `npm run license:check` - Check dependency licenses
+
+### Database (Prisma)
+
+- `npx prisma migrate dev` - Create and apply migrations in development
+- `npx prisma migrate deploy` - Apply migrations in production
+- `npx prisma generate` - Generate Prisma Client
+- `npx prisma studio` - Open Prisma Studio GUI
+- `npx prisma db seed` - Seed the database with test data
+
+### Git Hooks
+
+This repository uses **pre-commit** for automated code quality checks:
+
+- **Pre-commit hooks**: Automatically run on every commit
+  - Code formatting (Prettier) and linting (ESLint)
+  - TypeScript type checking
+  - Build verification (`npm run build`)
+  - Unit tests (`npm test`)
+  - Markdown, YAML, shell script linting
+  - Secret scanning (detect-secrets, gitleaks)
+  - Security analysis (semgrep)
+  - Prisma schema formatting
+  - License compliance checks
+
+- **Commit-msg hook**: Validates commit messages using commitlint (conventional commits)
+
+- **Pre-push hook**: Runs before pushing to remote
+  - Full test suite with coverage (`npm run test:cov`)
+  - Coverage thresholds: 70% branches, 80% functions/lines/statements
+
+**Installation**: Run `pre-commit install` to set up hooks after cloning
+
+**Manual execution**: Run `npm run pre-commit` to execute all hooks on all files
+
+**Skip tests during commit**: Use `SKIP=jest-tests git commit` for faster commits (tests still run on push)
 
 ## Architecture
 
@@ -137,7 +173,7 @@ LOG_LEVEL=info
 #### Database Configuration
 
 ```bash
-DATABASE_URL=postgresql://username:password@localhost:5432/database
+DATABASE_URL=postgresql://username:password@localhost:5432/database # pragma: allowlist secret
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=meal_plan_management
@@ -205,12 +241,12 @@ USER_SERVICE_URL=https://user-service.local/api/v1
 
 ### Code Coverage
 
-Minimum 80% coverage required for:
+Minimum coverage thresholds required:
 
-- Branches
-- Functions
-- Lines
-- Statements
+- Branches: 70%
+- Functions: 80%
+- Lines: 80%
+- Statements: 80%
 
 ### ESLint Rules
 

@@ -1,4 +1,4 @@
-import { IsString, IsDate, IsOptional, Length } from 'class-validator';
+import { IsString, IsDate, IsOptional, IsBoolean, Length } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsMealPlanDateRangeValid } from '../validators/date-range.validator';
@@ -77,6 +77,20 @@ export class UpdateMealPlanDto {
     return value as Date;
   })
   endDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Whether the meal plan is active',
+    example: true,
+    type: 'boolean',
+  })
+  @IsOptional({ groups: ['basic'] })
+  @IsBoolean({ message: 'isActive must be a boolean value', groups: ['basic'] })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  isActive?: boolean;
 
   // Internal fields for validation - set by service layer, not by client
   // These fields are not exposed in API documentation

@@ -23,7 +23,7 @@ describe('PrismaService', () => {
     // Set default config values - disable continuous retry and health checks to prevent intervals
     mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
       const config: Record<string, any> = {
-        'database.url': 'postgresql://test:test@localhost:5432/test',
+        'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
         'database.maxRetries': 3,
         'database.retryDelay': 100, // Shorter delay for tests
         'database.longRetryDelay': 5000,
@@ -287,7 +287,7 @@ describe('PrismaService', () => {
       const disabledConfigService = {
         get: jest.fn((key: string, defaultValue?: any) => {
           const config: Record<string, any> = {
-            'database.url': 'postgresql://test:test@localhost:5432/test',
+            'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
             'database.maxRetries': 2,
             'database.retryDelay': 100,
             'database.longRetryDelay': 1000,

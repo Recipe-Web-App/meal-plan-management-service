@@ -42,7 +42,7 @@ Dependencies are intelligently grouped to reduce PR noise:
 ### 🏷️ Labels and Assignment
 
 - All PRs are automatically labeled with relevant tags
-- PRs are assigned to `jsamuelsen` for review
+- PRs are assigned to `jsamuelsen11` for review
 - Custom labels help identify the type of updates
 
 ## Managing Dependabot PRs

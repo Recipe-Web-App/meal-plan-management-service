@@ -23,7 +23,7 @@ npm run db:seed  # if available
 ## Environment Variables
 
 ```env
-DATABASE_URL="postgresql://user:pass@localhost:5432/meal_plan_management"
+DATABASE_URL="postgresql://user:pass@localhost:5432/meal_plan_management" # pragma: allowlist secret
 DATABASE_MAX_RETRIES="5"
 DATABASE_RETRY_DELAY="5000"
 DATABASE_HEALTH_CHECK_INTERVAL="30000"

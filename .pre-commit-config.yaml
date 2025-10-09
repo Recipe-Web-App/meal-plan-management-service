@@ -94,12 +94,6 @@ repos:
               node_modules/
           )
 
-  # Advanced secret scanning
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.28.0
-    hooks:
-      - id: gitleaks
-
   # Static analysis security
   - repo: https://github.com/semgrep/semgrep
     rev: v1.89.0
@@ -151,12 +145,48 @@ repos:
         files: package(-lock)?\.json$
         pass_filenames: false
 
-  # Commit message validation
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.3
+  # Build verification
+  - repo: local
     hooks:
-      - id: commitizen
+      - id: npm-build
+        name: NestJS Build
+        entry: npm run build
+        language: node
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # Unit tests
+  - repo: local
+    hooks:
+      - id: jest-tests
+        name: Jest Unit Tests
+        entry: npm test
+        language: node
+        pass_filenames: false
+        stages: [pre-commit]
+        # Note: Use SKIP=jest-tests to skip tests during commit for faster workflow
+        # Tests with coverage will still run on pre-push
+
+  # Coverage tests (pre-push only)
+  - repo: local
+    hooks:
+      - id: jest-coverage
+        name: Jest Coverage Tests
+        entry: npm run test:cov
+        language: node
+        pass_filenames: false
+        stages: [pre-push]
+        # Enforces coverage thresholds: branches 70%, functions/lines/statements 80%
+
+  # Commit message validation (using commitlint to match existing config)
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: Commitlint
+        entry: npx commitlint --edit
+        language: node
         stages: [commit-msg]
+        pass_filenames: false
 
   # License compliance check
   - repo: local
@@ -170,12 +200,24 @@ repos:
 
 ci:
   autofix_commit_msg: |
-    [pre-commit.ci] auto fixes from pre-commit hooks
+    chore(pre-commit-ci): auto fixes from pre-commit hooks
 
     for more information, see https://pre-commit.ci
   autofix_prs: true
   autoupdate_branch: ''
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_commit_msg: 'chore(pre-commit-ci): pre-commit autoupdate'
   autoupdate_schedule: weekly
-  skip: [npm-audit, license-check, tsc]
+  skip:
+    # Skip all local hooks - these require Node.js/npm and other system dependencies
+    - eslint
+    - tsc
+    - prisma-format
+    - npm-audit
+    - npm-build
+    - jest-tests
+    - jest-coverage
+    - commitlint
+    - license-check
+    - kube-score
+    - docker-compose-check
   submodules: false

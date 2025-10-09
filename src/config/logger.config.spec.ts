@@ -40,8 +40,12 @@ describe('LoggerConfig', () => {
       const loggerOptions = createWinstonLogger(mockConfigService);
 
       expect(loggerOptions.level).toBe('info');
-      expect(loggerOptions.transports).toHaveLength(1);
-      expect(loggerOptions.transports![0]).toBeInstanceOf(winston.transports.Console);
+      expect(Array.isArray(loggerOptions.transports)).toBe(true);
+      expect(loggerOptions.transports as winston.transport[]).toHaveLength(1);
+      const transportsArray = Array.isArray(loggerOptions.transports)
+        ? loggerOptions.transports
+        : [loggerOptions.transports];
+      expect(transportsArray[0]).toBeInstanceOf(winston.transports.Console);
       expect(loggerOptions.defaultMeta).toEqual({ service: 'meal-plan-management-service' });
       expect(loggerOptions.exitOnError).toBe(false);
     });
@@ -51,9 +55,12 @@ describe('LoggerConfig', () => {
 
       expect(loggerOptions.level).toBe('info');
       expect(loggerOptions.transports).toHaveLength(3); // console + 2 file transports
-      expect(loggerOptions.transports![0]).toBeInstanceOf(winston.transports.Console);
-      expect(loggerOptions.transports![1]).toBeInstanceOf(DailyRotateFile);
-      expect(loggerOptions.transports![2]).toBeInstanceOf(DailyRotateFile);
+      const transportsArray = Array.isArray(loggerOptions.transports)
+        ? loggerOptions.transports
+        : [loggerOptions.transports];
+      expect(transportsArray[0]).toBeInstanceOf(winston.transports.Console);
+      expect(transportsArray[1]).toBeInstanceOf(DailyRotateFile);
+      expect(transportsArray[2]).toBeInstanceOf(DailyRotateFile);
     });
 
     it('should use JSON format for console when consoleFormat is json', () => {
@@ -128,7 +135,10 @@ describe('LoggerConfig', () => {
   describe('File transport configuration', () => {
     it('should configure file transports with correct options', () => {
       const loggerOptions = createWinstonLogger(mockConfigService);
-      const fileTransports = loggerOptions.transports!.filter((t) => t instanceof DailyRotateFile);
+      const transportsArray = Array.isArray(loggerOptions.transports)
+        ? loggerOptions.transports
+        : [loggerOptions.transports];
+      const fileTransports = transportsArray.filter((t) => t instanceof DailyRotateFile);
 
       expect(fileTransports).toHaveLength(2);
 
@@ -143,22 +153,26 @@ describe('LoggerConfig', () => {
     });
   });
 
-  describe('Console transport configuration', () => {
-    it('should configure console transport with pretty format', () => {
-      const loggerOptions = createWinstonLogger(mockConfigService);
-      const consoleTransport = loggerOptions.transports![0] as winston.transports.Console;
+  it('should configure console transport with correct level', () => {
+    const loggerOptions = createWinstonLogger(mockConfigService);
+    const transportsArray = Array.isArray(loggerOptions.transports)
+      ? loggerOptions.transports
+      : [loggerOptions.transports];
+    const consoleTransport = transportsArray[0] as typeof winston.transports.Console;
 
-      expect(consoleTransport.level).toBe('info');
-    });
+    expect(consoleTransport.level).toBe('info');
+  });
 
-    it('should configure console transport with json format', () => {
-      const configWithJsonFormat = { ...mockLoggingConfig, consoleFormat: 'json' as const };
-      mockConfigService.get.mockReturnValue(configWithJsonFormat);
+  it('should configure console transport with json format', () => {
+    const configWithJsonFormat = { ...mockLoggingConfig, consoleFormat: 'json' as const };
+    mockConfigService.get.mockReturnValue(configWithJsonFormat);
 
-      const loggerOptions = createWinstonLogger(mockConfigService);
-      const consoleTransport = loggerOptions.transports![0] as winston.transports.Console;
+    const loggerOptions = createWinstonLogger(mockConfigService);
+    const transportsArray = Array.isArray(loggerOptions.transports)
+      ? loggerOptions.transports
+      : [loggerOptions.transports];
+    const consoleTransport = transportsArray[0] as typeof winston.transports.Console;
 
-      expect(consoleTransport.level).toBe('info');
-    });
+    expect(consoleTransport.level).toBe('info');
   });
 });

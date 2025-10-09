@@ -114,8 +114,8 @@ describe('UpdateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('name');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('name');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should fail when name is too long', async () => {
@@ -125,8 +125,8 @@ describe('UpdateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('name');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('name');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should pass when name is at maximum length', async () => {
@@ -145,8 +145,8 @@ describe('UpdateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('name');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('name');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
   });
 
@@ -167,8 +167,8 @@ describe('UpdateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('description');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('description');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should pass when description is at maximum length', async () => {
@@ -187,8 +187,8 @@ describe('UpdateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('description');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('description');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
   });
 
@@ -304,18 +304,16 @@ describe('UpdateMealPlanDto', () => {
       expect(errors).toHaveLength(0);
       expect(dto.name).toBe('  Valid Name With Spaces  ');
       expect(dto.description).toBe('  Description with whitespace  ');
-      expect(dto.isActive).toBe('true'); // String transformation without @Transform
+      expect(dto.isActive).toBe(true); // @Transform converts string 'true' to boolean true
       expect(dto.startDate).toBeNull();
       expect(dto.endDate).toBeUndefined();
     });
 
     it('should handle boolean string transformation edge cases', async () => {
+      // @Transform only converts 'true' and 'false' strings to booleans
       const booleanCases = [
+        { isActive: 'true' as any, expected: true },
         { isActive: 'false' as any, expected: false },
-        { isActive: '0' as any, expected: false },
-        { isActive: '1' as any, expected: true },
-        { isActive: 'yes' as any, expected: true },
-        { isActive: 'no' as any, expected: false },
       ];
 
       for (const testCase of booleanCases) {
@@ -323,8 +321,8 @@ describe('UpdateMealPlanDto', () => {
         const errors = await validate(dto);
 
         expect(errors).toHaveLength(0);
-        expect(typeof dto.isActive).toBe('string');
-        // Without @Transform decorator, values remain as strings
+        expect(typeof dto.isActive).toBe('boolean');
+        expect(dto.isActive).toBe(testCase.expected);
       }
     });
 

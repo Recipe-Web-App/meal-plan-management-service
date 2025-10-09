@@ -94,15 +94,15 @@ describe('CreateMealPlanRecipeDto', () => {
 
   describe('recipeId validation', () => {
     it('should fail when recipeId is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.recipeId;
 
       const dto = plainToClass(CreateMealPlanRecipeDto, invalidData);
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('recipeId');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('recipeId');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when recipeId is empty string', async () => {
@@ -112,8 +112,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('recipeId');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('recipeId');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when recipeId is not a string', async () => {
@@ -123,8 +123,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('recipeId');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('recipeId');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
 
     it('should fail when recipeId is not a valid UUID', async () => {
@@ -134,22 +134,22 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('recipeId');
-      expect(errors[0].constraints).toHaveProperty('isUuid');
+      expect(errors[0]?.property).toBe('recipeId');
+      expect(errors[0]?.constraints).toHaveProperty('isUuid');
     });
   });
 
   describe('day validation', () => {
     it('should fail when day is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.day;
 
       const dto = plainToClass(CreateMealPlanRecipeDto, invalidData);
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('day');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('day');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when day is not an integer', async () => {
@@ -159,8 +159,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('day');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('day');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when day is less than 1', async () => {
@@ -170,8 +170,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('day');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('day');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should fail when day is greater than 7', async () => {
@@ -181,8 +181,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('day');
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.property).toBe('day');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
 
     it('should fail when day is not a number', async () => {
@@ -192,22 +192,22 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('day');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('day');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
   });
 
   describe('mealType validation', () => {
     it('should fail when mealType is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.mealType;
 
       const dto = plainToClass(CreateMealPlanRecipeDto, invalidData);
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('mealType');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('mealType');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when mealType is empty string', async () => {
@@ -217,8 +217,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('mealType');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('mealType');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when mealType is not a string', async () => {
@@ -228,8 +228,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('mealType');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('mealType');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
 
     it('should fail when mealType is invalid value', async () => {
@@ -239,14 +239,14 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('mealType');
-      expect(errors[0].constraints).toHaveProperty('isIn');
+      expect(errors[0]?.property).toBe('mealType');
+      expect(errors[0]?.constraints).toHaveProperty('isIn');
     });
   });
 
   describe('servings validation', () => {
     it('should pass when servings is undefined (uses default)', async () => {
-      const dataWithoutServings = { ...validData };
+      const dataWithoutServings: any = { ...validData };
       delete dataWithoutServings.servings;
 
       const dto = plainToClass(CreateMealPlanRecipeDto, dataWithoutServings);
@@ -263,8 +263,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('servings');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('servings');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
 
     it('should fail when servings is less than 1', async () => {
@@ -274,8 +274,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('servings');
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.property).toBe('servings');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should fail when servings is greater than 100', async () => {
@@ -285,8 +285,8 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('servings');
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.property).toBe('servings');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
 
     it('should fail when servings is not a number', async () => {
@@ -296,14 +296,14 @@ describe('CreateMealPlanRecipeDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('servings');
-      expect(errors[0].constraints).toHaveProperty('isInt');
+      expect(errors[0]?.property).toBe('servings');
+      expect(errors[0]?.constraints).toHaveProperty('isInt');
     });
   });
 
   describe('notes validation', () => {
     it('should pass when notes is undefined', async () => {
-      const dataWithoutNotes = { ...validData };
+      const dataWithoutNotes: any = { ...validData };
       delete dataWithoutNotes.notes;
 
       const dto = plainToClass(CreateMealPlanRecipeDto, dataWithoutNotes);

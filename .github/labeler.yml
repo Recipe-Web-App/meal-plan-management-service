@@ -1,0 +1,108 @@
+---
+# PR Labeler Configuration
+# Automatically labels PRs based on changed files
+
+# Dependencies
+dependencies:
+  - package.json
+  - package-lock.json
+  - npm-shrinkwrap.json
+
+# Documentation
+documentation:
+  - '**/*.md'
+  - docs/**/*
+  - CLAUDE.md
+  - README.md
+
+# GitHub configuration
+github:
+  - .github/**/*
+
+# Workflows
+github-actions:
+  - .github/workflows/**/*
+
+# Docker
+docker:
+  - Dockerfile
+  - docker-compose*.yml
+  - .dockerignore
+
+# Configuration
+configuration:
+  - '**/*.yml'
+  - '**/*.yaml'
+  - '**/*.json'
+  - .env.example
+
+# Source code - TypeScript/JavaScript
+typescript:
+  - '**/*.ts'
+  - '**/*.tsx'
+  - src/**/*
+
+javascript:
+  - '**/*.js'
+  - '**/*.jsx'
+
+# NestJS specific
+nestjs:
+  - '**/*.module.ts'
+  - '**/*.controller.ts'
+  - '**/*.service.ts'
+  - '**/*.guard.ts'
+  - '**/*.interceptor.ts'
+  - '**/*.filter.ts'
+  - '**/*.pipe.ts'
+  - '**/*.decorator.ts'
+
+# Tests
+tests:
+  - '**/*.spec.ts'
+  - '**/*.e2e-spec.ts'
+  - test/**/*
+
+# Database/Prisma
+database:
+  - prisma/**/*
+  - prisma/schema.prisma
+  - prisma/migrations/**/*
+  - src/database/**/*
+  - src/**/repositories/**/*
+
+# Auth
+auth:
+  - src/modules/auth/**/*
+  - src/**/auth/**/*
+
+# API/Modules
+api:
+  - src/modules/**/*
+  - src/**/*.controller.ts
+
+# Meal Plans module
+meal-plans:
+  - src/modules/meal-plans/**/*
+
+# Health checks
+health:
+  - src/modules/health/**/*
+
+# Configuration
+config:
+  - src/config/**/*
+
+# Shared/Utils
+shared:
+  - src/shared/**/*
+  - src/utils/**/*
+
+# DTOs
+dto:
+  - '**/*.dto.ts'
+
+# Scripts
+scripts:
+  - scripts/**/*
+  - '**/*.sh'

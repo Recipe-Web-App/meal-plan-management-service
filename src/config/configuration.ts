@@ -57,6 +57,7 @@ export interface OAuth2Config {
   introspectionEnabled: boolean;
   clientId: string;
   clientSecret: string;
+  introspectionCacheTTL: number;
 }
 
 export default () => ({
@@ -120,5 +121,6 @@ export default () => ({
     introspectionEnabled: process.env.OAUTH2_INTROSPECTION_ENABLED === 'true',
     clientId: process.env.OAUTH2_CLIENT_ID!,
     clientSecret: process.env.OAUTH2_CLIENT_SECRET!,
+    introspectionCacheTTL: parseInt(process.env.OAUTH2_INTROSPECTION_CACHE_TTL!, 10) || 60000,
   } as OAuth2Config,
 });

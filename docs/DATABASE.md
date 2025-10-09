@@ -1,8 +1,10 @@
 # Database Integration Guide
 
-This document provides comprehensive guidance for setting up and working with the database integration in the Meal Plan Management Service.
+This document provides comprehensive guidance for setting up and working with the database integration in the
+Meal Plan Management Service.
 
-> **Note**: This service also includes a comprehensive OAuth2 authentication system. For authentication setup and configuration, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+> **Note**: This service also includes a comprehensive OAuth2 authentication system. For authentication setup and
+> configuration, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 ## Table of Contents
 
@@ -41,12 +43,12 @@ Create a `.env` file in the project root:
 
 ```env
 # Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/meal_plan_management"
+DATABASE_URL="postgresql://username:password@localhost:5432/meal_plan_management" # pragma: allowlist secret
 POSTGRES_HOST="localhost"
 POSTGRES_PORT="5432"
 POSTGRES_DB="meal_plan_management"
 MEAL_PLAN_MANAGEMENT_DB_USER="your_username"
-MEAL_PLAN_MANAGEMENT_DB_PASSWORD="your_password"
+MEAL_PLAN_MANAGEMENT_DB_PASSWORD="your_password" # pragma: allowlist secret
 
 # Database Behavior
 DATABASE_MAX_RETRIES="5"
@@ -63,15 +65,15 @@ PORT="3000"
 
 The `DATABASE_URL` follows PostgreSQL connection string format:
 
-```
+```text
 postgresql://[user[:password]@][host[:port]][/database][?parameter_list]
 ```
 
 Examples:
 
-- Local development: `postgresql://dev_user:dev_pass@localhost:5432/meal_plan_dev`
-- Production: `postgresql://prod_user:secure_pass@db-host:5432/meal_plan_prod`
-- With SSL: `postgresql://user:pass@host:5432/db?sslmode=require`
+- Local development: `postgresql://dev_user:dev_pass@localhost:5432/meal_plan_dev` <!-- pragma: allowlist secret -->
+- Production: `postgresql://prod_user:secure_pass@db-host:5432/meal_plan_prod` <!-- pragma: allowlist secret -->
+- With SSL: `postgresql://user:pass@host:5432/db?sslmode=require` <!-- pragma: allowlist secret -->
 
 ## Configuration
 
@@ -496,6 +498,7 @@ describe('MealPlan Integration Tests', () => {
    ```
 
 4. **Run Database Migrations** (if using migrations)
+
    ```bash
    npx prisma migrate deploy
    ```
@@ -555,6 +558,7 @@ npm run test:cov
    ```
 
 4. **Update TypeScript Types**
+
    ```bash
    npm run build
    ```
@@ -602,8 +606,8 @@ npx prisma generate --force
 
 Adjust connection pool settings in the database URL:
 
-```
-postgresql://user:pass@host:5432/db?connection_limit=20&pool_timeout=10
+```text
+postgresql://user:pass@host:5432/db?connection_limit=20&pool_timeout=10  # pragma: allowlist secret
 ```
 
 #### Query Optimization

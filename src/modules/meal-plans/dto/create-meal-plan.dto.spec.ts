@@ -78,7 +78,7 @@ describe('CreateMealPlanDto', () => {
 
   describe('name validation', () => {
     it('should fail when name is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.name;
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
@@ -100,8 +100,8 @@ describe('CreateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('name');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('name');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should fail when name is too long', async () => {
@@ -114,8 +114,8 @@ describe('CreateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('name');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('name');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should pass when name is at maximum length', async () => {
@@ -133,7 +133,7 @@ describe('CreateMealPlanDto', () => {
 
   describe('description validation', () => {
     it('should pass when description is undefined', async () => {
-      const dataWithoutDescription = { ...validData };
+      const dataWithoutDescription: any = { ...validData };
       delete dataWithoutDescription.description;
 
       const dto = plainToClass(CreateMealPlanDto, dataWithoutDescription);
@@ -164,8 +164,8 @@ describe('CreateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('description');
-      expect(errors[0].constraints).toHaveProperty('isLength');
+      expect(errors[0]?.property).toBe('description');
+      expect(errors[0]?.constraints).toHaveProperty('isLength');
     });
 
     it('should pass when description is at maximum length', async () => {
@@ -183,27 +183,27 @@ describe('CreateMealPlanDto', () => {
 
   describe('date validation', () => {
     it('should fail when startDate is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.startDate;
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('startDate');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('startDate');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when endDate is missing', async () => {
-      const invalidData = { ...validData };
+      const invalidData: any = { ...validData };
       delete invalidData.endDate;
 
       const dto = plainToClass(CreateMealPlanDto, invalidData);
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('endDate');
-      expect(errors[0].constraints).toHaveProperty('isNotEmpty');
+      expect(errors[0]?.property).toBe('endDate');
+      expect(errors[0]?.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail when startDate is invalid date string', () => {
@@ -324,12 +324,12 @@ describe('CreateMealPlanDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('isActive');
-      expect(errors[0].constraints).toHaveProperty('isBoolean');
+      expect(errors[0]?.property).toBe('isActive');
+      expect(errors[0]?.constraints).toHaveProperty('isBoolean');
     });
 
     it('should default to false when isActive is not provided', async () => {
-      const dataWithoutIsActive = { ...validData };
+      const dataWithoutIsActive: any = { ...validData };
       delete dataWithoutIsActive.isActive;
 
       const dto = plainToClass(CreateMealPlanDto, dataWithoutIsActive);

@@ -30,7 +30,7 @@ describe('ResponseInterceptor', () => {
     };
 
     mockCallHandler = {
-      handle: jest.fn(),
+      handle: jest.fn() as jest.Mock,
     };
   });
 
@@ -40,7 +40,7 @@ describe('ResponseInterceptor', () => {
 
   it('should wrap response data in ApiResponse format', (done) => {
     const testData = { id: 1, name: 'Test' };
-    mockCallHandler.handle.mockReturnValue(of(testData));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of(testData));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -56,7 +56,7 @@ describe('ResponseInterceptor', () => {
   });
 
   it('should handle null data', (done) => {
-    mockCallHandler.handle.mockReturnValue(of(null));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of(null));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -72,7 +72,7 @@ describe('ResponseInterceptor', () => {
   });
 
   it('should handle undefined data', (done) => {
-    mockCallHandler.handle.mockReturnValue(of(undefined));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of(undefined));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -89,7 +89,7 @@ describe('ResponseInterceptor', () => {
 
   it('should handle array data', (done) => {
     const testData = [{ id: 1 }, { id: 2 }];
-    mockCallHandler.handle.mockReturnValue(of(testData));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of(testData));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -106,7 +106,7 @@ describe('ResponseInterceptor', () => {
 
   it('should use correct request path', (done) => {
     mockRequest.url = '/api/v1/meal-plans';
-    mockCallHandler.handle.mockReturnValue(of({}));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of({}));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 

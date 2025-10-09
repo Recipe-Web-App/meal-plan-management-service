@@ -59,7 +59,7 @@ describe('DatabaseSeeder', () => {
     } as any;
 
     // Mock the transaction execution
-    transactionService.executeInTransaction.mockImplementation(async (fn) => {
+    transactionService.executeTransaction.mockImplementation(async (fn: any) => {
       return fn(mockTransactionClient as any);
     });
   });
@@ -95,7 +95,7 @@ describe('DatabaseSeeder', () => {
           id: 'plan-recipe-1',
         } as any);
 
-        return callback(mockTransactionClient);
+        return callback(mockTransactionClient as any);
       });
 
       const result = await seeder.seedAll();
@@ -146,7 +146,7 @@ describe('DatabaseSeeder', () => {
           id: 'plan-recipe-1',
         } as any);
 
-        return callback(mockTransactionClient);
+        return callback(mockTransactionClient as any);
       });
 
       await seeder.seedAll(options);
@@ -183,7 +183,7 @@ describe('DatabaseSeeder', () => {
           id: 'plan-recipe-1',
         } as any);
 
-        return callback(mockTransactionClient);
+        return callback(mockTransactionClient as any);
       });
 
       await seeder.seedAll(options);
@@ -242,7 +242,7 @@ describe('DatabaseSeeder', () => {
   describe('seedMealPlanForUser', () => {
     it('should create meal plan with recipes for user', async () => {
       const userId = 'user-123';
-      const recipeIds = ['recipe-1', 'recipe-2', 'recipe-3'];
+      const recipeIds = [BigInt(1), BigInt(2), BigInt(3)];
       const options = {
         name: 'Test Plan',
         startDate: new Date('2023-01-01'),
@@ -311,8 +311,8 @@ describe('DatabaseSeeder', () => {
 
       // Check meal type distribution
       const mealTypeCounts = recipes.reduce(
-        (acc, recipe) => {
-          acc[recipe.mealType] = (acc[recipe.mealType] || 0) + 1;
+        (acc: Record<MealType, number>, recipe: any) => {
+          acc[recipe.mealType as MealType] = (acc[recipe.mealType as MealType] || 0) + 1;
           return acc;
         },
         {} as Record<MealType, number>,
@@ -323,7 +323,7 @@ describe('DatabaseSeeder', () => {
       expect(mealTypeCounts[MealType.DINNER]).toBeGreaterThan(0);
 
       // Check date distribution
-      const dates = recipes.map((recipe) => recipe.mealDate.toDateString());
+      const dates = recipes.map((recipe: any) => recipe.mealDate.toDateString());
       const uniqueDates = new Set(dates);
       expect(uniqueDates.size).toBe(7); // 7 days
     });
@@ -337,7 +337,7 @@ describe('DatabaseSeeder', () => {
       const recipes = createMealPlanRecipes(mealPlanId, recipeIds, startDate);
 
       expect(recipes.length).toBe(2);
-      recipes.forEach((recipe, index) => {
+      recipes.forEach((recipe: any, index: number) => {
         expect(recipe.recipeId).toBe(recipeIds[index]);
       });
     });

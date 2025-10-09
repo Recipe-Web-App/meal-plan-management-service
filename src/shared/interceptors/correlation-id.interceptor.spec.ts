@@ -64,7 +64,7 @@ describe('CorrelationIdInterceptor', () => {
   it('should generate correlation ID when not provided', (done) => {
     const generatedId = 'generated-uuid';
     (uuidv4 as jest.Mock).mockReturnValue(generatedId);
-    mockCallHandler.handle.mockReturnValue(of('test data'));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -87,7 +87,7 @@ describe('CorrelationIdInterceptor', () => {
   it('should use existing correlation ID from header', (done) => {
     const existingId = 'existing-correlation-id';
     mockRequest.headers['x-correlation-id'] = existingId;
-    mockCallHandler.handle.mockReturnValue(of('test data'));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -110,7 +110,7 @@ describe('CorrelationIdInterceptor', () => {
   it('should include user agent in request context', (done) => {
     const userAgent = 'Mozilla/5.0';
     mockRequest.headers['user-agent'] = userAgent;
-    mockCallHandler.handle.mockReturnValue(of('test data'));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -127,7 +127,7 @@ describe('CorrelationIdInterceptor', () => {
 
   it('should use socket remote address when request.ip is undefined', (done) => {
     mockRequest.ip = undefined;
-    mockCallHandler.handle.mockReturnValue(of('test data'));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 
@@ -144,7 +144,7 @@ describe('CorrelationIdInterceptor', () => {
 
   it('should handle errors in the request pipeline', (done) => {
     const error = new Error('Test error');
-    mockCallHandler.handle.mockReturnValue(
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(
       new Observable((subscriber) => {
         subscriber.error(error);
       }),
@@ -162,7 +162,7 @@ describe('CorrelationIdInterceptor', () => {
   });
 
   it('should complete the observable', (done) => {
-    mockCallHandler.handle.mockReturnValue(of('test data'));
+    (mockCallHandler.handle as jest.Mock).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
 

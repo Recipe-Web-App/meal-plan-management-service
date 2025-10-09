@@ -77,7 +77,9 @@ describe('HealthService', () => {
       prismaService.getConnectionStatus.mockReturnValue({
         isConnected: true,
         connectionRetries: 0,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       });
 
       const result = await service.check();
@@ -103,7 +105,9 @@ describe('HealthService', () => {
       prismaService.getConnectionStatus.mockReturnValue({
         isConnected: true,
         connectionRetries: 0,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       });
 
       const result = await service.checkReadiness();
@@ -124,13 +128,15 @@ describe('HealthService', () => {
       prismaService.getConnectionStatus.mockReturnValue({
         isConnected: true,
         connectionRetries: 0,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       });
 
       const result = await service.checkReadinessGraceful();
 
       expect(result.status).toBe('ok');
-      expect(result.info.database.status).toBe('up');
+      expect(result.info?.database?.status).toBe('up');
     });
 
     it('should return ok status with degraded info when database is down', async () => {
@@ -143,15 +149,17 @@ describe('HealthService', () => {
       prismaService.getConnectionStatus.mockReturnValue({
         isConnected: false,
         connectionRetries: 3,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       });
 
       const result = await service.checkReadinessGraceful();
 
       expect(result.status).toBe('ok'); // Still returns ok for 200 status
-      expect(result.info.service.status).toBe('up');
-      expect(result.info.database.status).toBe('down');
-      expect(result.info.database.degraded).toBe(true);
+      expect(result.info?.service?.status).toBe('up');
+      expect(result.info?.database?.status).toBe('down');
+      expect(result.info?.database?.degraded).toBe(true);
     });
 
     it('should handle database check exceptions gracefully', async () => {
@@ -160,10 +168,10 @@ describe('HealthService', () => {
       const result = await service.checkReadinessGraceful();
 
       expect(result.status).toBe('ok'); // Still returns ok for 200 status
-      expect(result.info.service.status).toBe('up');
-      expect(result.info.database.status).toBe('down');
-      expect(result.info.database.message).toBe('Connection timeout');
-      expect(result.info.database.degraded).toBe(true);
+      expect(result.info?.service?.status).toBe('up');
+      expect(result.info?.database?.status).toBe('down');
+      expect(result.info?.database?.message).toBe('Connection timeout');
+      expect(result.info?.database?.degraded).toBe(true);
     });
   });
 
@@ -189,7 +197,9 @@ describe('HealthService', () => {
       const mockConnectionStatus = {
         isConnected: true,
         connectionRetries: 0,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       };
 
       prismaService.performHealthCheck.mockResolvedValue(mockHealthStatus);
@@ -220,7 +230,9 @@ describe('HealthService', () => {
       const mockConnectionStatus = {
         isConnected: false,
         connectionRetries: 3,
-        lastConnectionAttempt: new Date(),
+        maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       };
 
       prismaService.performHealthCheck.mockResolvedValue(mockHealthStatus);

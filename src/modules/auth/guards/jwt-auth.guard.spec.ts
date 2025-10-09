@@ -14,7 +14,7 @@ describe('JwtAuthGuard', () => {
     serviceToServiceEnabled: true,
     introspectionEnabled: false,
     clientId: 'test-client',
-    clientSecret: 'test-secret',
+    clientSecret: 'test-secret', // pragma: allowlist secret
     introspectionCacheTTL: 300000,
   };
 

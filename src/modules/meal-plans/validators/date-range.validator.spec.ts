@@ -16,16 +16,16 @@ class TestDateRangeDto {
   })
   validateRange: boolean = true;
 
-  startDate: Date;
-  endDate: Date;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 class TestMealPlanDto {
   @IsMealPlanDateRangeValid()
   validateRange: boolean = true;
 
-  startDate: Date;
-  endDate: Date;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 class TestMealPlanUpdateDto {
@@ -67,7 +67,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('endDate must be after startDate');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('endDate must be after startDate');
     });
 
     it('should fail when end date equals start date', async () => {
@@ -81,7 +82,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('endDate must be after startDate');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('endDate must be after startDate');
     });
   });
 
@@ -99,7 +101,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('cannot exceed 30 days');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('cannot exceed 30 days');
     });
 
     it('should pass when duration equals maximum', async () => {
@@ -148,7 +151,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('cannot be in the past');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('cannot be in the past');
     });
 
     it('should pass when start date is today', async () => {
@@ -176,7 +180,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('must be valid dates');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('must be valid dates');
     });
 
     it('should fail for invalid end date', async () => {
@@ -187,7 +192,8 @@ describe('IsDateRangeValidConstraint', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints?.isDateRangeValid).toContain('must be valid dates');
+      expect(errors[0]!.constraints).toBeDefined();
+      expect(errors[0]!.constraints!.isDateRangeValid).toContain('must be valid dates');
     });
   });
 
@@ -233,7 +239,8 @@ describe('IsMealPlanDateRangeValid', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints?.isDateRangeValid).toContain('cannot exceed 90 days');
+    expect(errors[0]!.constraints).toBeDefined();
+    expect(errors[0]!.constraints!.isDateRangeValid).toContain('cannot exceed 90 days');
   });
 
   it('should not allow past dates for new meal plans', async () => {
@@ -249,7 +256,8 @@ describe('IsMealPlanDateRangeValid', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints?.isDateRangeValid).toContain('cannot be in the past');
+    expect(errors[0]!.constraints).toBeDefined();
+    expect(errors[0]!.constraints!.isDateRangeValid).toContain('cannot be in the past');
   });
 
   it('should pass for valid future date range', async () => {
@@ -297,7 +305,8 @@ describe('IsMealPlanUpdateDateRangeValid', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints?.isDateRangeValid).toContain('cannot exceed 90 days');
+    expect(errors[0]!.constraints).toBeDefined();
+    expect(errors[0]!.constraints!.isDateRangeValid).toContain('cannot exceed 90 days');
   });
 });
 

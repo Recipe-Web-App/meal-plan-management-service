@@ -101,11 +101,8 @@ describe('TestDatabase', () => {
     it('should create multiple users', async () => {
       const count = 3;
       const mockUser = {
-        id: 'user-1',
-        name: 'Test User',
-        email: 'test@example.com',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        userId: 'user-1',
+        username: 'Test User',
       };
 
       prismaService.user.create.mockResolvedValue(mockUser);
@@ -185,13 +182,8 @@ describe('TestDatabase', () => {
       const count = 4;
       const mockRecipe = {
         recipeId: BigInt(1),
+        userId: 'user-1',
         title: 'Test Recipe',
-        description: null,
-        cookingTime: 30,
-        servings: 4,
-        difficulty: 'Medium',
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       prismaService.recipe.create.mockResolvedValue(mockRecipe);

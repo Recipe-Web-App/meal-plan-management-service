@@ -1,96 +1,51 @@
+---
 # Dependabot configuration for automated dependency updates
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
-  # Enable version updates for npm (package.json)
+  # npm dependencies
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'daily'
-      time: '04:00'
-      timezone: 'Etc/UTC'
-    # Increase the number of open pull requests for npm from the default of 5
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'US/Eastern'
     open-pull-requests-limit: 100
-    # Add assignees and reviewers
     assignees:
       - 'jsamuelsen11'
-    # Group related dependencies together
-    groups:
-      # Group all NestJS related packages
-      nestjs:
-        patterns:
-          - '@nestjs/*'
-        exclude-patterns:
-          - '@nestjs/testing'
-      # Group testing dependencies
-      testing:
-        patterns:
-          - '*jest*'
-          - '@types/jest'
-          - 'supertest'
-          - '@types/supertest'
-          - 'ts-jest'
-      # Group TypeScript and build tools
-      build-tools:
-        patterns:
-          - 'typescript'
-          - 'ts-node'
-          - '@types/*'
-          - 'tsconfig-paths'
-          - '@swc/*'
-      # Group linting and formatting tools
-      code-quality:
-        patterns:
-          - 'eslint*'
-          - '@typescript-eslint/*'
-          - 'prettier'
-          - '@commitlint/*'
-          - 'husky'
-          - 'lint-staged'
-      # Group Docker and containerization
-      docker:
-        patterns:
-          - 'docker*'
-          - 'dockerfile*'
-      # Group database and ORM
-      database:
-        patterns:
-          - 'prisma'
-          - '@prisma/*'
-          - 'pg'
-          - '@types/pg'
-    # Custom commit message
     commit-message:
       prefix: 'deps'
       prefix-development: 'deps-dev'
       include: 'scope'
-    # Allow both direct and indirect updates
-    allow:
-      - dependency-type: 'direct'
-      - dependency-type: 'indirect'
-    # Ignore specific packages if needed (uncomment and modify as needed)
-    # ignore:
-    #   - dependency-name: "lodash"
-    #     versions: ["4.17.x"]
-    # Custom labels for PRs
     labels:
       - 'dependencies'
-      - 'automated'
-    # Update npm lockfile strategy
+      - 'javascript'
+    groups:
+      # Group production dependencies by update type
+      production-minor-patch:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Group development dependencies by update type
+      development-minor-patch:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
     versioning-strategy: 'increase'
-    # Custom pull request branch prefix
-    pull-request-branch-name:
-      separator: '/'
+    rebase-strategy: 'auto'
 
-  # Enable version updates for Docker
+  # Docker
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
       interval: 'weekly'
       day: 'monday'
-      time: '04:00'
-      timezone: 'Etc/UTC'
+      time: '09:00'
+      timezone: 'US/Eastern'
     open-pull-requests-limit: 100
     assignees:
       - 'jsamuelsen11'
@@ -98,18 +53,18 @@ updates:
       prefix: 'docker'
       include: 'scope'
     labels:
-      - 'docker'
       - 'dependencies'
-      - 'automated'
+      - 'docker'
+    rebase-strategy: 'auto'
 
-  # Enable version updates for GitHub Actions (if you add them later)
+  # GitHub Actions
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'weekly'
       day: 'monday'
-      time: '04:00'
-      timezone: 'Etc/UTC'
+      time: '09:00'
+      timezone: 'US/Eastern'
     open-pull-requests-limit: 100
     assignees:
       - 'jsamuelsen11'
@@ -117,6 +72,10 @@ updates:
       prefix: 'ci'
       include: 'scope'
     labels:
-      - 'github-actions'
       - 'dependencies'
-      - 'automated'
+      - 'github-actions'
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    rebase-strategy: 'auto'

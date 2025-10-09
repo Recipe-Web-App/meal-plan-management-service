@@ -212,21 +212,21 @@ describe('MealPlanResponseDto', () => {
 
       const firstRecipe = dto.recipes![0];
       expect(firstRecipe).toBeInstanceOf(MealPlanRecipeResponseDto);
-      expect(firstRecipe.recipeId).toBe('123e4567-e89b-12d3-a456-426614174001');
-      expect(firstRecipe.recipeName).toBe('Overnight Oats with Berries');
-      expect(firstRecipe.day).toBe(1);
-      expect(firstRecipe.mealType).toBe('breakfast');
-      expect(firstRecipe.servings).toBe(4);
-      expect(firstRecipe.notes).toBe('Prepare the night before');
+      expect(firstRecipe?.recipeId).toBe('123e4567-e89b-12d3-a456-426614174001');
+      expect(firstRecipe?.recipeName).toBe('Overnight Oats with Berries');
+      expect(firstRecipe?.day).toBe(1);
+      expect(firstRecipe?.mealType).toBe('breakfast');
+      expect(firstRecipe?.servings).toBe(4);
+      expect(firstRecipe?.notes).toBe('Prepare the night before');
 
       const secondRecipe = dto.recipes![1];
       expect(secondRecipe).toBeInstanceOf(MealPlanRecipeResponseDto);
-      expect(secondRecipe.recipeId).toBe('123e4567-e89b-12d3-a456-426614174003');
-      expect(secondRecipe.recipeName).toBe('Grilled Chicken Salad');
-      expect(secondRecipe.day).toBe(1);
-      expect(secondRecipe.mealType).toBe('lunch');
-      expect(secondRecipe.servings).toBe(4);
-      expect(secondRecipe.notes).toBeUndefined();
+      expect(secondRecipe?.recipeId).toBe('123e4567-e89b-12d3-a456-426614174003');
+      expect(secondRecipe?.recipeName).toBe('Grilled Chicken Salad');
+      expect(secondRecipe?.day).toBe(1);
+      expect(secondRecipe?.mealType).toBe('lunch');
+      expect(secondRecipe?.servings).toBe(4);
+      expect(secondRecipe?.notes).toBeUndefined();
     });
 
     it('should handle recipes with various meal types and difficulties', () => {
@@ -242,14 +242,14 @@ describe('MealPlanResponseDto', () => {
 
       const dto = plainToClass(MealPlanResponseDto, dataWithVariedRecipes);
 
-      expect(dto.recipes![0].mealType).toBe('breakfast');
-      expect(dto.recipes![0].difficulty).toBe('easy');
-      expect(dto.recipes![1].mealType).toBe('lunch');
-      expect(dto.recipes![1].difficulty).toBe('medium');
-      expect(dto.recipes![2].mealType).toBe('dinner');
-      expect(dto.recipes![2].difficulty).toBe('hard');
-      expect(dto.recipes![3].mealType).toBe('snack');
-      expect(dto.recipes![3].difficulty).toBe('easy');
+      expect(dto.recipes![0]?.mealType).toBe('breakfast');
+      expect(dto.recipes![0]?.difficulty).toBe('easy');
+      expect(dto.recipes![1]?.mealType).toBe('lunch');
+      expect(dto.recipes![1]?.difficulty).toBe('medium');
+      expect(dto.recipes![2]?.mealType).toBe('dinner');
+      expect(dto.recipes![2]?.difficulty).toBe('hard');
+      expect(dto.recipes![3]?.mealType).toBe('snack');
+      expect(dto.recipes![3]?.difficulty).toBe('easy');
     });
   });
 
