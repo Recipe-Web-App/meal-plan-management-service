@@ -43,7 +43,7 @@ describe('MealPlanByIdQueryDto', () => {
       const dto = plainToInstance(MealPlanByIdQueryDto, { viewMode: 'invalid' });
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('isIn');
+      expect(errors[0]?.constraints).toHaveProperty('isIn');
     });
   });
 
@@ -90,7 +90,7 @@ describe('MealPlanByIdQueryDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should reject year above maximum', async () => {
@@ -100,7 +100,7 @@ describe('MealPlanByIdQueryDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
 
     it('should reject month below 1', async () => {
@@ -110,7 +110,7 @@ describe('MealPlanByIdQueryDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('min');
+      expect(errors[0]?.constraints).toHaveProperty('min');
     });
 
     it('should reject month above 12', async () => {
@@ -120,7 +120,7 @@ describe('MealPlanByIdQueryDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('max');
+      expect(errors[0]?.constraints).toHaveProperty('max');
     });
   });
 
@@ -139,7 +139,7 @@ describe('MealPlanByIdQueryDto', () => {
       const dto = plainToInstance(MealPlanByIdQueryDto, { mealType: 'INVALID' });
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].constraints).toHaveProperty('isEnum');
+      expect(errors[0]?.constraints).toHaveProperty('isEnum');
     });
   });
 
@@ -213,7 +213,7 @@ describe('MealPlanByIdQueryDto', () => {
 
         const errors = await validate(dtoWithInvalidDate);
         expect(errors).toHaveLength(1);
-        expect(errors[0].constraints).toHaveProperty('isDate');
+        expect(errors[0]?.constraints).toHaveProperty('isDate');
       });
 
       it('should handle various valid date formats', () => {
@@ -358,7 +358,7 @@ describe('MealPlanByIdQueryDto', () => {
 
         const errors = await validate(dto);
         expect(errors).toHaveLength(1);
-        expect(errors[0].constraints).toHaveProperty('isString');
+        expect(errors[0]?.constraints).toHaveProperty('isString');
       });
 
       it('should handle non-integer year values', async () => {
@@ -368,7 +368,7 @@ describe('MealPlanByIdQueryDto', () => {
 
         const errors = await validate(dto);
         expect(errors).toHaveLength(1);
-        expect(errors[0].constraints).toHaveProperty('isInt');
+        expect(errors[0]?.constraints).toHaveProperty('isInt');
       });
 
       it('should handle non-integer month values', async () => {
@@ -378,7 +378,7 @@ describe('MealPlanByIdQueryDto', () => {
 
         const errors = await validate(dto);
         expect(errors).toHaveLength(1);
-        expect(errors[0].constraints).toHaveProperty('isInt');
+        expect(errors[0]?.constraints).toHaveProperty('isInt');
       });
 
       it('should handle boundary year values', async () => {
@@ -465,7 +465,7 @@ describe('MealPlanByIdQueryDto', () => {
 
         const errors = await validate(dto);
         expect(errors).toHaveLength(1); // Only filterMonth should fail
-        expect(errors[0].constraints).toHaveProperty('max');
+        expect(errors[0]?.constraints).toHaveProperty('max');
 
         // Check that other transformations worked correctly
         expect(dto.viewMode).toBe('month');

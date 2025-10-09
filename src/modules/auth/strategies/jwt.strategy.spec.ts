@@ -18,11 +18,11 @@ describe('JwtStrategy', () => {
     serviceToServiceEnabled: true,
     introspectionEnabled: false,
     clientId: 'test-client',
-    clientSecret: 'test-secret',
+    clientSecret: 'test-secret', // pragma: allowlist secret
     introspectionCacheTTL: 300000,
   };
 
-  const mockJwtSecret = 'test-jwt-secret';
+  const mockJwtSecret = 'test-jwt-secret'; // pragma: allowlist secret
 
   const mockUser: AuthenticatedUser = {
     id: 'user-123',
@@ -209,7 +209,7 @@ describe('JwtStrategy', () => {
 
     it('should extract and validate different token formats', async () => {
       const jwtToken =
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs';
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs'; // pragma: allowlist secret
       const mockRequest = createMockRequest(`Bearer ${jwtToken}`);
       tokenValidationService.validateToken.mockResolvedValue(mockUser);
 
@@ -336,7 +336,7 @@ describe('JwtStrategy', () => {
     describe('realistic scenarios', () => {
       it('should handle production-like JWT tokens', async () => {
         const productionLikeToken =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyIsImNsaWVudF9pZCI6Im1lYWwtcGxhbi1zZXJ2aWNlIiwic2NvcGVzIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2NDA5OTUyMDAsImlhdCI6MTY0MDk5MTYwMH0.signature';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyIsImNsaWVudF9pZCI6Im1lYWwtcGxhbi1zZXJ2aWNlIiwic2NvcGVzIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE2NDA5OTUyMDAsImlhdCI6MTY0MDk5MTYwMH0.signature'; // pragma: allowlist secret
         const mockRequest = createMockRequest(`Bearer ${productionLikeToken}`);
         tokenValidationService.validateToken.mockResolvedValue(mockUser);
 
@@ -354,7 +354,7 @@ describe('JwtStrategy', () => {
             'x-request-id': 'req-123',
             'user-agent': 'Test Agent',
           },
-        } as Request;
+        } as unknown as Request;
 
         tokenValidationService.validateToken.mockResolvedValue(mockUser);
 

@@ -48,7 +48,7 @@ describe('SystemService', () => {
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
       Object.defineProperty(process, 'arch', { value: 'x64', configurable: true });
       Object.defineProperty(process, 'pid', { value: 12345, configurable: true });
-      process.memoryUsage = jest.fn().mockReturnValue({
+      (process.memoryUsage as any) = jest.fn().mockReturnValue({
         heapUsed: 47185920, // 45MB
         heapTotal: 134217728, // 128MB
         external: 12582912, // 12MB
@@ -101,7 +101,7 @@ describe('SystemService', () => {
       mockConfigService.get.mockReturnValue('test');
 
       const originalMemoryUsage = process.memoryUsage;
-      process.memoryUsage = jest.fn().mockReturnValue({
+      (process.memoryUsage as any) = jest.fn().mockReturnValue({
         heapUsed: 1048576, // 1MB
         heapTotal: 2097152, // 2MB
         external: 524288, // 0.5MB
@@ -145,7 +145,7 @@ describe('SystemService', () => {
           'logging.maxSize': '50m',
           'logging.maxFiles': '30d',
         };
-        return config[key];
+        return (config as Record<string, any>)[key];
       });
 
       const result = service.getConfiguration();
@@ -226,7 +226,7 @@ describe('SystemService', () => {
           'oauth2.serviceEnabled': false,
           'logging.level': 'debug',
         };
-        return config[key];
+        return (config as Record<string, any>)[key];
       });
 
       const result = service.getConfiguration();
@@ -252,7 +252,7 @@ describe('SystemService', () => {
           'oauth2.introspectionEnabled': false,
           'logging.fileEnabled': true,
         };
-        return config[key];
+        return (config as Record<string, any>)[key];
       });
 
       const result = service.getConfiguration();
@@ -269,7 +269,7 @@ describe('SystemService', () => {
         const config = {
           'app.corsOrigins': ['http://localhost:3000', 'https://app.example.com'],
         };
-        return config[key];
+        return (config as Record<string, any>)[key];
       });
 
       const result = service.getConfiguration();
@@ -282,7 +282,7 @@ describe('SystemService', () => {
         const config = {
           'app.corsOrigins': [],
         };
-        return config[key];
+        return (config as Record<string, any>)[key];
       });
 
       const result = service.getConfiguration();

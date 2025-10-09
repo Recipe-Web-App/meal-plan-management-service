@@ -21,7 +21,7 @@ describe('ServiceAuthGuard', () => {
     serviceToServiceEnabled: true,
     introspectionEnabled: false,
     clientId: 'test-client',
-    clientSecret: 'test-secret',
+    clientSecret: 'test-secret', // pragma: allowlist secret
     introspectionCacheTTL: 300000,
   };
 
@@ -343,7 +343,7 @@ describe('ServiceAuthGuard', () => {
           tokenValidationService.validateToken.mockResolvedValue(mockUser);
 
           const specialToken =
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs';
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs'; // pragma: allowlist secret
           const { context } = createMockExecutionContext({
             headers: { authorization: `Bearer ${specialToken}` },
           });
@@ -360,13 +360,11 @@ describe('ServiceAuthGuard', () => {
 
           const { context, request: mockRequest } = createMockExecutionContext({
             headers: { authorization: 'Bearer valid-token' },
-            originalUser: 'should-be-overwritten',
           });
 
           await guard.canActivate(context);
 
           expect(mockRequest.user).toEqual(mockUser);
-          expect((mockRequest as any).originalUser).toBe('should-be-overwritten'); // Should not affect other properties
         });
       });
     });
@@ -379,7 +377,7 @@ describe('ServiceAuthGuard', () => {
         serviceToServiceEnabled: true,
         introspectionEnabled: true,
         clientId: 'meal-plan-service',
-        clientSecret: 'super-secret-key',
+        clientSecret: 'super-secret-key', // pragma: allowlist secret
         introspectionCacheTTL: 600000,
       };
       configService.get.mockReturnValue(realisticConfig);

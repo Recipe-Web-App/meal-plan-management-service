@@ -103,8 +103,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('userId');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('userId');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
 
     it('should fail when userId is not a valid UUID', async () => {
@@ -114,8 +114,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('userId');
-      expect(errors[0].constraints).toHaveProperty('isUuid');
+      expect(errors[0]?.property).toBe('userId');
+      expect(errors[0]?.constraints).toHaveProperty('isUuid');
     });
 
     it('should pass when userId is valid UUID', async () => {
@@ -143,8 +143,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('startDateFrom');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(errors[0]?.property).toBe('startDateFrom');
+      expect(errors[0]?.constraints).toHaveProperty('isDate');
     });
 
     it('should fail when endDateTo is invalid date string', async () => {
@@ -154,8 +154,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('endDateTo');
-      expect(errors[0].constraints).toHaveProperty('isDate');
+      expect(errors[0]?.property).toBe('endDateTo');
+      expect(errors[0]?.constraints).toHaveProperty('isDate');
     });
 
     it('should accept different valid date formats', async () => {
@@ -202,8 +202,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('nameSearch');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('nameSearch');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
 
     it('should fail when descriptionSearch is not a string', async () => {
@@ -213,8 +213,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('descriptionSearch');
-      expect(errors[0].constraints).toHaveProperty('isString');
+      expect(errors[0]?.property).toBe('descriptionSearch');
+      expect(errors[0]?.constraints).toHaveProperty('isString');
     });
 
     it('should pass with empty search strings', async () => {
@@ -252,8 +252,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('sortBy');
-      expect(errors[0].constraints).toHaveProperty('isIn');
+      expect(errors[0]?.property).toBe('sortBy');
+      expect(errors[0]?.constraints).toHaveProperty('isIn');
     });
 
     it('should accept valid sortOrder values', async () => {
@@ -275,8 +275,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('sortOrder');
-      expect(errors[0].constraints).toHaveProperty('isIn');
+      expect(errors[0]?.property).toBe('sortOrder');
+      expect(errors[0]?.constraints).toHaveProperty('isIn');
     });
 
     it('should use default sortOrder when not provided', async () => {
@@ -331,8 +331,8 @@ describe('MealPlanQueryDto', () => {
       const errors = await validate(dto);
 
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('isActive');
-      expect(errors[0].constraints).toHaveProperty('isBoolean');
+      expect(errors[0]?.property).toBe('isActive');
+      expect(errors[0]?.constraints).toHaveProperty('isBoolean');
     });
 
     it('should use default values for boolean fields', async () => {

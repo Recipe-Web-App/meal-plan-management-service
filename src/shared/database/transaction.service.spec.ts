@@ -32,7 +32,7 @@ describe('TransactionService', () => {
       const mockResult = { id: 1, name: 'test' };
       const mockFn = jest.fn().mockResolvedValue(mockResult);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -56,7 +56,7 @@ describe('TransactionService', () => {
         isolationLevel: 'ReadCommitted' as const,
       };
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -71,7 +71,7 @@ describe('TransactionService', () => {
       const mockResult = { id: 1, name: 'test' };
       const mockFn = jest.fn().mockResolvedValue(mockResult);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -87,7 +87,7 @@ describe('TransactionService', () => {
       const mockError = new Error('Transaction failed');
       const mockFn = jest.fn().mockRejectedValue(mockError);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -102,7 +102,7 @@ describe('TransactionService', () => {
     it('should handle non-Error rejection', async () => {
       const mockFn = jest.fn().mockRejectedValue('String error');
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -120,7 +120,7 @@ describe('TransactionService', () => {
       const operation2 = jest.fn().mockResolvedValue('result2');
       const operation3 = jest.fn().mockResolvedValue('result3');
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -137,7 +137,7 @@ describe('TransactionService', () => {
         operation2.mock.invocationCallOrder[0],
         operation3.mock.invocationCallOrder[0],
       ];
-      expect(order).toEqual([...order].sort((a, b) => a - b));
+      expect(order).toEqual([...order].sort((a, b) => (a ?? 0) - (b ?? 0)));
     });
   });
 
@@ -147,7 +147,7 @@ describe('TransactionService', () => {
       const operation2 = jest.fn().mockResolvedValue('result2');
       const operation3 = jest.fn().mockResolvedValue('result3');
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -165,7 +165,7 @@ describe('TransactionService', () => {
       const mockResult = { id: 1, name: 'test' };
       const mockFn = jest.fn().mockResolvedValue(mockResult);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -184,7 +184,7 @@ describe('TransactionService', () => {
         .mockRejectedValueOnce(retryableError)
         .mockResolvedValue(mockResult);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -201,7 +201,7 @@ describe('TransactionService', () => {
       const nonRetryableError = new Error('Validation error');
       const mockFn = jest.fn().mockRejectedValue(nonRetryableError);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
@@ -216,7 +216,7 @@ describe('TransactionService', () => {
       const retryableError = new Error('Connection timeout');
       const mockFn = jest.fn().mockRejectedValue(retryableError);
 
-      prisma.$transaction.mockImplementation(async (fn) => {
+      prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 

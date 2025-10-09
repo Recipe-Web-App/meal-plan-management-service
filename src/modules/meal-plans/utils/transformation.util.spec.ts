@@ -124,14 +124,15 @@ describe('MealPlanTransformationUtil', () => {
 
       const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
 
-      expect(result.mealPlanId).toEqual(BigInt(123));
-      expect(result.name).toBe('Test Plan');
-      expect(result.description).toBe('Test description');
-      expect(result.startDate).toEqual(new Date('2025-09-01T00:00:00.000Z'));
-      expect(result.endDate).toEqual(new Date('2025-09-07T23:59:59.999Z'));
-      expect(result.createdAt).toEqual(new Date('2025-08-01T00:00:00.000Z'));
-      expect(result.updatedAt).toEqual(new Date('2025-08-15T00:00:00.000Z'));
-      expect(result.userId).toBe('user-123');
+      expect(result).not.toBeNull();
+      expect(result!.mealPlanId).toEqual(BigInt(123));
+      expect(result!.name).toBe('Test Plan');
+      expect(result!.description).toBe('Test description');
+      expect(result!.startDate).toEqual(new Date('2025-09-01T00:00:00.000Z'));
+      expect(result!.endDate).toEqual(new Date('2025-09-07T23:59:59.999Z'));
+      expect(result!.createdAt).toEqual(new Date('2025-08-01T00:00:00.000Z'));
+      expect(result!.updatedAt).toEqual(new Date('2025-08-15T00:00:00.000Z'));
+      expect(result!.userId).toBe('user-123');
     });
 
     it('should handle non-string field values during sanitization', () => {
@@ -165,19 +166,23 @@ describe('MealPlanTransformationUtil', () => {
 
     it('should handle null input', () => {
       expect(MealPlanTransformationUtil.fromDatabaseModel(null)).toBeNull();
-      expect(MealPlanTransformationUtil.fromDatabaseModel(undefined)).toBeNull();
+      expect(MealPlanTransformationUtil.fromDatabaseModel(undefined as any)).toBeNull();
     });
 
     it('should include recipes when present', () => {
       const dbModel = {
-        id: '123',
+        mealPlanId: BigInt(123),
+        userId: 'user-123',
         name: 'Test Plan',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         recipes: [{ id: '1', title: 'Recipe 1' }],
       };
 
       const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
 
-      expect(result.recipes).toEqual([{ id: '1', title: 'Recipe 1' }]);
+      expect(result).not.toBeNull();
+      expect(result!.recipes).toEqual([{ id: '1', title: 'Recipe 1' }]);
     });
   });
 
@@ -203,10 +208,10 @@ describe('MealPlanTransformationUtil', () => {
       const result = MealPlanTransformationUtil.fromDatabaseModels(dbModels);
 
       expect(result).toHaveLength(2);
-      expect(result[0].mealPlanId).toEqual(BigInt(1));
-      expect(result[0].name).toBe('Plan 1');
-      expect(result[1].mealPlanId).toEqual(BigInt(2));
-      expect(result[1].name).toBe('Plan 2');
+      expect(result[0]?.mealPlanId).toEqual(BigInt(1));
+      expect(result[0]?.name).toBe('Plan 1');
+      expect(result[1]?.mealPlanId).toEqual(BigInt(2));
+      expect(result[1]?.name).toBe('Plan 2');
     });
 
     it('should handle non-array input', () => {
@@ -282,7 +287,9 @@ describe('MealPlanTransformationUtil', () => {
       ];
 
       testCases.forEach(({ input, expected }) => {
-        const result = MealPlanTransformationUtil.transformFilterParams({ isActive: input });
+        const result = MealPlanTransformationUtil.transformFilterParams({
+          isActive: input as string | boolean,
+        });
         expect(result.isActive).toBe(expected);
       });
     });
@@ -439,16 +446,17 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
         description: null,
         startDate: null,
         endDate: null,
-        createdAt: null,
-        updatedAt: null,
+        createdAt: null as any,
+        updatedAt: null as any,
       };
 
       const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
 
-      expect(result.startDate).toBeNull();
-      expect(result.endDate).toBeNull();
-      expect(result.createdAt).toBeInstanceOf(Date); // Defaults to new Date()
-      expect(result.updatedAt).toBeInstanceOf(Date); // Defaults to new Date()
+      expect(result).not.toBeNull();
+      expect(result!.startDate).toBeNull();
+      expect(result!.endDate).toBeNull();
+      expect(result!.createdAt).toBeInstanceOf(Date); // Defaults to new Date()
+      expect(result!.updatedAt).toBeInstanceOf(Date); // Defaults to new Date()
     });
 
     it('should handle database model without recipes field', () => {
@@ -456,11 +464,14 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
         mealPlanId: BigInt(123),
         name: 'Test Plan',
         userId: 'user-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       const result = MealPlanTransformationUtil.fromDatabaseModel(dbModel);
 
-      expect(result.recipes).toBeUndefined();
+      expect(result).not.toBeNull();
+      expect(result!.recipes).toBeUndefined();
     });
   });
 
@@ -498,8 +509,8 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
       const result = MealPlanTransformationUtil.fromDatabaseModels(dbModels as any);
 
       expect(result).toHaveLength(2); // Null should be filtered out
-      expect(result[0].name).toBe('Plan 1');
-      expect(result[1].name).toBe('Plan 2');
+      expect(result[0]?.name).toBe('Plan 1');
+      expect(result[1]?.name).toBe('Plan 2');
 
       // Restore the mock
       jest.restoreAllMocks();

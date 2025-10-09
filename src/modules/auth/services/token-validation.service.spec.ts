@@ -27,15 +27,16 @@ describe('TokenValidationService', () => {
     serviceToServiceEnabled: true,
     introspectionEnabled: false,
     clientId: 'test-client',
-    clientSecret: 'test-secret',
+    clientSecret: 'test-secret', // pragma: allowlist secret
     introspectionCacheTTL: 300000,
   };
 
-  const mockJwtSecret = 'test-jwt-secret';
+  const mockJwtSecret = 'test-jwt-secret'; // pragma: allowlist secret
 
   const mockJwtPayload: JwtPayload = {
     type: 'access_token',
     iss: 'auth-service', // Must match oauth2Config.issuer
+    aud: ['meal-plan-service'],
     user_id: 'user-123',
     sub: 'user-123',
     client_id: 'test-client',
@@ -236,7 +237,7 @@ describe('TokenValidationService', () => {
             },
             auth: {
               username: 'test-client',
-              password: 'test-secret',
+              password: 'test-secret', // pragma: allowlist secret
             },
           },
         );
@@ -434,7 +435,7 @@ describe('TokenValidationService', () => {
   describe('hashToken', () => {
     it('should create consistent hash from token', () => {
       // Testing the private hashToken method indirectly through caching behavior
-      const token = 'abcdefghijklmnopqrstuvwxyz123456789';
+      const token = 'abcdefghijklmnopqrstuvwxyz123456789'; // pragma: allowlist secret
 
       // The hash should use first 8 and last 8 characters
       // We can't directly test the private method, but we can verify consistent behavior

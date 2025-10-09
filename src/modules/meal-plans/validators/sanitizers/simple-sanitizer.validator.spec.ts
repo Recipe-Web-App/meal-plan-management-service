@@ -8,17 +8,17 @@ import {
 
 class TestStripHtmlDto {
   @StripHtml()
-  content: string;
+  content!: string;
 }
 
 class TestNormalizeWhitespaceDto {
   @NormalizeWhitespace()
-  content: string;
+  content!: string;
 }
 
 class TestSanitizeTextDto {
   @SanitizeText()
-  content: string;
+  content!: string;
 }
 
 describe('SimpleSanitizer', () => {

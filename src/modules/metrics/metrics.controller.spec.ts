@@ -167,7 +167,7 @@ http_requests_total{method="GET",status="200"} 100`;
 # TYPE metric1 counter
 metric1 1
 
-# HELP metric2 Second metric  
+# HELP metric2 Second metric
 # TYPE metric2 gauge
 metric2 2`;
 

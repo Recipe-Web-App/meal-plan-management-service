@@ -28,6 +28,53 @@ export class MealPlanRecipeResponseDto {
   @Expose()
   recipeId!: string;
 
+  @ApiPropertyOptional({
+    description: 'Recipe name (populated from recipe service)',
+    example: 'Grilled Chicken Salad',
+  })
+  @IsOptional()
+  @IsString()
+  @Expose()
+  recipeName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Day number in the meal plan (1-7)',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(7)
+  @Expose()
+  day?: number;
+
+  @ApiPropertyOptional({
+    description: 'Preparation time in minutes (from recipe)',
+    example: 15,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Expose()
+  prepTime?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cooking time in minutes (from recipe)',
+    example: 30,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Expose()
+  cookTime?: number;
+
+  @ApiPropertyOptional({
+    description: 'Recipe difficulty level (from recipe)',
+    example: 'medium',
+  })
+  @IsOptional()
+  @IsString()
+  @Expose()
+  difficulty?: string;
+
   @ApiProperty({
     description: 'Meal date',
     type: 'string',

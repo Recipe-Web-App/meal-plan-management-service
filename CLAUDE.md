@@ -40,8 +40,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Git Hooks
 
-- **Husky + lint-staged**: Automatically runs linting and formatting on staged files before commit
-- **commitlint**: Enforces conventional commit messages
+This repository uses **pre-commit** for automated code quality checks:
+
+- **Pre-commit hooks**: Automatically run on every commit
+  - Code formatting (Prettier) and linting (ESLint)
+  - TypeScript type checking
+  - Build verification (`npm run build`)
+  - Unit tests (`npm test`)
+  - Markdown, YAML, shell script linting
+  - Secret scanning (detect-secrets, gitleaks)
+  - Security analysis (semgrep)
+  - Prisma schema formatting
+  - License compliance checks
+
+- **Commit-msg hook**: Validates commit messages using commitlint (conventional commits)
+
+- **Pre-push hook**: Runs before pushing to remote
+  - Full test suite with coverage (`npm run test:cov`)
+  - Coverage thresholds: 70% branches, 80% functions/lines/statements
+
+**Installation**: Run `pre-commit install` to set up hooks after cloning
+
+**Manual execution**: Run `npm run pre-commit` to execute all hooks on all files
+
+**Skip tests during commit**: Use `SKIP=jest-tests git commit` for faster commits (tests still run on push)
 
 ## Architecture
 
@@ -151,7 +173,7 @@ LOG_LEVEL=info
 #### Database Configuration
 
 ```bash
-DATABASE_URL=postgresql://username:password@localhost:5432/database
+DATABASE_URL=postgresql://username:password@localhost:5432/database # pragma: allowlist secret
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=meal_plan_management

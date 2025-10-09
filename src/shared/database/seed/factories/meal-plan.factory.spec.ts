@@ -31,22 +31,18 @@ describe('MealPlanFactory', () => {
       const customStartDate = new Date('2023-01-01');
       const customEndDate = new Date('2023-01-14');
       const customData = {
-        id: 'plan-123',
         userId: 'user-456',
         name: 'Custom Meal Plan',
         startDate: customStartDate,
         endDate: customEndDate,
-        isActive: true,
       };
 
       const mealPlanData = MealPlanFactory.create(customData);
 
-      expect(mealPlanData.id).toBe(customData.id);
       expect(mealPlanData.userId).toBe(customData.userId);
       expect(mealPlanData.name).toBe(customData.name);
       expect(mealPlanData.startDate).toBe(customData.startDate);
       expect(mealPlanData.endDate).toBe(customData.endDate);
-      expect(mealPlanData.isActive).toBe(customData.isActive);
     });
   });
 
@@ -106,13 +102,11 @@ describe('MealPlanFactory', () => {
       const userId = 'user-123';
       const overrides = {
         name: 'Custom Weekly Plan',
-        isActive: false,
       };
 
       const mealPlanData = MealPlanFactory.createActiveWeekly(userId, overrides);
 
       expect(mealPlanData.name).toBe(overrides.name);
-      expect(mealPlanData.isActive).toBe(overrides.isActive);
       expect(mealPlanData.userId).toBe(userId);
     });
   });

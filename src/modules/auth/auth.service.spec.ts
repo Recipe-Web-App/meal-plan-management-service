@@ -16,8 +16,8 @@ describe('AuthService', () => {
     serviceToServiceEnabled: true,
     introspectionEnabled: false,
     clientId: 'test-client',
-    clientSecret: 'test-secret',
-    introspectionCacheTTL: 300000,
+    clientSecret: 'test-secret', // pragma: allowlist secret
+    introspectionCacheTTL: 60000,
   };
 
   const mockUser: AuthenticatedUser = {
@@ -83,7 +83,7 @@ describe('AuthService', () => {
 
     it('should handle different token formats', async () => {
       const jwtToken =
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs';
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImp0aSI6ImYyNzY2ZjEyLTc1ZGQtNDZmMS05ZjEyLTgxNjk4MTlmMDJmNyIsImlhdCI6MTU0NjQzMDc5OCwiZXhwIjoxNTQ2NDM0Mzk4fQ.iefepWBdNaP6E9f8F7qVKm5TT7hfqFXS8FmYHzNKWHs'; // pragma: allowlist secret
       tokenValidationService.validateToken.mockResolvedValue(mockUser);
 
       const result = await service.validateAccessToken(jwtToken);
@@ -348,8 +348,8 @@ describe('AuthService', () => {
         serviceToServiceEnabled: true,
         introspectionEnabled: true,
         clientId: 'full-client',
-        clientSecret: 'full-secret',
-        introspectionCacheTTL: 600000,
+        clientSecret: 'full-secret', // pragma: allowlist secret
+        introspectionCacheTTL: 60000,
       };
       configService.get.mockReturnValue(fullConfig);
 
@@ -364,8 +364,8 @@ describe('AuthService', () => {
         serviceToServiceEnabled: false,
         introspectionEnabled: false,
         clientId: 'minimal-client',
-        clientSecret: 'minimal-secret',
-        introspectionCacheTTL: 300000,
+        clientSecret: 'minimal-secret', // pragma: allowlist secret
+        introspectionCacheTTL: 60000,
       };
       configService.get.mockReturnValue(minimalConfig);
 
@@ -380,8 +380,8 @@ describe('AuthService', () => {
         serviceToServiceEnabled: false,
         introspectionEnabled: false,
         clientId: 'disabled-client',
-        clientSecret: 'disabled-secret',
-        introspectionCacheTTL: 300000,
+        clientSecret: 'disabled-secret', // pragma: allowlist secret
+        introspectionCacheTTL: 60000,
       };
       configService.get.mockReturnValue(disabledConfig);
 
@@ -396,8 +396,8 @@ describe('AuthService', () => {
         serviceToServiceEnabled: false,
         introspectionEnabled: true,
         clientId: 'mixed-client',
-        clientSecret: 'mixed-secret',
-        introspectionCacheTTL: 450000,
+        clientSecret: 'mixed-secret', // pragma: allowlist secret
+        introspectionCacheTTL: 60000,
       };
       configService.get.mockReturnValue(mixedConfig);
 

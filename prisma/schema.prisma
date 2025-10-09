@@ -38,10 +38,10 @@ model User {
 
 // Minimal Recipe model - only fields needed for meal plan relationships
 model Recipe {
-  recipeId         BigInt             @id @default(autoincrement()) @map("recipe_id")
-  userId           String             @map("user_id") @db.Uuid
-  title            String             @db.VarChar(255)
-  mealPlanRecipes  MealPlanRecipe[]
+  recipeId        BigInt           @id @default(autoincrement()) @map("recipe_id")
+  userId          String           @map("user_id") @db.Uuid
+  title           String           @db.VarChar(255)
+  mealPlanRecipes MealPlanRecipe[]
 
   @@map("recipes")
   @@schema("recipe_manager")
@@ -49,17 +49,17 @@ model Recipe {
 
 // MealPlan model
 model MealPlan {
-  mealPlanId       BigInt             @id @default(autoincrement()) @map("meal_plan_id")
-  userId           String             @map("user_id") @db.Uuid
-  name             String             @db.VarChar(255)
-  description      String?            @db.Text
-  startDate        DateTime?          @map("start_date") @db.Date
-  endDate          DateTime?          @map("end_date") @db.Date
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  
-  user             User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  mealPlanRecipes  MealPlanRecipe[]
+  mealPlanId  BigInt    @id @default(autoincrement()) @map("meal_plan_id")
+  userId      String    @map("user_id") @db.Uuid
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User             @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlanRecipes MealPlanRecipe[]
 
   @@map("meal_plans")
   @@schema("recipe_manager")
@@ -67,13 +67,13 @@ model MealPlan {
 
 // MealPlanRecipe junction model
 model MealPlanRecipe {
-  mealPlanId  BigInt    @map("meal_plan_id")
-  recipeId    BigInt    @map("recipe_id")
-  mealDate    DateTime  @map("meal_date") @db.Date
-  mealType    MealType  @map("meal_type")
-  
-  mealPlan    MealPlan  @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
-  recipe      Recipe    @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
+  mealPlanId BigInt   @map("meal_plan_id")
+  recipeId   BigInt   @map("recipe_id")
+  mealDate   DateTime @map("meal_date") @db.Date
+  mealType   MealType @map("meal_type")
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
 
   @@id([mealPlanId, recipeId, mealDate])
   @@map("meal_plan_recipes")

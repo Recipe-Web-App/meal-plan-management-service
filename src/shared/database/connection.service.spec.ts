@@ -57,6 +57,8 @@ describe('ConnectionService', () => {
         isConnected: true,
         connectionRetries: 0,
         maxRetries: 5,
+        isInLongRetryPhase: false,
+        enableContinuousRetry: true,
       };
 
       prismaService.performHealthCheck.mockResolvedValue(mockHealthStatus);
@@ -153,7 +155,7 @@ describe('ConnectionService', () => {
         .mockRejectedValueOnce(new Error('Temporary failure'))
         .mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue();
+      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
 
@@ -171,7 +173,7 @@ describe('ConnectionService', () => {
         .mockRejectedValueOnce(connectionError)
         .mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue();
+      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
       prismaService.reconnect.mockResolvedValue();
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
@@ -185,7 +187,7 @@ describe('ConnectionService', () => {
 
     it('should fail after maximum retries', async () => {
       const mockQuery = jest.fn().mockRejectedValue(new Error('Persistent error'));
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue();
+      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
       await expect(service.executeWithRetry(mockQuery, 2, 100)).rejects.toThrow('Persistent error');
 
@@ -204,7 +206,7 @@ describe('ConnectionService', () => {
         .mockRejectedValueOnce(connectionError)
         .mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue();
+      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
       prismaService.reconnect.mockRejectedValue(reconnectError);
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
@@ -241,7 +243,7 @@ describe('ConnectionService', () => {
     it('should mask password in connection URL', () => {
       process.env = {
         ...originalEnv,
-        DATABASE_URL: 'postgresql://user:secret123@localhost:5432/testdb',
+        DATABASE_URL: 'postgresql://user:secret123@localhost:5432/testdb', // pragma: allowlist secret
       };
 
       const maskedUrl = service.getMaskedConnectionUrl();
@@ -292,7 +294,7 @@ describe('ConnectionService', () => {
     it('should validate valid configuration', () => {
       process.env = {
         ...originalEnv,
-        DATABASE_URL: 'postgresql://user:password@localhost:5432/testdb',
+        DATABASE_URL: 'postgresql://user:password@localhost:5432/testdb', // pragma: allowlist secret
       };
 
       const result = service.validateConfiguration();

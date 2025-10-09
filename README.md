@@ -19,7 +19,9 @@ server-side applications.
 
 ## Description
 
-The **Meal Plan Management Service** is a comprehensive NestJS microservice for managing meal plans, recipes, and nutritional tracking within the Recipe Web App ecosystem. Built with TypeScript, it provides a robust REST API with OAuth2 authentication, PostgreSQL database integration, and comprehensive monitoring capabilities.
+The **Meal Plan Management Service** is a comprehensive NestJS microservice for managing meal plans, recipes, and
+nutritional tracking within the Recipe Web App ecosystem. Built with TypeScript, it provides a robust REST API with
+OAuth2 authentication, PostgreSQL database integration, and comprehensive monitoring capabilities.
 
 ## Project setup
 

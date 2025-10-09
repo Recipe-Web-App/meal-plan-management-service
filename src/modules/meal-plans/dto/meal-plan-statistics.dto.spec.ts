@@ -51,7 +51,7 @@ describe('MealPlanStatisticsDto', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints).toHaveProperty('min');
+    expect(errors[0]?.constraints).toHaveProperty('min');
   });
 
   it('should reject invalid duration', async () => {
@@ -62,7 +62,7 @@ describe('MealPlanStatisticsDto', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints).toHaveProperty('min');
+    expect(errors[0]?.constraints).toHaveProperty('min');
   });
 });
 
@@ -100,7 +100,7 @@ describe('MealTypeBreakdownDto', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);
-    expect(errors[0].constraints).toHaveProperty('min');
+    expect(errors[0]?.constraints).toHaveProperty('min');
   });
 
   it('should accept zero values', async () => {

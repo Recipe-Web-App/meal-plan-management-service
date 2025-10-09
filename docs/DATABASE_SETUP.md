@@ -46,7 +46,7 @@ Download and install from [PostgreSQL official website](https://www.postgresql.o
 2. **Create database user:**
 
    ```sql
-   CREATE USER meal_plan_user WITH PASSWORD 'secure_password_123';
+   CREATE USER meal_plan_user WITH PASSWORD 'secure_password_123'; -- pragma: allowlist secret
    ```
 
 3. **Create database:**
@@ -74,6 +74,7 @@ Download and install from [PostgreSQL official website](https://www.postgresql.o
    ```
 
 6. **Exit PostgreSQL:**
+
    ```sql
    \q
    ```
@@ -105,12 +106,12 @@ npm install
 
    ```env
    # Database Configuration
-   DATABASE_URL="postgresql://meal_plan_user:secure_password_123@localhost:5432/meal_plan_management"
+   DATABASE_URL="postgresql://user:pass123@localhost:5432/meal_plan_db"  # pragma: allowlist secret
    POSTGRES_HOST="localhost"
    POSTGRES_PORT="5432"
-   POSTGRES_DB="meal_plan_management"
-   MEAL_PLAN_MANAGEMENT_DB_USER="meal_plan_user"
-   MEAL_PLAN_MANAGEMENT_DB_PASSWORD="secure_password_123"
+   POSTGRES_DB="meal_plan_db"
+   MEAL_PLAN_MANAGEMENT_DB_USER="user"
+   MEAL_PLAN_MANAGEMENT_DB_PASSWORD="pass123"  # pragma: allowlist secret
 
    # Database Behavior
    DATABASE_MAX_RETRIES="5"
@@ -124,7 +125,7 @@ npm install
    LOG_LEVEL="info"
 
    # Security (generate secure values for production)
-   JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+   JWT_SECRET="your-super-secret-jwt-key-change-in-production" # pragma: allowlist secret
    JWT_EXPIRES_IN="1d"
    ```
 
@@ -143,10 +144,12 @@ npm install
    ```
 
 3. **Verify schema creation:**
+
    ```bash
    npx prisma studio
    ```
-   Open http://localhost:5555 to view database tables
+
+   Open <http://localhost:5555> to view database tables
 
 ## Step 3: Verify Installation
 
@@ -235,7 +238,7 @@ For production, ensure these environment variables are properly set:
 
 ```env
 # Production Database
-DATABASE_URL="postgresql://prod_user:secure_prod_password@prod-db-host:5432/meal_plan_prod?sslmode=require"
+DATABASE_URL="postgresql://user:pass@prod-host:5432/db?sslmode=require"  # pragma: allowlist secret
 
 # Production Settings
 NODE_ENV="production"
@@ -244,7 +247,7 @@ DATABASE_HEALTH_CHECK_INTERVAL="60000"
 LOG_LEVEL="warn"
 
 # Security
-JWT_SECRET="very-secure-production-secret-key-at-least-32-chars"
+JWT_SECRET="very-secure-production-secret-key-at-least-32-chars" # pragma: allowlist secret
 JWT_EXPIRES_IN="24h"
 ```
 
@@ -265,7 +268,7 @@ npx prisma generate
 For production databases with SSL:
 
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require&sslcert=client-cert.pem&sslkey=client-key.pem&sslrootcert=ca-cert.pem"
+DATABASE_URL="postgresql://user:pass@host:5432/db?sslmode=require&sslcert=cert.pem"  # pragma: allowlist secret
 ```
 
 ## Troubleshooting
@@ -288,6 +291,7 @@ DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require&sslcert=cl
 2. Verify port and host settings in `.env`
 
 3. Check PostgreSQL configuration:
+
    ```bash
    sudo -u postgres psql -c "SHOW port;"
    sudo -u postgres psql -c "SHOW listen_addresses;"
@@ -301,12 +305,15 @@ DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require&sslcert=cl
 
 1. Verify username and password in `.env`
 2. Check PostgreSQL user exists:
+
    ```sql
    sudo -u postgres psql -c "\du"
    ```
+
 3. Reset user password:
+
    ```sql
-   sudo -u postgres psql -c "ALTER USER meal_plan_user WITH PASSWORD 'new_password';"
+   sudo -u postgres psql -c "ALTER USER meal_plan_user WITH PASSWORD 'new_password';" -- pragma: allowlist secret
    ```
 
 #### Database Does Not Exist
@@ -359,6 +366,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA recipe_manager GRANT ALL ON TABLES TO meal_pl
    ```
 
 2. **Check slow query log in PostgreSQL:**
+
    ```sql
    -- Enable slow query logging
    ALTER SYSTEM SET log_min_duration_statement = 1000;  -- Log queries > 1 second
@@ -370,10 +378,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA recipe_manager GRANT ALL ON TABLES TO meal_pl
 1. **Adjust connection settings in DATABASE_URL:**
 
    ```env
-   DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=10"
+   DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=10" # pragma: allowlist secret
    ```
 
 2. **Monitor connections:**
+
    ```sql
    SELECT count(*) FROM pg_stat_activity WHERE datname = 'meal_plan_management';
    ```

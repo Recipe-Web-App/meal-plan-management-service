@@ -27,18 +27,18 @@ describe('MealPlansController', () => {
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
+    success: true,
     data: [
       {
-        mealPlanId: '123',
+        id: '123',
         name: 'Test Meal Plan',
         description: 'Test Description',
         userId: 'test-user-id',
         startDate: new Date('2024-03-01'),
         endDate: new Date('2024-03-07'),
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        totalRecipes: 5,
-        mealPlanRecipes: [],
       },
     ],
     meta: {
@@ -46,23 +46,24 @@ describe('MealPlansController', () => {
       limit: 20,
       total: 1,
       totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
+      hasNext: false,
+      hasPrevious: false,
     },
   };
 
   const mockMealPlanResponse: MealPlanQueryResponseDto = {
-    mealPlan: {
-      mealPlanId: '123',
+    success: true,
+    viewMode: 'full',
+    data: {
+      id: '123',
       name: 'Test Meal Plan',
       description: 'Test Description',
       userId: 'test-user-id',
       startDate: new Date('2024-03-01'),
       endDate: new Date('2024-03-07'),
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      totalRecipes: 5,
-      mealPlanRecipes: [],
     },
   };
 
@@ -105,6 +106,7 @@ describe('MealPlansController', () => {
     const paginationDto: PaginationDto = {
       page: 1,
       limit: 20,
+      offset: 0,
     };
 
     it('should return paginated meal plans', async () => {
@@ -122,17 +124,18 @@ describe('MealPlansController', () => {
 
     it('should handle empty query parameters', async () => {
       const emptyQuery: MealPlanQueryDto = {};
-      const defaultPagination: PaginationDto = { page: 1, limit: 20 };
+      const defaultPagination: PaginationDto = { page: 1, limit: 20, offset: 0 };
 
       service.findMealPlans.mockResolvedValue({
+        success: true,
         data: [],
         meta: {
           page: 1,
           limit: 20,
           total: 0,
           totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
+          hasNext: false,
+          hasPrevious: false,
         },
       });
 
@@ -243,7 +246,7 @@ describe('MealPlansController', () => {
   describe('error scenarios', () => {
     describe('listMealPlans', () => {
       const queryDto: MealPlanQueryDto = {};
-      const paginationDto: PaginationDto = { page: 1, limit: 20 };
+      const paginationDto: PaginationDto = { page: 1, limit: 20, offset: 0 };
 
       it('should throw NotFoundException when service throws NotFoundException', async () => {
         const error = new Error('Meal plans not found');
@@ -371,17 +374,18 @@ describe('MealPlansController', () => {
     describe('listMealPlans', () => {
       it('should handle maximum pagination limit', async () => {
         const queryDto: MealPlanQueryDto = {};
-        const maxPagination: PaginationDto = { page: 1, limit: 100 }; // Assuming max limit
+        const maxPagination: PaginationDto = { page: 1, limit: 100, offset: 0 }; // Assuming max limit
 
         service.findMealPlans.mockResolvedValue({
+          success: true,
           data: [],
           meta: {
             page: 1,
             limit: 100,
             total: 0,
             totalPages: 0,
-            hasNextPage: false,
-            hasPreviousPage: false,
+            hasNext: false,
+            hasPrevious: false,
           },
         });
 
@@ -393,17 +397,18 @@ describe('MealPlansController', () => {
 
       it('should handle very large page numbers', async () => {
         const queryDto: MealPlanQueryDto = {};
-        const largePagination: PaginationDto = { page: 1000, limit: 20 };
+        const largePagination: PaginationDto = { page: 1000, limit: 20, offset: 19980 };
 
         service.findMealPlans.mockResolvedValue({
+          success: true,
           data: [],
           meta: {
             page: 1000,
             limit: 20,
             total: 5,
             totalPages: 1,
-            hasNextPage: false,
-            hasPreviousPage: true,
+            hasNext: false,
+            hasPrevious: true,
           },
         });
 
@@ -418,17 +423,18 @@ describe('MealPlansController', () => {
           nameSearch: 'Mom\'s "Special" Recipe & More!',
           descriptionSearch: 'Test with @#$%^&*() symbols',
         };
-        const paginationDto: PaginationDto = { page: 1, limit: 20 };
+        const paginationDto: PaginationDto = { page: 1, limit: 20, offset: 0 };
 
         service.findMealPlans.mockResolvedValue({
+          success: true,
           data: [],
           meta: {
             page: 1,
             limit: 20,
             total: 0,
             totalPages: 0,
-            hasNextPage: false,
-            hasPreviousPage: false,
+            hasNext: false,
+            hasPrevious: false,
           },
         });
 
@@ -442,17 +448,18 @@ describe('MealPlansController', () => {
           startDateFrom: new Date('1900-01-01'),
           endDateTo: new Date('2100-12-31'),
         };
-        const paginationDto: PaginationDto = { page: 1, limit: 20 };
+        const paginationDto: PaginationDto = { page: 1, limit: 20, offset: 0 };
 
         service.findMealPlans.mockResolvedValue({
+          success: true,
           data: [],
           meta: {
             page: 1,
             limit: 20,
             total: 0,
             totalPages: 0,
-            hasNextPage: false,
-            hasPreviousPage: false,
+            hasNext: false,
+            hasPrevious: false,
           },
         });
 
@@ -554,12 +561,13 @@ describe('MealPlansController', () => {
     } as any;
 
     const expectedResponse: MealPlanResponseDto = {
-      mealPlanId: '123',
+      id: '123',
       name: 'Test Meal Plan',
       description: 'A test meal plan description',
       userId: 'temp-user-id',
       startDate: new Date('2024-03-10'),
       endDate: new Date('2024-03-16'),
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       recipes: [],
@@ -604,11 +612,11 @@ describe('MealPlansController', () => {
         endDate: new Date('2024-03-16'),
       } as any;
 
-      const minimalResponse = {
+      const minimalResponse: MealPlanResponseDto = {
         ...expectedResponse,
         name: 'Minimal Meal Plan',
-        description: null,
       };
+      delete minimalResponse.description;
 
       service.createMealPlan.mockResolvedValue(minimalResponse);
 
@@ -758,16 +766,15 @@ describe('MealPlansController', () => {
     };
 
     const expectedResponse: MealPlanResponseDto = {
-      mealPlanId: '123',
+      id: '123',
       name: 'Updated Meal Plan',
       description: 'Updated description',
       userId: 'temp-user-id',
       startDate: new Date('2024-03-15T00:00:00.000Z'),
       endDate: new Date('2024-03-21T23:59:59.999Z'),
+      isActive: true,
       createdAt: new Date('2024-03-01T00:00:00.000Z'),
       updatedAt: new Date(),
-      totalRecipes: 0,
-      mealPlanRecipes: [],
     };
 
     beforeEach(() => {
@@ -969,7 +976,7 @@ describe('MealPlansController', () => {
         for (const testId of testIds) {
           service.updateMealPlan.mockResolvedValue({
             ...expectedResponse,
-            mealPlanId: testId,
+            id: testId,
           });
 
           const result = await controller.updateMealPlan(testId, updateMealPlanDto, mockUser);
@@ -979,7 +986,7 @@ describe('MealPlansController', () => {
             updateMealPlanDto,
             mockUserId,
           );
-          expect(result.mealPlanId).toBe(testId);
+          expect(result.id).toBe(testId);
         }
       });
     });
