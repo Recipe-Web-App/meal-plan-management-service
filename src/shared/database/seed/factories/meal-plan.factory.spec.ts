@@ -1,5 +1,5 @@
 import { MealPlanFactory } from './meal-plan.factory';
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 
 describe('MealPlanFactory', () => {
   describe('create', () => {

@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MealPlansRepository } from './meal-plans.repository';
 import { PrismaService } from '@/config/database.config';
-import { MealType } from '@prisma/client';
+import { MealType, PrismaClient } from '@generated/prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { PrismaClient } from '@prisma/client';
 
 describe('MealPlansRepository - Transaction Methods', () => {
   let repository: MealPlansRepository;

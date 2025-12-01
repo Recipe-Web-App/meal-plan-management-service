@@ -1,4 +1,4 @@
-import { MealPlan, MealPlanRecipe, User, Recipe, MealType } from '@prisma/client';
+import { MealPlan, MealPlanRecipe, User, Recipe, MealType } from '@generated/prisma/client';
 
 export class MealPlanFactory {
   static createMealPlan(overrides?: Partial<MealPlan>): MealPlan {

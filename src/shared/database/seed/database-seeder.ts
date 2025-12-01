@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
 import { UserFactory, RecipeFactory, MealPlanFactory } from './factories';
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 
 export interface SeedOptions {
   users?: number;

@@ -1,4 +1,4 @@
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 import { faker } from '@faker-js/faker';
 
 export interface CreateMealPlanData {

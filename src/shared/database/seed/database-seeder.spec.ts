@@ -4,7 +4,7 @@ import { DatabaseSeeder } from './database-seeder';
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
 import { LoggerService } from '@/shared/services/logger.service';
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
 describe('DatabaseSeeder', () => {

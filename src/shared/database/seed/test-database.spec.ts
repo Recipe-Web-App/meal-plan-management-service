@@ -2,7 +2,7 @@ import { TestDatabase } from './test-database';
 import { PrismaService } from '@/config/database.config';
 import { LoggerService } from '@/shared/services/logger.service';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 
 describe('TestDatabase', () => {
   let testDb: TestDatabase;

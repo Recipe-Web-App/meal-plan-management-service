@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { LoggerService } from '@/shared/services/logger.service';
 
 export interface DatabaseHealthStatus {
@@ -32,12 +33,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       process.env.DATABASE_URL ??
       'postgresql://localhost:5432/meal_plan_service';
 
+    // Create PostgreSQL adapter for Prisma 7.0
+    const adapter = new PrismaPg({
+      connectionString: databaseUrl,
+    });
+
     super({
-      datasources: {
-        db: {
-          url: databaseUrl,
-        },
-      },
+      adapter,
       log: [
         {
           emit: 'event',

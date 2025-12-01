@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/config/database.config';
-import { MealPlan, MealPlanRecipe, MealType, Prisma } from '@prisma/client';
+import { MealPlan, MealPlanRecipe, MealType, Prisma } from '@generated/prisma/client';
 import { TransactionClient } from '@/shared/database/transaction.service';
 
 export interface MealPlanWithRecipes extends MealPlan {

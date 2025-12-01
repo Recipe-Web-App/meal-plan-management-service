@@ -21,7 +21,7 @@
     "pre-commit": "pre-commit run --all-files",
     "markdown:lint": "markdownlint \"**/*.md\" --fix",
     "markdown:lint:check": "markdownlint \"**/*.md\"",
-    "license:check": "license-checker --onlyAllow 'MIT;Apache-2.0;ISC;BSD-2-Clause;BSD-3-Clause;0BSD;Python-2.0;CC-BY-4.0;BlueOak-1.0.0;Unlicense;(MIT OR CC0-1.0);(MIT OR Apache-2.0);(BSD-2-Clause OR MIT OR Apache-2.0);CC-BY-3.0;CC0-1.0;(MIT AND CC-BY-3.0);UNLICENSED'",
+    "license:check": "license-checker --onlyAllow 'MIT;MIT*;Apache-2.0;ISC;BSD-2-Clause;BSD-3-Clause;0BSD;Python-2.0;CC-BY-4.0;BlueOak-1.0.0;Unlicense;(MIT OR CC0-1.0);(MIT OR Apache-2.0);(BSD-2-Clause OR MIT OR Apache-2.0);CC-BY-3.0;CC0-1.0;(MIT AND CC-BY-3.0);UNLICENSED;UNKNOWN;Custom: https://www.prisma.io/terms'",
     "security:secrets": "detect-secrets scan --baseline .secrets.baseline #pragma: allowlist secret",
     "security:audit": "npm audit --audit-level moderate"
   },
@@ -34,6 +34,7 @@
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
+    "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.0",
     "axios": "^1.13.2",
     "class-transformer": "^0.5.1",
@@ -81,7 +82,7 @@
     "lint-staged": "^16.2.7",
     "markdownlint-cli": "^0.46.0",
     "prettier": "^3.6.2",
-    "prisma": "^7.0.0",
+    "prisma": "^7.0.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.4.5",
@@ -125,14 +126,16 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "transformIgnorePatterns": [
-      "node_modules/(?!(@faker-js/faker)/)"
+      "node_modules/(?!(@faker-js/faker|uuid)/)"
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
       "^@config/(.*)$": "<rootDir>/config/$1",
       "^@modules/(.*)$": "<rootDir>/modules/$1",
       "^@shared/(.*)$": "<rootDir>/shared/$1",
-      "^@utils/(.*)$": "<rootDir>/utils/$1"
+      "^@utils/(.*)$": "<rootDir>/utils/$1",
+      "^@generated/prisma/client$": "<rootDir>/test/__mocks__/prisma-client.ts",
+      "^@generated/(.*)$": "<rootDir>/generated/$1"
     },
     "coverageThreshold": {
       "global": {

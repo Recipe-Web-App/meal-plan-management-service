@@ -39,12 +39,10 @@ COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts && \
     npm cache clean --force
 
-# Copy built application and prisma schema
+# Copy built application, prisma schema, and generated client
 COPY --from=build --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/prisma ./prisma
-
-# Generate Prisma client for production
-RUN npx prisma generate
+COPY --from=build --chown=nestjs:nodejs /app/src/generated ./src/generated
 
 # Create logs directory
 RUN mkdir -p logs && \

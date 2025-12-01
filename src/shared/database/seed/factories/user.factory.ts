@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-import { User } from '@prisma/client';
+import { User } from '@generated/prisma/client';
 import { faker } from '@faker-js/faker';
 
 export interface CreateUserData {
