@@ -150,5 +150,8 @@ Thumbs.db
 # Prisma migrations (handled by main db repo)
 /prisma/migrations
 
+# Prisma generated client
+/src/generated/
+
 # Tmp dir
 tmp/

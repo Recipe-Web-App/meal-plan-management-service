@@ -27,7 +27,7 @@ import {
   CreateMealPlanDto,
   UpdateMealPlanDto,
 } from './dto';
-import { MealType } from '@prisma/client';
+import { MealType } from '@generated/prisma/client';
 import { RawMealPlanInput } from './types/validation.types';
 
 export interface MealPlanFilters {
