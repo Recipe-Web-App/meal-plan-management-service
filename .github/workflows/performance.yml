@@ -133,7 +133,7 @@ jobs:
             'autocannon -c 10 -d 30 http://localhost:3000/health' -- node dist/main.js || true
 
       - name: Upload clinic reports
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: clinic-reports
           path: .clinic/
