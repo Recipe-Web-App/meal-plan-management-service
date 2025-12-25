@@ -56,9 +56,9 @@ kubectl delete service meal-plan-management-service -n "$NAMESPACE" --ignore-not
 print_status "ok" "Service deletion completed"
 
 print_separator
-echo -e "${CYAN}📥 Deleting ingress...${NC}"
-kubectl delete ingress meal-plan-management-ingress -n "$NAMESPACE" --ignore-not-found
-print_status "ok" "Ingress deletion completed"
+echo -e "${CYAN}📥 Deleting Gateway HTTPRoute...${NC}"
+kubectl delete httproute meal-plan-management-ingress-meal-plan-management-local -n "$NAMESPACE" --ignore-not-found
+print_status "ok" "Gateway HTTPRoute deletion completed"
 
 print_separator
 echo -e "${CYAN}🔒 Deleting network policy...${NC}"

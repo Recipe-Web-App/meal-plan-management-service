@@ -154,7 +154,7 @@ OAUTH2_CLIENT_ID=meal-plan-service
 OAUTH2_CLIENT_SECRET=your-secret-key
 
 # Auth service base URL
-OAUTH2_AUTH_BASE_URL=https://auth-service.local/api/v1/auth
+OAUTH2_AUTH_BASE_URL=https://sous-chef-proxy.local/api/v1/auth
 ```
 
 #### JWT Configuration
@@ -173,7 +173,7 @@ The service includes static OAuth2 configuration in `src/config/oauth2.config.ts
 
 ```typescript
 export const oauth2Config = {
-  authBaseUrl: process.env.OAUTH2_AUTH_BASE_URL ?? 'https://auth-service.local/api/v1/auth',
+  authBaseUrl: process.env.OAUTH2_AUTH_BASE_URL ?? 'https://sous-chef-proxy.local/api/v1/auth',
   issuer: 'auth-service',
   scopes: ['read', 'write'],
   endpoints: {

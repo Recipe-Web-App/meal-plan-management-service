@@ -16,7 +16,7 @@ export interface OAuth2StaticConfig {
 }
 
 export const oauth2Config: OAuth2StaticConfig = {
-  authBaseUrl: process.env.OAUTH2_AUTH_BASE_URL ?? 'https://auth-service.local/api/v1/auth',
+  authBaseUrl: process.env.OAUTH2_AUTH_BASE_URL ?? 'https://sous-chef-proxy.local/api/v1/auth',
   issuer: 'auth-service',
   scopes: ['read', 'write'],
   endpoints: {
