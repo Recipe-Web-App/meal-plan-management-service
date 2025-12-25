@@ -196,7 +196,7 @@ OAUTH2_SERVICE_TO_SERVICE_ENABLED=true
 OAUTH2_INTROSPECTION_ENABLED=false
 OAUTH2_CLIENT_ID=meal-plan-service
 OAUTH2_CLIENT_SECRET=your-secret-key
-OAUTH2_AUTH_BASE_URL=https://auth-service.local/api/v1/auth
+OAUTH2_AUTH_BASE_URL=https://sous-chef-proxy.local/api/v1/auth
 
 # JWT Configuration
 JWT_SECRET=your-jwt-secret-key

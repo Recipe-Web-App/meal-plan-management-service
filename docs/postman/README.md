@@ -187,8 +187,8 @@ environment variables for use in subsequent requests:
 
 **Development Environment:**
 
-- Auth Service: `http://user-management.local/api/v1/user-management/auth`
-- Meal Plan Service: `http://meal-plan-management.local/api/v1`
+- Auth Service: `http://sous-chef-proxy.local/api/v1/user-management/auth`
+- Meal Plan Service: `http://sous-chef-proxy.local/api/v1`
 
 **Local Environment:**
 
