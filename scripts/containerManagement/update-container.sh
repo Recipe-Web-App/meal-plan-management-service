@@ -90,6 +90,11 @@ print_status "ok" "Secret updated"
 print_separator
 echo -e "${CYAN}🔄 Rolling out deployment update...${NC}"
 kubectl apply -f "k8s/deployment.yaml"
+
+print_separator
+echo -e "${CYAN}📥 Applying Gateway HTTPRoute...${NC}"
+kubectl apply -f "k8s/gateway-route.yaml"
+
 kubectl rollout restart deployment/meal-plan-management-service -n "$NAMESPACE"
 
 print_separator
