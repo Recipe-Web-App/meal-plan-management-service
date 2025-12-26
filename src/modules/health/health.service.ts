@@ -9,6 +9,7 @@ import {
   DiskHealthIndicator,
 } from '@nestjs/terminus';
 import { PrismaService } from '@/config/database.config';
+import * as v8 from 'v8';
 
 @Injectable()
 export class HealthService {
@@ -26,14 +27,14 @@ export class HealthService {
       // Database health check
       () => this.checkDatabase(),
 
-      // Memory health check (using 150MB as threshold)
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      // Memory health check (using 90% of heap limit)
+      () => this.memory.checkHeap('memory_heap', v8.getHeapStatistics().heap_size_limit * 0.9),
 
-      // Disk health check (using 80% as threshold)
+      // Disk health check (using 95% as threshold)
       () =>
         this.disk.checkStorage('disk', {
           path: '/',
-          thresholdPercent: 0.8,
+          thresholdPercent: 0.95,
         }),
     ]);
   }
@@ -103,7 +104,7 @@ export class HealthService {
   async checkLiveness(): Promise<HealthCheckResult> {
     return this.health.check([
       // Basic memory check
-      () => this.memory.checkHeap('memory_heap', 200 * 1024 * 1024),
+      () => this.memory.checkHeap('memory_heap', v8.getHeapStatistics().heap_size_limit * 0.9),
     ]);
   }
 
