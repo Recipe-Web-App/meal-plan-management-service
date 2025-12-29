@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { RecipeFactory } from './recipe.factory';
 
 describe('RecipeFactory', () => {

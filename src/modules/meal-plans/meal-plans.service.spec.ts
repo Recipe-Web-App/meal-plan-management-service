@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { MealPlansService } from './meal-plans.service';
@@ -8,30 +9,46 @@ import { MealType } from './enums/meal-type.enum';
 
 describe('MealPlansService', () => {
   let service: MealPlansService;
-  let repository: jest.Mocked<MealPlansRepository>;
+  let repository: {
+    findManyWithFilters: Mock<(...args: unknown[]) => unknown>;
+    countMealPlans: Mock<(...args: unknown[]) => unknown>;
+    findById: Mock<(...args: unknown[]) => unknown>;
+    findByIdWithRecipesFiltered: Mock<(...args: unknown[]) => unknown>;
+    verifyMealPlanOwnership: Mock<(...args: unknown[]) => unknown>;
+    getMealPlanStatistics: Mock<(...args: unknown[]) => unknown>;
+    checkMealPlanExists: Mock<(...args: unknown[]) => unknown>;
+    findRecipesForDateRange: Mock<(...args: unknown[]) => unknown>;
+    findRecipesForWeek: Mock<(...args: unknown[]) => unknown>;
+    findRecipesForMonth: Mock<(...args: unknown[]) => unknown>;
+    create: Mock<(...args: unknown[]) => unknown>;
+    addRecipeToMealPlan: Mock<(...args: unknown[]) => unknown>;
+    findByIdWithRecipes: Mock<(...args: unknown[]) => unknown>;
+    update: Mock<(...args: unknown[]) => unknown>;
+    delete: Mock<(...args: unknown[]) => unknown>;
+  };
 
   const mockRepository = {
-    findManyWithFilters: jest.fn(),
-    countMealPlans: jest.fn(),
-    findById: jest.fn(),
-    findByIdWithRecipesFiltered: jest.fn(),
-    verifyMealPlanOwnership: jest.fn(),
-    getMealPlanStatistics: jest.fn(),
-    checkMealPlanExists: jest.fn(),
-    findRecipesForDateRange: jest.fn(),
-    findRecipesForWeek: jest.fn(),
-    findRecipesForMonth: jest.fn(),
-    create: jest.fn(),
-    addRecipeToMealPlan: jest.fn(),
-    findByIdWithRecipes: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findManyWithFilters: mock(() => {}),
+    countMealPlans: mock(() => {}),
+    findById: mock(() => {}),
+    findByIdWithRecipesFiltered: mock(() => {}),
+    verifyMealPlanOwnership: mock(() => {}),
+    getMealPlanStatistics: mock(() => {}),
+    checkMealPlanExists: mock(() => {}),
+    findRecipesForDateRange: mock(() => {}),
+    findRecipesForWeek: mock(() => {}),
+    findRecipesForMonth: mock(() => {}),
+    create: mock(() => {}),
+    addRecipeToMealPlan: mock(() => {}),
+    findByIdWithRecipes: mock(() => {}),
+    update: mock(() => {}),
+    delete: mock(() => {}),
   };
 
   const mockValidationService = {
-    validateMealPlanAccess: jest.fn(),
-    validateCreateMealPlan: jest.fn(),
-    validateUpdateMealPlan: jest.fn(),
+    validateMealPlanAccess: mock(() => {}),
+    validateCreateMealPlan: mock(() => {}),
+    validateUpdateMealPlan: mock(() => {}),
   };
 
   const mockMealPlan = {
@@ -64,6 +81,26 @@ describe('MealPlansService', () => {
   };
 
   beforeEach(async () => {
+    // Reset all mocks
+    mockRepository.findManyWithFilters.mockReset();
+    mockRepository.countMealPlans.mockReset();
+    mockRepository.findById.mockReset();
+    mockRepository.findByIdWithRecipesFiltered.mockReset();
+    mockRepository.verifyMealPlanOwnership.mockReset();
+    mockRepository.getMealPlanStatistics.mockReset();
+    mockRepository.checkMealPlanExists.mockReset();
+    mockRepository.findRecipesForDateRange.mockReset();
+    mockRepository.findRecipesForWeek.mockReset();
+    mockRepository.findRecipesForMonth.mockReset();
+    mockRepository.create.mockReset();
+    mockRepository.addRecipeToMealPlan.mockReset();
+    mockRepository.findByIdWithRecipes.mockReset();
+    mockRepository.update.mockReset();
+    mockRepository.delete.mockReset();
+    mockValidationService.validateMealPlanAccess.mockReset();
+    mockValidationService.validateCreateMealPlan.mockReset();
+    mockValidationService.validateUpdateMealPlan.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MealPlansService,
@@ -79,9 +116,7 @@ describe('MealPlansService', () => {
     }).compile();
 
     service = module.get<MealPlansService>(MealPlansService);
-    repository = module.get(MealPlansRepository);
-
-    jest.clearAllMocks();
+    repository = module.get(MealPlansRepository) as typeof repository;
   });
 
   describe('findMealPlans', () => {
@@ -341,9 +376,9 @@ describe('MealPlansService', () => {
     };
 
     beforeEach(() => {
-      mockRepository.findById.mockClear();
-      mockRepository.update.mockClear();
-      mockValidationService.validateUpdateMealPlan.mockClear();
+      mockRepository.findById.mockReset();
+      mockRepository.update.mockReset();
+      mockValidationService.validateUpdateMealPlan.mockReset();
     });
 
     describe('successful updates', () => {
@@ -645,8 +680,8 @@ describe('MealPlansService', () => {
     };
 
     beforeEach(() => {
-      mockRepository.findById.mockClear();
-      mockRepository.delete.mockClear();
+      mockRepository.findById.mockReset();
+      mockRepository.delete.mockReset();
     });
 
     describe('successful deletion', () => {
@@ -675,8 +710,8 @@ describe('MealPlansService', () => {
         const testIds = ['1', '456', '999999'];
 
         for (const testId of testIds) {
-          mockRepository.findById.mockClear();
-          mockRepository.delete.mockClear();
+          mockRepository.findById.mockReset();
+          mockRepository.delete.mockReset();
 
           const mealPlan = { ...existingMealPlan, mealPlanId: BigInt(testId) };
           mockRepository.findById.mockResolvedValue(mealPlan);
@@ -985,9 +1020,10 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(true);
 
-      await expect(
-        service['verifyMealPlanAccess'](BigInt(123), 'test-user-id'),
-      ).resolves.not.toThrow();
+      // Verifying the call completes without throwing
+      await service['verifyMealPlanAccess'](BigInt(123), 'test-user-id');
+      // If we got here, the function did not throw
+      expect(true).toBe(true);
     });
 
     it('should throw ForbiddenException when access denied', async () => {

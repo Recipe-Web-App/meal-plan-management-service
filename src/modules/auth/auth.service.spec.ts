@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, spyOn, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
@@ -8,8 +9,11 @@ import { AuthenticatedUser } from './interfaces/jwt-payload.interface';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let configService: jest.Mocked<ConfigService>;
-  let tokenValidationService: jest.Mocked<TokenValidationService>;
+  let configService: { get: Mock<(key: string) => unknown> };
+  let tokenValidationService: {
+    validateToken: Mock<(token: string) => Promise<AuthenticatedUser>>;
+    cleanupCache: Mock<() => void>;
+  };
 
   const mockOAuth2Config: OAuth2Config = {
     enabled: true,
@@ -30,12 +34,12 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => null),
     };
 
     const mockTokenValidationService = {
-      validateToken: jest.fn(),
-      cleanupCache: jest.fn(),
+      validateToken: mock(() => Promise.resolve(mockUser)),
+      cleanupCache: mock(() => {}),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -53,14 +57,12 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    configService = module.get(ConfigService);
-    tokenValidationService = module.get(TokenValidationService);
+    configService = module.get(ConfigService) as typeof configService;
+    tokenValidationService = module.get(TokenValidationService) as typeof tokenValidationService;
 
     // Mock logger to avoid console output during tests
-    jest.spyOn(service['logger'], 'debug').mockImplementation();
-    jest.spyOn(service['logger'], 'error').mockImplementation();
-
-    jest.clearAllMocks();
+    spyOn(service['logger'], 'debug').mockImplementation(() => {});
+    spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
 
   describe('validateAccessToken', () => {
@@ -480,7 +482,7 @@ describe('AuthService', () => {
 
     it('should handle logger errors gracefully', () => {
       // Logger errors should not affect service functionality
-      jest.spyOn(service['logger'], 'debug').mockImplementation(() => {
+      spyOn(service['logger'], 'debug').mockImplementation(() => {
         throw new Error('Logger error');
       });
 

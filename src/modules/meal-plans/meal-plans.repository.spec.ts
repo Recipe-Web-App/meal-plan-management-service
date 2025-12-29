@@ -1,34 +1,81 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/config/database.config';
-import { MealType, PrismaClient } from '@generated/prisma/client';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { MealType } from '@generated/prisma/client';
 import { MealPlansRepository } from './meal-plans.repository';
 
 describe('MealPlansRepository', () => {
   let repository: MealPlansRepository;
-  let prisma: DeepMockProxy<PrismaClient>;
+  let prisma: {
+    mealPlan: {
+      create: Mock<(...args: unknown[]) => unknown>;
+      findUnique: Mock<(...args: unknown[]) => unknown>;
+      findMany: Mock<(...args: unknown[]) => unknown>;
+      update: Mock<(...args: unknown[]) => unknown>;
+      delete: Mock<(...args: unknown[]) => unknown>;
+      count: Mock<(...args: unknown[]) => unknown>;
+    };
+    mealPlanRecipe: {
+      create: Mock<(...args: unknown[]) => unknown>;
+      delete: Mock<(...args: unknown[]) => unknown>;
+      count: Mock<(...args: unknown[]) => unknown>;
+      groupBy: Mock<(...args: unknown[]) => unknown>;
+      findMany: Mock<(...args: unknown[]) => unknown>;
+    };
+  };
 
   const testUserId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
   const testMealPlanId = BigInt(1);
   const testRecipeId = BigInt(100);
 
+  const mockPrismaService = {
+    mealPlan: {
+      create: mock(() => {}),
+      findUnique: mock(() => {}),
+      findMany: mock(() => {}),
+      update: mock(() => {}),
+      delete: mock(() => {}),
+      count: mock(() => {}),
+    },
+    mealPlanRecipe: {
+      create: mock(() => {}),
+      delete: mock(() => {}),
+      count: mock(() => {}),
+      groupBy: mock(() => {}),
+      findMany: mock(() => {}),
+    },
+  };
+
   beforeEach(async () => {
+    // Reset all mocks
+    mockPrismaService.mealPlan.create.mockReset();
+    mockPrismaService.mealPlan.findUnique.mockReset();
+    mockPrismaService.mealPlan.findMany.mockReset();
+    mockPrismaService.mealPlan.update.mockReset();
+    mockPrismaService.mealPlan.delete.mockReset();
+    mockPrismaService.mealPlan.count.mockReset();
+    mockPrismaService.mealPlanRecipe.create.mockReset();
+    mockPrismaService.mealPlanRecipe.delete.mockReset();
+    mockPrismaService.mealPlanRecipe.count.mockReset();
+    mockPrismaService.mealPlanRecipe.groupBy.mockReset();
+    mockPrismaService.mealPlanRecipe.findMany.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MealPlansRepository,
         {
           provide: PrismaService,
-          useValue: mockDeep<PrismaClient>(),
+          useValue: mockPrismaService,
         },
       ],
     }).compile();
 
     repository = module.get<MealPlansRepository>(MealPlansRepository);
-    prisma = module.get(PrismaService);
+    prisma = module.get(PrismaService) as typeof prisma;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Mocks are reset in beforeEach
   });
 
   describe('create', () => {

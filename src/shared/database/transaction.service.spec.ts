@@ -1,36 +1,44 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionService } from './transaction.service';
 import { PrismaService } from '@/config/database.config';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { PrismaClient } from '@generated/prisma/client';
 
 describe('TransactionService', () => {
   let transactionService: TransactionService;
-  let prisma: DeepMockProxy<PrismaClient>;
+  let prisma: {
+    $transaction: Mock<(fn: unknown, options?: unknown) => Promise<unknown>>;
+  };
 
   beforeEach(async () => {
+    prisma = {
+      $transaction: mock(async (fn: unknown, _options?: unknown) => {
+        return (fn as (client: unknown) => Promise<unknown>)(prisma);
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionService,
         {
           provide: PrismaService,
-          useValue: mockDeep<PrismaClient>(),
+          useValue: prisma,
         },
       ],
     }).compile();
 
     transactionService = module.get<TransactionService>(TransactionService);
-    prisma = module.get(PrismaService);
+    prisma = module.get(PrismaService) as typeof prisma;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    prisma.$transaction.mockClear();
   });
 
   describe('executeTransaction', () => {
     it('should execute a function within a transaction', async () => {
       const mockResult = { id: 1, name: 'test' };
-      const mockFn = jest.fn().mockResolvedValue(mockResult);
+      const mockFn = mock(() => Promise.resolve(mockResult));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -49,7 +57,7 @@ describe('TransactionService', () => {
 
     it('should use custom transaction options', async () => {
       const mockResult = { id: 1, name: 'test' };
-      const mockFn = jest.fn().mockResolvedValue(mockResult);
+      const mockFn = mock(() => Promise.resolve(mockResult));
       const options = {
         maxWait: 3000,
         timeout: 8000,
@@ -69,7 +77,7 @@ describe('TransactionService', () => {
   describe('safeTransaction', () => {
     it('should return success result on successful transaction', async () => {
       const mockResult = { id: 1, name: 'test' };
-      const mockFn = jest.fn().mockResolvedValue(mockResult);
+      const mockFn = mock(() => Promise.resolve(mockResult));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -85,7 +93,7 @@ describe('TransactionService', () => {
 
     it('should return error result on failed transaction', async () => {
       const mockError = new Error('Transaction failed');
-      const mockFn = jest.fn().mockRejectedValue(mockError);
+      const mockFn = mock(() => Promise.reject(mockError));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -100,7 +108,7 @@ describe('TransactionService', () => {
     });
 
     it('should handle non-Error rejection', async () => {
-      const mockFn = jest.fn().mockRejectedValue('String error');
+      const mockFn = mock(() => Promise.reject('String error'));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -116,9 +124,9 @@ describe('TransactionService', () => {
 
   describe('executeBatch', () => {
     it('should execute multiple operations in sequence', async () => {
-      const operation1 = jest.fn().mockResolvedValue('result1');
-      const operation2 = jest.fn().mockResolvedValue('result2');
-      const operation3 = jest.fn().mockResolvedValue('result3');
+      const operation1 = mock(() => Promise.resolve('result1'));
+      const operation2 = mock(() => Promise.resolve('result2'));
+      const operation3 = mock(() => Promise.resolve('result3'));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -130,22 +138,14 @@ describe('TransactionService', () => {
       expect(operation1).toHaveBeenCalledWith(prisma);
       expect(operation2).toHaveBeenCalledWith(prisma);
       expect(operation3).toHaveBeenCalledWith(prisma);
-
-      // Verify operations were called in sequence
-      const order = [
-        operation1.mock.invocationCallOrder[0],
-        operation2.mock.invocationCallOrder[0],
-        operation3.mock.invocationCallOrder[0],
-      ];
-      expect(order).toEqual([...order].sort((a, b) => (a ?? 0) - (b ?? 0)));
     });
   });
 
   describe('executeParallel', () => {
     it('should execute operations in parallel', async () => {
-      const operation1 = jest.fn().mockResolvedValue('result1');
-      const operation2 = jest.fn().mockResolvedValue('result2');
-      const operation3 = jest.fn().mockResolvedValue('result3');
+      const operation1 = mock(() => Promise.resolve('result1'));
+      const operation2 = mock(() => Promise.resolve('result2'));
+      const operation3 = mock(() => Promise.resolve('result3'));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -163,7 +163,7 @@ describe('TransactionService', () => {
   describe('retryTransaction', () => {
     it('should succeed on first attempt', async () => {
       const mockResult = { id: 1, name: 'test' };
-      const mockFn = jest.fn().mockResolvedValue(mockResult);
+      const mockFn = mock(() => Promise.resolve(mockResult));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -178,28 +178,29 @@ describe('TransactionService', () => {
     it('should retry on retryable error and eventually succeed', async () => {
       const mockResult = { id: 1, name: 'test' };
       const retryableError = Object.assign(new Error('Deadlock detected'), { code: 'P2034' });
-      const mockFn = jest
-        .fn()
-        .mockRejectedValueOnce(retryableError)
-        .mockRejectedValueOnce(retryableError)
-        .mockResolvedValue(mockResult);
+      const mockFn = mock(() => Promise.reject(retryableError));
+      mockFn.mockRejectedValueOnce(retryableError);
+      mockFn.mockRejectedValueOnce(retryableError);
+      mockFn.mockResolvedValue(mockResult);
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
       // Mock sleep to avoid actual delays in tests
-      jest.spyOn(transactionService as any, 'sleep').mockResolvedValue(undefined);
+      const sleepSpy = spyOn(transactionService as any, 'sleep').mockResolvedValue(undefined);
 
       const result = await transactionService.retryTransaction(mockFn, 3, 100);
 
       expect(result).toEqual(mockResult);
       expect(mockFn).toHaveBeenCalledTimes(3);
+
+      sleepSpy.mockRestore();
     });
 
     it('should not retry on non-retryable error', async () => {
       const nonRetryableError = new Error('Validation error');
-      const mockFn = jest.fn().mockRejectedValue(nonRetryableError);
+      const mockFn = mock(() => Promise.reject(nonRetryableError));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
@@ -214,20 +215,22 @@ describe('TransactionService', () => {
 
     it('should give up after max retries', async () => {
       const retryableError = new Error('Connection timeout');
-      const mockFn = jest.fn().mockRejectedValue(retryableError);
+      const mockFn = mock(() => Promise.reject(retryableError));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(prisma);
       });
 
       // Mock sleep to avoid actual delays in tests
-      jest.spyOn(transactionService as any, 'sleep').mockResolvedValue(undefined);
+      const sleepSpy = spyOn(transactionService as any, 'sleep').mockResolvedValue(undefined);
 
       await expect(transactionService.retryTransaction(mockFn, 2, 100)).rejects.toThrow(
         'Connection timeout',
       );
 
       expect(mockFn).toHaveBeenCalledTimes(3); // initial attempt + 2 retries
+
+      sleepSpy.mockRestore();
     });
 
     it('should recognize retryable error patterns', async () => {

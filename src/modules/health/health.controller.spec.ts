@@ -1,18 +1,25 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let healthService: jest.Mocked<HealthService>;
+  let healthService: {
+    check: Mock<() => Promise<unknown>>;
+    checkReadiness: Mock<() => Promise<unknown>>;
+    checkReadinessGraceful: Mock<() => Promise<unknown>>;
+    checkLiveness: Mock<() => Promise<unknown>>;
+    getVersion: Mock<() => unknown>;
+  };
 
   beforeEach(async () => {
     const mockHealthService = {
-      check: jest.fn(),
-      checkReadiness: jest.fn(),
-      checkReadinessGraceful: jest.fn(),
-      checkLiveness: jest.fn(),
-      getVersion: jest.fn(),
+      check: mock(() => Promise.resolve()),
+      checkReadiness: mock(() => Promise.resolve()),
+      checkReadinessGraceful: mock(() => Promise.resolve()),
+      checkLiveness: mock(() => Promise.resolve()),
+      getVersion: mock(() => ({})),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -26,7 +33,7 @@ describe('HealthController', () => {
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    healthService = module.get(HealthService);
+    healthService = module.get(HealthService) as typeof healthService;
   });
 
   it('should be defined', () => {

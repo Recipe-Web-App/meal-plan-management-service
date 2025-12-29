@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
@@ -13,8 +14,8 @@ interface AuthenticatedRequest extends Request {
 
 describe('ServiceAuthGuard', () => {
   let guard: ServiceAuthGuard;
-  let configService: jest.Mocked<ConfigService>;
-  let tokenValidationService: jest.Mocked<TokenValidationService>;
+  let configService: { get: Mock<(...args: unknown[]) => unknown> };
+  let tokenValidationService: { validateToken: Mock<(...args: unknown[]) => unknown> };
 
   const mockOAuth2Config: OAuth2Config = {
     enabled: true,
@@ -57,28 +58,28 @@ describe('ServiceAuthGuard', () => {
     } as AuthenticatedRequest;
 
     const context = {
-      switchToHttp: jest.fn().mockReturnValue({
-        getRequest: jest.fn().mockReturnValue(mockRequest),
-      }),
-      getClass: jest.fn(),
-      getHandler: jest.fn(),
-      getArgs: jest.fn(),
-      getArgByIndex: jest.fn(),
-      switchToRpc: jest.fn(),
-      switchToWs: jest.fn(),
-      getType: jest.fn(),
+      switchToHttp: mock(() => ({
+        getRequest: mock(() => mockRequest),
+      })),
+      getClass: mock(() => {}),
+      getHandler: mock(() => {}),
+      getArgs: mock(() => {}),
+      getArgByIndex: mock(() => {}),
+      switchToRpc: mock(() => {}),
+      switchToWs: mock(() => {}),
+      getType: mock(() => {}),
     };
 
-    return { context, request: mockRequest };
+    return { context: context as unknown as ExecutionContext, request: mockRequest };
   };
 
   beforeEach(async () => {
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => {}),
     };
 
     const mockTokenValidationService = {
-      validateToken: jest.fn(),
+      validateToken: mock(() => {}),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -96,10 +97,11 @@ describe('ServiceAuthGuard', () => {
     }).compile();
 
     guard = module.get<ServiceAuthGuard>(ServiceAuthGuard);
-    configService = module.get(ConfigService);
-    tokenValidationService = module.get(TokenValidationService);
+    configService = module.get(ConfigService) as typeof configService;
+    tokenValidationService = module.get(TokenValidationService) as typeof tokenValidationService;
 
-    jest.clearAllMocks();
+    configService.get.mockClear();
+    tokenValidationService.validateToken.mockClear();
   });
 
   describe('canActivate', () => {

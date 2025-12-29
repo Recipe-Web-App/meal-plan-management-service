@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, spyOn, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
@@ -7,7 +8,7 @@ import { AuthenticatedUser } from '../interfaces/jwt-payload.interface';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
-  let configService: jest.Mocked<ConfigService>;
+  let configService: { get: Mock<(key: string) => unknown> };
 
   const mockOAuth2Config: OAuth2Config = {
     enabled: true,
@@ -26,23 +27,24 @@ describe('JwtAuthGuard', () => {
     exp: Math.floor(Date.now() / 1000) + 3600,
   };
 
-  const createMockExecutionContext = (): ExecutionContext => ({
-    switchToHttp: jest.fn().mockReturnValue({
-      getRequest: jest.fn().mockReturnValue({}),
-      getResponse: jest.fn().mockReturnValue({}),
-    }),
-    getClass: jest.fn(),
-    getHandler: jest.fn(),
-    getArgs: jest.fn(),
-    getArgByIndex: jest.fn(),
-    switchToRpc: jest.fn(),
-    switchToWs: jest.fn(),
-    getType: jest.fn(),
-  });
+  const createMockExecutionContext = (): ExecutionContext =>
+    ({
+      switchToHttp: mock(() => ({
+        getRequest: mock(() => ({})),
+        getResponse: mock(() => ({})),
+      })),
+      getClass: mock(() => {}),
+      getHandler: mock(() => {}),
+      getArgs: mock(() => []),
+      getArgByIndex: mock(() => null),
+      switchToRpc: mock(() => ({})),
+      switchToWs: mock(() => ({})),
+      getType: mock(() => 'http'),
+    }) as unknown as ExecutionContext;
 
   beforeEach(async () => {
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => null),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,9 +58,7 @@ describe('JwtAuthGuard', () => {
     }).compile();
 
     guard = module.get<JwtAuthGuard>(JwtAuthGuard);
-    configService = module.get(ConfigService);
-
-    jest.clearAllMocks();
+    configService = module.get(ConfigService) as typeof configService;
   });
 
   describe('canActivate', () => {
@@ -75,9 +75,10 @@ describe('JwtAuthGuard', () => {
 
     it('should call super.canActivate when OAuth2 is enabled', async () => {
       configService.get.mockReturnValue(mockOAuth2Config);
-      const superCanActivateSpy = jest
-        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(guard)), 'canActivate')
-        .mockResolvedValue(true);
+      const superCanActivateSpy = spyOn(
+        Object.getPrototypeOf(Object.getPrototypeOf(guard)),
+        'canActivate',
+      ).mockResolvedValue(true);
 
       const context = createMockExecutionContext();
       const result = await guard.canActivate(context);

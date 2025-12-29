@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MetricsService } from './metrics.service';
 import { register } from 'prom-client';

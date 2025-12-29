@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { MealPlanValidationService, ValidationContext } from './meal-plan-validation.service';
@@ -10,20 +11,30 @@ describe('MealPlanValidationService', () => {
 
   const mockPrismaService = {
     mealPlan: {
-      findFirst: jest.fn(),
+      findFirst: mock(() => {}),
     },
-    $queryRaw: jest.fn(),
+    $queryRaw: mock(() => {}),
   };
 
   const mockNoOverlappingConstraint = {
-    validate: jest.fn().mockResolvedValue(true),
+    validate: mock(() => Promise.resolve(true)),
   };
 
   const mockRecipeExistsConstraint = {
-    validate: jest.fn().mockResolvedValue(true),
+    validate: mock(() => Promise.resolve(true)),
   };
 
   beforeEach(async () => {
+    // Reset all mocks
+    mockPrismaService.mealPlan.findFirst.mockReset();
+    mockPrismaService.$queryRaw.mockReset();
+    mockNoOverlappingConstraint.validate.mockReset();
+    mockRecipeExistsConstraint.validate.mockReset();
+
+    // Set default mock implementations
+    mockNoOverlappingConstraint.validate.mockResolvedValue(true);
+    mockRecipeExistsConstraint.validate.mockResolvedValue(true);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MealPlanValidationService,
@@ -43,10 +54,6 @@ describe('MealPlanValidationService', () => {
     }).compile();
 
     service = module.get<MealPlanValidationService>(MealPlanValidationService);
-
-    jest.clearAllMocks();
-    mockNoOverlappingConstraint.validate.mockResolvedValue(true);
-    mockRecipeExistsConstraint.validate.mockResolvedValue(true);
   });
 
   describe('validateCreateMealPlan', () => {

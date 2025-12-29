@@ -1,3 +1,4 @@
+import { describe, it, expect, spyOn } from 'bun:test';
 import { MealPlanTransformationUtil, CustomTransformers } from './transformation.util';
 import { CreateMealPlanDto } from '../dto/create-meal-plan.dto';
 import { UpdateMealPlanDto } from '../dto/update-meal-plan.dto';
@@ -492,7 +493,10 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
       ];
 
       // Mock fromDatabaseModel to return null for the null input
-      jest.spyOn(MealPlanTransformationUtil, 'fromDatabaseModel').mockImplementation((model) => {
+      const fromDatabaseModelSpy = spyOn(
+        MealPlanTransformationUtil,
+        'fromDatabaseModel',
+      ).mockImplementation((model) => {
         if (model === null) return null;
         return {
           mealPlanId: model.mealPlanId,
@@ -513,7 +517,7 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
       expect(result[1]?.name).toBe('Plan 2');
 
       // Restore the mock
-      jest.restoreAllMocks();
+      fromDatabaseModelSpy.mockRestore();
     });
   });
 

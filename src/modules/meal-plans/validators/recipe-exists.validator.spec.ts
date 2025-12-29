@@ -1,8 +1,9 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { RecipeExistsConstraint } from './recipe-exists.validator';
 
 const mockPrismaService = {
   recipe: {
-    findFirst: jest.fn(),
+    findFirst: mock(() => {}),
   },
 };
 
@@ -10,7 +11,7 @@ describe('RecipeExistsConstraint', () => {
   let constraint: RecipeExistsConstraint;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.recipe.findFirst.mockReset();
     constraint = new RecipeExistsConstraint(mockPrismaService as any);
   });
 
@@ -211,7 +212,7 @@ describe('RecipeExistsConstraint', () => {
 
 describe('RecipeExists decorator variations', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.recipe.findFirst.mockReset();
   });
 
   describe('RecipeExistsSimple', () => {
@@ -277,7 +278,7 @@ describe('edge cases', () => {
   let constraint: RecipeExistsConstraint;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.recipe.findFirst.mockReset();
     constraint = new RecipeExistsConstraint(mockPrismaService as any);
   });
 

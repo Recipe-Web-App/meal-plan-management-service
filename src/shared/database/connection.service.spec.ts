@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConnectionService } from './connection.service';
 import { PrismaService } from '@/config/database.config';
@@ -5,42 +6,65 @@ import { LoggerService } from '@/shared/services/logger.service';
 
 describe('ConnectionService', () => {
   let service: ConnectionService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let loggerService: jest.Mocked<LoggerService>;
+  let prismaService: {
+    performHealthCheck: Mock<() => Promise<unknown>>;
+    getConnectionStatus: Mock<() => unknown>;
+    reconnect: Mock<() => Promise<void>>;
+    $queryRaw: Mock<() => Promise<unknown>>;
+    $queryRawUnsafe: Mock<() => Promise<unknown>>;
+  };
+  let loggerService: {
+    info: Mock<() => void>;
+    warn: Mock<() => void>;
+    error: Mock<() => void>;
+    debug: Mock<() => void>;
+  };
 
   beforeEach(async () => {
+    prismaService = {
+      performHealthCheck: mock(() => Promise.resolve({})),
+      getConnectionStatus: mock(() => ({})),
+      reconnect: mock(() => Promise.resolve()),
+      $queryRaw: mock(() => Promise.resolve([])),
+      $queryRawUnsafe: mock(() => Promise.resolve([])),
+    };
+
+    loggerService = {
+      info: mock(() => {}),
+      warn: mock(() => {}),
+      error: mock(() => {}),
+      debug: mock(() => {}),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConnectionService,
         {
           provide: PrismaService,
-          useValue: {
-            performHealthCheck: jest.fn(),
-            getConnectionStatus: jest.fn(),
-            reconnect: jest.fn(),
-            $queryRaw: jest.fn(),
-            $queryRawUnsafe: jest.fn(),
-          },
+          useValue: prismaService,
         },
         {
           provide: LoggerService,
-          useValue: {
-            info: jest.fn(),
-            warn: jest.fn(),
-            error: jest.fn(),
-            debug: jest.fn(),
-          },
+          useValue: loggerService,
         },
       ],
     }).compile();
 
     service = module.get<ConnectionService>(ConnectionService);
-    prismaService = module.get(PrismaService);
-    loggerService = module.get(LoggerService);
+    prismaService = module.get(PrismaService) as typeof prismaService;
+    loggerService = module.get(LoggerService) as typeof loggerService;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    prismaService.performHealthCheck.mockClear();
+    prismaService.getConnectionStatus.mockClear();
+    prismaService.reconnect.mockClear();
+    prismaService.$queryRaw.mockClear();
+    prismaService.$queryRawUnsafe.mockClear();
+    loggerService.info.mockClear();
+    loggerService.warn.mockClear();
+    loggerService.error.mockClear();
+    loggerService.debug.mockClear();
   });
 
   describe('getDatabaseMetrics', () => {
@@ -75,7 +99,7 @@ describe('ConnectionService', () => {
 
   describe('forceReconnect', () => {
     it('should successfully reconnect to database', async () => {
-      prismaService.reconnect.mockResolvedValue();
+      prismaService.reconnect.mockResolvedValue(undefined);
 
       await service.forceReconnect();
 
@@ -141,7 +165,7 @@ describe('ConnectionService', () => {
 
   describe('executeWithRetry', () => {
     it('should execute query successfully on first attempt', async () => {
-      const mockQuery = jest.fn().mockResolvedValue('success');
+      const mockQuery = mock(() => Promise.resolve('success'));
 
       const result = await service.executeWithRetry(mockQuery);
 
@@ -150,12 +174,11 @@ describe('ConnectionService', () => {
     });
 
     it('should retry on failure and eventually succeed', async () => {
-      const mockQuery = jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Temporary failure'))
-        .mockResolvedValue('success');
+      const mockQuery = mock(() => Promise.reject(new Error('Temporary failure')));
+      mockQuery.mockRejectedValueOnce(new Error('Temporary failure'));
+      mockQuery.mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+      const sleepSpy = spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
 
@@ -168,13 +191,12 @@ describe('ConnectionService', () => {
 
     it('should attempt reconnection on connection errors', async () => {
       const connectionError = new Error('connection refused');
-      const mockQuery = jest
-        .fn()
-        .mockRejectedValueOnce(connectionError)
-        .mockResolvedValue('success');
+      const mockQuery = mock(() => Promise.reject(connectionError));
+      mockQuery.mockRejectedValueOnce(connectionError);
+      mockQuery.mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
-      prismaService.reconnect.mockResolvedValue();
+      const sleepSpy = spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+      prismaService.reconnect.mockResolvedValue(undefined);
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
 
@@ -186,8 +208,8 @@ describe('ConnectionService', () => {
     });
 
     it('should fail after maximum retries', async () => {
-      const mockQuery = jest.fn().mockRejectedValue(new Error('Persistent error'));
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+      const mockQuery = mock(() => Promise.reject(new Error('Persistent error')));
+      const sleepSpy = spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
       await expect(service.executeWithRetry(mockQuery, 2, 100)).rejects.toThrow('Persistent error');
 
@@ -201,12 +223,11 @@ describe('ConnectionService', () => {
       const connectionError = new Error('connection timeout');
       const reconnectError = new Error('reconnect failed');
 
-      const mockQuery = jest
-        .fn()
-        .mockRejectedValueOnce(connectionError)
-        .mockResolvedValue('success');
+      const mockQuery = mock(() => Promise.reject(connectionError));
+      mockQuery.mockRejectedValueOnce(connectionError);
+      mockQuery.mockResolvedValue('success');
 
-      const sleepSpy = jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+      const sleepSpy = spyOn(service as any, 'sleep').mockResolvedValue(undefined);
       prismaService.reconnect.mockRejectedValue(reconnectError);
 
       const result = await service.executeWithRetry(mockQuery, 3, 100);
@@ -328,8 +349,6 @@ describe('ConnectionService', () => {
 
   describe('isConnectionError', () => {
     it('should identify connection errors', () => {
-      const service = new ConnectionService(prismaService, loggerService);
-
       const connectionErrors = [
         new Error('connection refused'),
         new Error('network timeout'),
@@ -344,8 +363,6 @@ describe('ConnectionService', () => {
     });
 
     it('should not identify non-connection errors', () => {
-      const service = new ConnectionService(prismaService, loggerService);
-
       const nonConnectionErrors = [
         new Error('syntax error'),
         new Error('permission denied'),

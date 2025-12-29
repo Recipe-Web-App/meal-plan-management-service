@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
@@ -10,8 +11,8 @@ import { AuthenticatedUser } from '../interfaces/jwt-payload.interface';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let configService: jest.Mocked<ConfigService>;
-  let tokenValidationService: jest.Mocked<TokenValidationService>;
+  let configService: { get: Mock<(...args: unknown[]) => unknown> };
+  let tokenValidationService: { validateToken: Mock<(...args: unknown[]) => unknown> };
 
   const mockOAuth2Config: OAuth2Config = {
     enabled: true,
@@ -41,11 +42,11 @@ describe('JwtStrategy', () => {
 
   beforeEach(async () => {
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => {}),
     };
 
     const mockTokenValidationService = {
-      validateToken: jest.fn(),
+      validateToken: mock(() => {}),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -61,10 +62,11 @@ describe('JwtStrategy', () => {
       ],
     }).compile();
 
-    configService = module.get(ConfigService);
-    tokenValidationService = module.get(TokenValidationService);
+    configService = module.get(ConfigService) as typeof configService;
+    tokenValidationService = module.get(TokenValidationService) as typeof tokenValidationService;
 
-    jest.clearAllMocks();
+    configService.get.mockClear();
+    tokenValidationService.validateToken.mockClear();
   });
 
   describe('constructor', () => {
@@ -74,7 +76,10 @@ describe('JwtStrategy', () => {
         .mockReturnValueOnce(mockJwtSecret); // JWT secret
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).not.toThrow();
 
       expect(configService.get).toHaveBeenCalledWith('oauth2');
@@ -86,7 +91,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(disabledConfig);
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
 
@@ -94,7 +102,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(undefined);
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
 
@@ -102,7 +113,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(null);
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
 
@@ -110,7 +124,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(undefined); // No JWT secret
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('JWT secret is required for JWT strategy');
     });
 
@@ -118,7 +135,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(null); // Null JWT secret
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('JWT secret is required for JWT strategy');
     });
 
@@ -126,7 +146,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(''); // Empty JWT secret
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('JWT secret is required for JWT strategy');
     });
 
@@ -136,7 +159,10 @@ describe('JwtStrategy', () => {
       configService.get.mockReturnValueOnce(configWithoutEnabled);
 
       expect(() => {
-        strategy = new JwtStrategy(configService, tokenValidationService);
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
   });
@@ -144,7 +170,10 @@ describe('JwtStrategy', () => {
   describe('validate', () => {
     beforeEach(() => {
       configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(mockJwtSecret);
-      strategy = new JwtStrategy(configService, tokenValidationService);
+      strategy = new JwtStrategy(
+        configService as unknown as ConfigService,
+        tokenValidationService as unknown as TokenValidationService,
+      );
     });
 
     it('should validate token and return authenticated user', async () => {

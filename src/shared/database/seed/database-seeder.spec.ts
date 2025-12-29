@@ -1,71 +1,114 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-nullish-coalescing */
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseSeeder } from './database-seeder';
 import { PrismaService } from '@/config/database.config';
 import { TransactionService } from '../transaction.service';
 import { LoggerService } from '@/shared/services/logger.service';
 import { MealType } from '@generated/prisma/client';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
 describe('DatabaseSeeder', () => {
   let seeder: DatabaseSeeder;
-  let prismaService: DeepMockProxy<PrismaService>;
-  let transactionService: DeepMockProxy<TransactionService>;
-  let loggerService: DeepMockProxy<LoggerService>;
+  let prismaService: {
+    user: { create: Mock<() => Promise<unknown>>; deleteMany: Mock<() => Promise<unknown>> };
+    recipe: { create: Mock<() => Promise<unknown>>; deleteMany: Mock<() => Promise<unknown>> };
+    mealPlan: { create: Mock<() => Promise<unknown>>; deleteMany: Mock<() => Promise<unknown>> };
+    mealPlanRecipe: {
+      create: Mock<() => Promise<unknown>>;
+      deleteMany: Mock<() => Promise<unknown>>;
+    };
+  };
+  let transactionService: {
+    executeTransaction: Mock<(fn: (client: unknown) => Promise<unknown>) => Promise<unknown>>;
+  };
+  let loggerService: {
+    log: Mock<() => void>;
+    error: Mock<() => void>;
+    warn: Mock<() => void>;
+    debug: Mock<() => void>;
+    info: Mock<() => void>;
+  };
 
   const mockTransactionClient = {
     user: {
-      create: jest.fn(),
-      deleteMany: jest.fn(),
+      create: mock(() => Promise.resolve({})),
+      deleteMany: mock(() => Promise.resolve({})),
     },
     recipe: {
-      create: jest.fn(),
-      deleteMany: jest.fn(),
+      create: mock(() => Promise.resolve({})),
+      deleteMany: mock(() => Promise.resolve({})),
     },
     mealPlan: {
-      create: jest.fn(),
-      deleteMany: jest.fn(),
+      create: mock(() => Promise.resolve({})),
+      deleteMany: mock(() => Promise.resolve({})),
     },
     mealPlanRecipe: {
-      create: jest.fn(),
-      deleteMany: jest.fn(),
+      create: mock(() => Promise.resolve({})),
+      deleteMany: mock(() => Promise.resolve({})),
     },
   };
 
   beforeEach(async () => {
+    prismaService = {
+      user: {
+        create: mock(() => Promise.resolve({})),
+        deleteMany: mock(() => Promise.resolve({})),
+      },
+      recipe: {
+        create: mock(() => Promise.resolve({})),
+        deleteMany: mock(() => Promise.resolve({})),
+      },
+      mealPlan: {
+        create: mock(() => Promise.resolve({})),
+        deleteMany: mock(() => Promise.resolve({})),
+      },
+      mealPlanRecipe: {
+        create: mock(() => Promise.resolve({})),
+        deleteMany: mock(() => Promise.resolve({})),
+      },
+    };
+
+    transactionService = {
+      executeTransaction: mock(async (fn: (client: unknown) => Promise<unknown>) => {
+        return fn(mockTransactionClient as any);
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DatabaseSeeder,
         {
           provide: PrismaService,
-          useValue: mockDeep<PrismaService>(),
+          useValue: prismaService,
         },
         {
           provide: TransactionService,
-          useValue: mockDeep<TransactionService>(),
+          useValue: transactionService,
         },
       ],
     }).compile();
 
     seeder = module.get<DatabaseSeeder>(DatabaseSeeder);
-    prismaService = module.get(PrismaService);
-    transactionService = module.get(TransactionService);
+    prismaService = module.get(PrismaService) as typeof prismaService;
+    transactionService = module.get(TransactionService) as typeof transactionService;
     loggerService = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      info: jest.fn(),
-    } as any;
-
-    // Mock the transaction execution
-    transactionService.executeTransaction.mockImplementation(async (fn: any) => {
-      return fn(mockTransactionClient as any);
-    });
+      log: mock(() => {}),
+      error: mock(() => {}),
+      warn: mock(() => {}),
+      debug: mock(() => {}),
+      info: mock(() => {}),
+    };
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mockTransactionClient.user.create.mockClear();
+    mockTransactionClient.user.deleteMany.mockClear();
+    mockTransactionClient.recipe.create.mockClear();
+    mockTransactionClient.recipe.deleteMany.mockClear();
+    mockTransactionClient.mealPlan.create.mockClear();
+    mockTransactionClient.mealPlan.deleteMany.mockClear();
+    mockTransactionClient.mealPlanRecipe.create.mockClear();
+    mockTransactionClient.mealPlanRecipe.deleteMany.mockClear();
   });
 
   describe('seedAll', () => {
@@ -254,10 +297,10 @@ describe('DatabaseSeeder', () => {
       transactionService.executeTransaction.mockImplementation(async (fn) => {
         const mockTx = {
           mealPlan: {
-            create: jest.fn().mockResolvedValue(mockMealPlan),
+            create: mock(() => Promise.resolve(mockMealPlan)),
           },
           mealPlanRecipe: {
-            create: jest.fn().mockResolvedValue({ id: 'plan-recipe-1' }),
+            create: mock(() => Promise.resolve({ id: 'plan-recipe-1' })),
           },
         };
         return fn(mockTx as any);
@@ -282,10 +325,10 @@ describe('DatabaseSeeder', () => {
 
     it('should use transaction client when provided', async () => {
       const mockTx = {
-        mealPlanRecipe: { deleteMany: jest.fn() },
-        mealPlan: { deleteMany: jest.fn() },
-        recipe: { deleteMany: jest.fn() },
-        user: { deleteMany: jest.fn() },
+        mealPlanRecipe: { deleteMany: mock(() => Promise.resolve({})) },
+        mealPlan: { deleteMany: mock(() => Promise.resolve({})) },
+        recipe: { deleteMany: mock(() => Promise.resolve({})) },
+        user: { deleteMany: mock(() => Promise.resolve({})) },
       };
 
       await seeder.cleanDatabase(mockTx);

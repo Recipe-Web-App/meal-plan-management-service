@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import configuration from './configuration';
 
 describe('Configuration', () => {

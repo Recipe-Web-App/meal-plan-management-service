@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from './database.config';
@@ -5,23 +6,29 @@ import { LoggerService } from '@/shared/services/logger.service';
 
 describe('PrismaService', () => {
   let service: PrismaService;
-  let mockLoggerService: jest.Mocked<LoggerService>;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockLoggerService: {
+    info: Mock<(...args: unknown[]) => void>;
+    warn: Mock<(...args: unknown[]) => void>;
+    error: Mock<(...args: unknown[]) => void>;
+    debug: Mock<(...args: unknown[]) => void>;
+  };
+  let mockConfigService: {
+    get: Mock<(key: string, defaultValue?: unknown) => unknown>;
+  };
+  // Store mocks at describe scope so they can be reused
+  let mockConnect: Mock<() => Promise<void>>;
+  let mockDisconnect: Mock<() => Promise<void>>;
+  let mockQueryRaw: Mock<() => Promise<unknown[]>>;
 
   beforeEach(async () => {
     mockLoggerService = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
-    } as any;
+      info: mock(() => {}),
+      warn: mock(() => {}),
+      error: mock(() => {}),
+      debug: mock(() => {}),
+    };
 
-    mockConfigService = {
-      get: jest.fn(),
-    } as any;
-
-    // Set default config values - disable continuous retry and health checks to prevent intervals
-    mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
+    const configGetFn = (key: string, defaultValue?: any) => {
       const config: Record<string, any> = {
         'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
         'database.maxRetries': 3,
@@ -32,7 +39,11 @@ describe('PrismaService', () => {
         'database.logQueries': false,
       };
       return config[key] ?? defaultValue;
-    });
+    };
+
+    mockConfigService = {
+      get: mock(configGetFn),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -44,10 +55,15 @@ describe('PrismaService', () => {
 
     service = module.get<PrismaService>(PrismaService);
 
-    // Mock Prisma methods
-    jest.spyOn(service, '$connect').mockResolvedValue();
-    jest.spyOn(service, '$disconnect').mockResolvedValue();
-    jest.spyOn(service, '$queryRaw').mockResolvedValue([{ health_check: 1 }]);
+    // Create fresh mocks for Prisma methods
+    mockConnect = mock(() => Promise.resolve());
+    mockDisconnect = mock(() => Promise.resolve());
+    mockQueryRaw = mock(() => Promise.resolve([{ health_check: 1 }]));
+
+    // Directly replace Prisma methods with mocks (more reliable than spyOn for inherited methods)
+    service.$connect = mockConnect as unknown as typeof service.$connect;
+    service.$disconnect = mockDisconnect as unknown as typeof service.$disconnect;
+    service.$queryRaw = mockQueryRaw as unknown as typeof service.$queryRaw;
   });
 
   afterEach(async () => {
@@ -55,9 +71,6 @@ describe('PrismaService', () => {
     if (service) {
       await service.onModuleDestroy();
     }
-    jest.clearAllMocks();
-    jest.clearAllTimers();
-    jest.useRealTimers();
   });
 
   it('should be defined', () => {
@@ -89,11 +102,11 @@ describe('PrismaService', () => {
 
   describe('performHealthCheck', () => {
     it('should return healthy status on successful query', async () => {
-      const queryRawSpy = jest.spyOn(service, '$queryRaw').mockResolvedValue([{ health_check: 1 }]);
+      mockQueryRaw.mockImplementation(() => Promise.resolve([{ health_check: 1 }]));
 
       const result = await service.performHealthCheck();
 
-      expect(queryRawSpy).toHaveBeenCalled();
+      expect(mockQueryRaw).toHaveBeenCalled();
       expect(result.status).toBe('healthy');
       expect(result.message).toBe('Database connection is healthy');
       expect(result.latency).toBeGreaterThanOrEqual(0);
@@ -101,11 +114,11 @@ describe('PrismaService', () => {
 
     it('should return unhealthy status on query failure', async () => {
       const queryError = new Error('Query failed');
-      const queryRawSpy = jest.spyOn(service, '$queryRaw').mockRejectedValue(queryError);
+      mockQueryRaw.mockImplementation(() => Promise.reject(queryError));
 
       const result = await service.performHealthCheck();
 
-      expect(queryRawSpy).toHaveBeenCalled();
+      expect(mockQueryRaw).toHaveBeenCalled();
       expect(result.status).toBe('unhealthy');
       expect(result.message).toBe('Database health check failed: Query failed');
     });
@@ -113,8 +126,8 @@ describe('PrismaService', () => {
 
   describe('reconnect', () => {
     it('should attempt to reconnect', async () => {
-      jest.spyOn(service, '$disconnect').mockResolvedValue();
-      jest.spyOn(service, '$connect').mockResolvedValue();
+      mockDisconnect.mockImplementation(() => Promise.resolve());
+      mockConnect.mockImplementation(() => Promise.resolve());
 
       await service.reconnect();
 
@@ -166,7 +179,7 @@ describe('PrismaService', () => {
   describe('onModuleInit error handling', () => {
     it('should handle connection failure during module init', async () => {
       const connectError = new Error('Connection failed');
-      jest.spyOn(service, '$connect').mockRejectedValue(connectError);
+      mockConnect.mockImplementation(() => Promise.reject(connectError));
 
       await expect(service.onModuleInit()).rejects.toThrow(
         'Database connection failed after 3 attempts and continuous retry is disabled',
@@ -181,42 +194,45 @@ describe('PrismaService', () => {
         return defaultValue;
       });
 
-      const healthCheckSpy = jest.spyOn(service, 'performHealthCheck');
+      // Track whether performHealthCheck was called during init
+      let performHealthCheckCalled = false;
+      const originalPerformHealthCheck = service.performHealthCheck.bind(service);
+      service.performHealthCheck = async () => {
+        performHealthCheckCalled = true;
+        return originalPerformHealthCheck();
+      };
+
       await service.onModuleInit();
 
-      expect(healthCheckSpy).not.toHaveBeenCalled();
+      expect(performHealthCheckCalled).toBe(false);
     });
 
     it('should handle health check errors gracefully', async () => {
-      jest.useFakeTimers();
       mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
         if (key === 'database.healthCheckInterval') return 1000;
         return defaultValue;
       });
 
+      // Make performHealthCheck reject with an error
       const healthCheckError = new Error('Health check failed');
-      jest.spyOn(service, 'performHealthCheck').mockRejectedValue(healthCheckError);
+      service.performHealthCheck = mock(() => Promise.reject(healthCheckError)) as any;
 
       await service.onModuleInit();
 
-      // Advance timer to trigger health check
-      await jest.advanceTimersByTimeAsync(1000);
-      await jest.runOnlyPendingTimersAsync(); // Ensure all pending timers are processed
+      // Wait for the health check interval to trigger
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       expect(mockLoggerService.error).toHaveBeenCalledWith(
         'Health check failed: Health check failed',
         undefined,
         'PrismaService',
       );
-
-      jest.clearAllTimers();
-      jest.useRealTimers();
     });
   });
 
   describe('error handling paths', () => {
     it('should handle non-Error exceptions in connectWithRetry', async () => {
-      jest.spyOn(service, '$connect').mockRejectedValue('String error');
+      mockConnect.mockImplementation(() => Promise.reject('String error'));
 
       await expect((service as any).connectWithRetry()).rejects.toThrow();
 
@@ -231,7 +247,7 @@ describe('PrismaService', () => {
 
     it('should handle non-Error exceptions in safeDisconnect', async () => {
       (service as any).isConnected = true;
-      jest.spyOn(service, '$disconnect').mockRejectedValue('String disconnect error');
+      mockDisconnect.mockImplementation(() => Promise.reject('String disconnect error'));
 
       await (service as any).safeDisconnect();
 
@@ -243,7 +259,7 @@ describe('PrismaService', () => {
     });
 
     it('should handle non-Error exceptions in performHealthCheck', async () => {
-      jest.spyOn(service, '$queryRaw').mockRejectedValue('String query error');
+      mockQueryRaw.mockImplementation(() => Promise.reject('String query error'));
 
       const result = await service.performHealthCheck();
 
@@ -258,17 +274,10 @@ describe('PrismaService', () => {
   });
 
   describe('Continuous Retry Logic', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-
     afterEach(async () => {
       if (service) {
-        // Ensure all timers are cleared before cleanup
-        jest.clearAllTimers();
         await service.onModuleDestroy();
       }
-      jest.useRealTimers();
     });
 
     it('should load continuous retry configuration correctly', () => {
@@ -284,19 +293,21 @@ describe('PrismaService', () => {
 
     it('should not start long retry phase when continuous retry is disabled', () => {
       // Create mock config with continuous retry disabled
+      const configGetFn = (key: string, defaultValue?: any) => {
+        const config: Record<string, any> = {
+          'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
+          'database.maxRetries': 2,
+          'database.retryDelay': 100,
+          'database.longRetryDelay': 1000,
+          'database.enableContinuousRetry': false,
+          'database.healthCheckInterval': 5000,
+          'database.logQueries': false,
+        };
+        return config[key] ?? defaultValue;
+      };
+
       const disabledConfigService = {
-        get: jest.fn((key: string, defaultValue?: any) => {
-          const config: Record<string, any> = {
-            'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
-            'database.maxRetries': 2,
-            'database.retryDelay': 100,
-            'database.longRetryDelay': 1000,
-            'database.enableContinuousRetry': false,
-            'database.healthCheckInterval': 5000,
-            'database.logQueries': false,
-          };
-          return config[key] ?? defaultValue;
-        }),
+        get: mock(configGetFn),
       };
 
       // Just verify the config would be read correctly
@@ -315,22 +326,52 @@ describe('PrismaService', () => {
     });
 
     it('should handle successful connection during long retry phase', async () => {
+      // This test needs a fresh service instance with continuous retry enabled
+      const continuousRetryConfigService = {
+        get: mock((key: string, defaultValue?: any) => {
+          const config: Record<string, any> = {
+            'database.url': 'postgresql://test:test@localhost:5432/test', // pragma: allowlist secret
+            'database.maxRetries': 2,
+            'database.retryDelay': 50,
+            'database.longRetryDelay': 100,
+            'database.enableContinuousRetry': true, // Enable continuous retry
+            'database.healthCheckInterval': 0,
+            'database.logQueries': false,
+          };
+          return config[key] ?? defaultValue;
+        }),
+      };
+
+      const module = await Test.createTestingModule({
+        providers: [
+          PrismaService,
+          { provide: LoggerService, useValue: mockLoggerService },
+          { provide: ConfigService, useValue: continuousRetryConfigService },
+        ],
+      }).compile();
+
+      const retryService = module.get<PrismaService>(PrismaService);
+
       let connectionAttempts = 0;
-      jest.spyOn(service, '$connect').mockImplementation(() => {
+      const mockRetryConnect = mock(() => {
         connectionAttempts++;
-        if (connectionAttempts <= 5) {
-          // Fail quick retries + 2 long retries
+        if (connectionAttempts <= 3) {
+          // Fail quick retries, then succeed in long retry phase
           return Promise.reject(new Error('Connection failed'));
         }
         return Promise.resolve();
       });
+      retryService.$connect = mockRetryConnect as unknown as typeof retryService.$connect;
+      retryService.$disconnect = mock(() =>
+        Promise.resolve(),
+      ) as unknown as typeof retryService.$disconnect;
 
-      const onModuleInitPromise = service.onModuleInit();
+      const onModuleInitPromise = retryService.onModuleInit();
 
-      // Let quick retries fail and long retry phase start
-      await jest.advanceTimersByTimeAsync(10000);
+      // Wait for retries (should succeed in long retry phase)
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const status = service.getConnectionStatus();
+      const status = retryService.getConnectionStatus();
       if (status.isConnected) {
         expect(mockLoggerService.info).toHaveBeenCalledWith(
           'Successfully connected to database',
@@ -341,13 +382,13 @@ describe('PrismaService', () => {
         );
       }
 
-      // Wait for promise completion and clear any remaining timers
-      await onModuleInitPromise.catch(() => {}); // Handle potential rejection
-      await jest.runOnlyPendingTimersAsync(); // Flush any remaining pending timers
+      // Wait for promise completion and cleanup
+      await onModuleInitPromise.catch(() => {});
+      await retryService.onModuleDestroy();
     });
 
     it('should track retry attempts correctly when continuous retry is disabled', () => {
-      jest.spyOn(service, '$connect').mockImplementation(() => {
+      mockConnect.mockImplementation(() => {
         return Promise.reject(new Error('Connection failed'));
       });
 

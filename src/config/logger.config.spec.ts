@@ -1,13 +1,14 @@
+import { describe, it, expect, beforeEach, afterEach, spyOn, type Mock } from 'bun:test';
 import { ConfigService } from '@nestjs/config';
 import { createWinstonLogger } from './logger.config';
 import { RequestContextService } from '@/shared/services/request-context.service';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-jest.mock('@/shared/services/request-context.service');
-
 describe('LoggerConfig', () => {
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockConfigService: {
+    get: Mock<(key: string) => unknown>;
+  };
 
   const mockLoggingConfig = {
     level: 'info',
@@ -19,17 +20,19 @@ describe('LoggerConfig', () => {
     fileMaxFiles: '14d',
   };
 
+  let getContextSpy: Mock<() => unknown>;
+
   beforeEach(() => {
+    const configGetFn = () => mockLoggingConfig;
     mockConfigService = {
-      get: jest.fn(),
+      get: spyOn({ fn: configGetFn }, 'fn').mockReturnValue(mockLoggingConfig),
     } as any;
 
-    mockConfigService.get.mockReturnValue(mockLoggingConfig);
-    (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+    getContextSpy = spyOn(RequestContextService, 'getContext').mockReturnValue(null);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    getContextSpy.mockRestore();
   });
 
   describe('createWinstonLogger', () => {
@@ -37,7 +40,7 @@ describe('LoggerConfig', () => {
       const configWithoutFile = { ...mockLoggingConfig, fileEnabled: false };
       mockConfigService.get.mockReturnValue(configWithoutFile);
 
-      const loggerOptions = createWinstonLogger(mockConfigService);
+      const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
 
       expect(loggerOptions.level).toBe('info');
       expect(Array.isArray(loggerOptions.transports)).toBe(true);
@@ -51,7 +54,7 @@ describe('LoggerConfig', () => {
     });
 
     it('should create logger with file transports when enabled', () => {
-      const loggerOptions = createWinstonLogger(mockConfigService);
+      const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
 
       expect(loggerOptions.level).toBe('info');
       expect(loggerOptions.transports).toHaveLength(3); // console + 2 file transports
@@ -67,7 +70,7 @@ describe('LoggerConfig', () => {
       const configWithJsonFormat = { ...mockLoggingConfig, consoleFormat: 'json' as const };
       mockConfigService.get.mockReturnValue(configWithJsonFormat);
 
-      const loggerOptions = createWinstonLogger(mockConfigService);
+      const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
 
       expect(loggerOptions.transports).toHaveLength(3);
     });
@@ -77,7 +80,7 @@ describe('LoggerConfig', () => {
     let logger: winston.Logger;
 
     beforeEach(() => {
-      const loggerOptions = createWinstonLogger(mockConfigService);
+      const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
       logger = winston.createLogger(loggerOptions);
     });
 
@@ -87,18 +90,18 @@ describe('LoggerConfig', () => {
         userId: 'user123',
         ip: '127.0.0.1',
       };
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(mockContext);
+      getContextSpy.mockReturnValue(mockContext);
 
-      const logSpy = jest.spyOn(logger, 'info');
+      const logSpy = spyOn(logger, 'info');
       logger.info('Test message', { context: 'TestContext' });
 
       expect(logSpy).toHaveBeenCalled();
     });
 
     it('should format log entry without request context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      getContextSpy.mockReturnValue(null);
 
-      const logSpy = jest.spyOn(logger, 'info');
+      const logSpy = spyOn(logger, 'info');
       logger.info('Test message', { context: 'TestContext' });
 
       expect(logSpy).toHaveBeenCalled();
@@ -107,14 +110,14 @@ describe('LoggerConfig', () => {
     it('should handle log entry with stack trace', () => {
       const error = new Error('Test error');
 
-      const logSpy = jest.spyOn(logger, 'error');
+      const logSpy = spyOn(logger, 'error');
       logger.error('Error occurred', { trace: error.stack });
 
       expect(logSpy).toHaveBeenCalled();
     });
 
     it('should handle log entry with additional metadata', () => {
-      const logSpy = jest.spyOn(logger, 'info');
+      const logSpy = spyOn(logger, 'info');
       logger.info('Test message', {
         context: 'TestContext',
         customField: 'customValue',
@@ -125,7 +128,7 @@ describe('LoggerConfig', () => {
     });
 
     it('should handle log entry with missing fields', () => {
-      const logSpy = jest.spyOn(logger, 'info');
+      const logSpy = spyOn(logger, 'info');
       logger.info('Test message');
 
       expect(logSpy).toHaveBeenCalled();
@@ -134,7 +137,7 @@ describe('LoggerConfig', () => {
 
   describe('File transport configuration', () => {
     it('should configure file transports with correct options', () => {
-      const loggerOptions = createWinstonLogger(mockConfigService);
+      const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
       const transportsArray = Array.isArray(loggerOptions.transports)
         ? loggerOptions.transports
         : [loggerOptions.transports];
@@ -154,7 +157,7 @@ describe('LoggerConfig', () => {
   });
 
   it('should configure console transport with correct level', () => {
-    const loggerOptions = createWinstonLogger(mockConfigService);
+    const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
     const transportsArray = Array.isArray(loggerOptions.transports)
       ? loggerOptions.transports
       : [loggerOptions.transports];
@@ -167,7 +170,7 @@ describe('LoggerConfig', () => {
     const configWithJsonFormat = { ...mockLoggingConfig, consoleFormat: 'json' as const };
     mockConfigService.get.mockReturnValue(configWithJsonFormat);
 
-    const loggerOptions = createWinstonLogger(mockConfigService);
+    const loggerOptions = createWinstonLogger(mockConfigService as unknown as ConfigService);
     const transportsArray = Array.isArray(loggerOptions.transports)
       ? loggerOptions.transports
       : [loggerOptions.transports];

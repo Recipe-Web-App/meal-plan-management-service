@@ -1,10 +1,17 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { HttpExceptionFilter } from './http-exception.filter';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
-  let mockResponse: any;
-  let mockRequest: any;
+  let mockResponse: {
+    status: Mock<() => typeof mockResponse>;
+    json: Mock<() => void>;
+  };
+  let mockRequest: {
+    url: string;
+    method: string;
+  };
   let mockArgumentsHost: ArgumentsHost;
 
   beforeEach(() => {
@@ -16,20 +23,20 @@ describe('HttpExceptionFilter', () => {
     };
 
     mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
+      status: mock(() => mockResponse),
+      json: mock(() => {}),
     };
 
     mockArgumentsHost = {
-      switchToHttp: jest.fn().mockReturnValue({
-        getResponse: jest.fn().mockReturnValue(mockResponse),
-        getRequest: jest.fn().mockReturnValue(mockRequest),
-      }),
-      getArgs: jest.fn(),
-      getArgByIndex: jest.fn(),
-      switchToRpc: jest.fn(),
-      switchToWs: jest.fn(),
-      getType: jest.fn(),
+      switchToHttp: mock(() => ({
+        getResponse: mock(() => mockResponse),
+        getRequest: mock(() => mockRequest),
+      })),
+      getArgs: mock(() => []),
+      getArgByIndex: mock(() => undefined),
+      switchToRpc: mock(() => ({}) as any),
+      switchToWs: mock(() => ({}) as any),
+      getType: mock(() => 'http' as const),
     };
   });
 
