@@ -102,8 +102,8 @@ Before using these scripts, ensure you have the following tools installed:
    ```
 
 3. **Access the application**:
-   - Health check: <http://meal-plan-management.local/api/v1/meal-plan-management/health>
-   - Readiness check: <http://meal-plan-management.local/api/v1/meal-plan-management/ready>
+   - Health check: <http://sous-chef-proxy.local/api/v1/meal-plan-management/health>
+   - Readiness check: <http://sous-chef-proxy.local/api/v1/meal-plan-management/ready>
 
 4. **Update after code changes**:
 
@@ -149,7 +149,7 @@ The scripts are configured for:
 - **Namespace**: `meal-plan-management`
 - **Service name**: `meal-plan-management-service`
 - **Image name**: `meal-plan-management-service:latest`
-- **Local domain**: `meal-plan-management.local`
+- **Local domain**: `sous-chef-proxy.local`
 - **Port**: `3000`
 
 ## Troubleshooting

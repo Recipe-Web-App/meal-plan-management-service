@@ -164,6 +164,12 @@ print_separator "-"
 kubectl apply -f "${CONFIG_DIR}/horizontalpodautoscaler.yaml"
 
 print_separator "="
+echo -e "${CYAN}📥 Applying Gateway HTTPRoute...${NC}"
+print_separator "-"
+
+kubectl apply -f "${CONFIG_DIR}/gateway-route.yaml"
+
+print_separator "="
 echo -e "${CYAN}⏳ Waiting for Meal Plan Management Service pod to be ready...${NC}"
 print_separator "-"
 
@@ -190,7 +196,7 @@ echo "$MINIKUBE_IP meal-plan-management.local" | tee -a /etc/hosts
 print_status "ok" "/etc/hosts updated with meal-plan-management.local pointing to $MINIKUBE_IP"
 
 print_separator "="
-echo -e "${GREEN}🌍 You can now access your app at: http://meal-plan-management.local/api/v1/meal-plan-management/health${NC}"
+echo -e "${GREEN}🌍 You can now access your app at: http://sous-chef-proxy.local/api/v1/meal-plan-management/health${NC}"
 
 POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=meal-plan-management-service -o jsonpath="{.items[0].metadata.name}")
 SERVICE_JSON=$(kubectl get svc meal-plan-management-service -n "$NAMESPACE" -o json)
@@ -201,6 +207,7 @@ print_separator "="
 echo -e "${CYAN}🛰️  Access info:${NC}"
 echo "  Pod: $POD_NAME"
 echo "  Service: $SERVICE_IP:$SERVICE_PORT"
-echo "  Health Check: http://meal-plan-management.local/api/v1/meal-plan-management/health"
-echo "  Readiness Check: http://meal-plan-management.local/api/v1/meal-plan-management/ready"
+echo "  Ingress Hosts: $INGRESS_HOSTS"
+echo "  Health Check: http://sous-chef-proxy.local/api/v1/meal-plan-management/health"
+echo "  Readiness Check: http://sous-chef-proxy.local/api/v1/meal-plan-management/ready"
 print_separator "="

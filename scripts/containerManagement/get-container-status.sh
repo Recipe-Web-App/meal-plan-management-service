@@ -170,11 +170,11 @@ if command_exists minikube && minikube status >/dev/null 2>&1; then
     MINIKUBE_IP=$(minikube ip 2>/dev/null || echo "unknown")
     echo "🔗 Minikube IP: $MINIKUBE_IP"
 
-    if grep -q "meal-plan-management.local" /etc/hosts 2>/dev/null; then
-        print_status "ok" "/etc/hosts entry exists for meal-plan-management.local"
-        echo "🌍 Application URL: http://meal-plan-management.local/api/v1/meal-plan-management/health"
+    if grep -q "sous-chef-proxy.local" /etc/hosts 2>/dev/null; then
+        print_status "ok" "/etc/hosts entry exists for sous-chef-proxy.local"
+        echo "🌍 Application URL: http://sous-chef-proxy.local/api/v1/meal-plan-management/health"
     else
-        print_status "warning" "/etc/hosts entry missing. Add: $MINIKUBE_IP meal-plan-management.local"
+        print_status "warning" "/etc/hosts entry missing. Add: $MINIKUBE_IP sous-chef-proxy.local"
     fi
 fi
 

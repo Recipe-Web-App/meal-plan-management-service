@@ -1,0 +1,25 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-0.4.0
+  name: meal-plan-management-ingress-meal-plan-management-local
+  namespace: meal-plan-management
+spec:
+  hostnames:
+    - meal-plan-management.local
+    - sous-chef-proxy.local
+  parentRefs:
+    - name: kong
+      namespace: kong
+  rules:
+    - backendRefs:
+        - name: meal-plan-management-service
+          port: 3000
+      matches:
+        - path:
+            type: PathPrefix
+            value: /api/v1/meal-plan-management
+status:
+  parents: []
