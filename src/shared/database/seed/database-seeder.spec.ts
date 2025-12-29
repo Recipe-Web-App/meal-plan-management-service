@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bu
 import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseSeeder } from './database-seeder';
 import { PrismaService } from '@/config/database.config';
-import { TransactionService } from '../transaction.service';
+import { TransactionService, type TransactionClient } from '../transaction.service';
 import { LoggerService } from '@/shared/services/logger.service';
 import { MealType } from '@generated/prisma/client';
 
@@ -114,32 +114,34 @@ describe('DatabaseSeeder', () => {
   describe('seedAll', () => {
     it('should seed database with default options', async () => {
       // Mock the transaction service to execute the callback and return the result
-      transactionService.executeTransaction.mockImplementation(async (callback) => {
-        const mockUser = {
-          userId: 'user-1',
-          username: 'TestUser',
-        };
-        const mockRecipe = {
-          recipeId: BigInt(1),
-          title: 'Test Recipe',
-        };
-        const mockMealPlan = {
-          mealPlanId: BigInt(1),
-          userId: 'user-1',
-          name: 'Test Plan',
-          startDate: new Date(),
-          endDate: new Date(),
-        };
+      transactionService.executeTransaction.mockImplementation(
+        async (callback: (tx: TransactionClient) => Promise<unknown>) => {
+          const mockUser = {
+            userId: 'user-1',
+            username: 'TestUser',
+          };
+          const mockRecipe = {
+            recipeId: BigInt(1),
+            title: 'Test Recipe',
+          };
+          const mockMealPlan = {
+            mealPlanId: BigInt(1),
+            userId: 'user-1',
+            name: 'Test Plan',
+            startDate: new Date(),
+            endDate: new Date(),
+          };
 
-        mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
-        mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
-        mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
-        mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
-          id: 'plan-recipe-1',
-        } as any);
+          mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
+          mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
+          mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
+          mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
+            id: 'plan-recipe-1',
+          } as any);
 
-        return callback(mockTransactionClient as any);
-      });
+          return callback(mockTransactionClient as any);
+        },
+      );
 
       const result = await seeder.seedAll();
 
@@ -165,32 +167,34 @@ describe('DatabaseSeeder', () => {
       };
 
       // Mock the transaction service to execute the callback and return the result
-      transactionService.executeTransaction.mockImplementation(async (callback) => {
-        const mockUser = {
-          userId: 'user-1',
-          username: 'TestUser',
-        };
-        const mockRecipe = {
-          recipeId: BigInt(1),
-          title: 'Test Recipe',
-        };
-        const mockMealPlan = {
-          mealPlanId: BigInt(1),
-          userId: 'user-1',
-          name: 'Test Plan',
-          startDate: new Date(),
-          endDate: new Date(),
-        };
+      transactionService.executeTransaction.mockImplementation(
+        async (callback: (tx: TransactionClient) => Promise<unknown>) => {
+          const mockUser = {
+            userId: 'user-1',
+            username: 'TestUser',
+          };
+          const mockRecipe = {
+            recipeId: BigInt(1),
+            title: 'Test Recipe',
+          };
+          const mockMealPlan = {
+            mealPlanId: BigInt(1),
+            userId: 'user-1',
+            name: 'Test Plan',
+            startDate: new Date(),
+            endDate: new Date(),
+          };
 
-        mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
-        mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
-        mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
-        mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
-          id: 'plan-recipe-1',
-        } as any);
+          mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
+          mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
+          mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
+          mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
+            id: 'plan-recipe-1',
+          } as any);
 
-        return callback(mockTransactionClient as any);
-      });
+          return callback(mockTransactionClient as any);
+        },
+      );
 
       await seeder.seedAll(options);
 
@@ -202,32 +206,34 @@ describe('DatabaseSeeder', () => {
       const options = { cleanFirst: true };
 
       // Mock the transaction service to execute the callback and return the result
-      transactionService.executeTransaction.mockImplementation(async (callback) => {
-        const mockUser = {
-          userId: 'user-1',
-          username: 'TestUser',
-        };
-        const mockRecipe = {
-          recipeId: BigInt(1),
-          title: 'Test Recipe',
-        };
-        const mockMealPlan = {
-          mealPlanId: BigInt(1),
-          userId: 'user-1',
-          name: 'Test Plan',
-          startDate: new Date(),
-          endDate: new Date(),
-        };
+      transactionService.executeTransaction.mockImplementation(
+        async (callback: (tx: TransactionClient) => Promise<unknown>) => {
+          const mockUser = {
+            userId: 'user-1',
+            username: 'TestUser',
+          };
+          const mockRecipe = {
+            recipeId: BigInt(1),
+            title: 'Test Recipe',
+          };
+          const mockMealPlan = {
+            mealPlanId: BigInt(1),
+            userId: 'user-1',
+            name: 'Test Plan',
+            startDate: new Date(),
+            endDate: new Date(),
+          };
 
-        mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
-        mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
-        mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
-        mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
-          id: 'plan-recipe-1',
-        } as any);
+          mockTransactionClient.user.create.mockResolvedValue(mockUser as any);
+          mockTransactionClient.recipe.create.mockResolvedValue(mockRecipe as any);
+          mockTransactionClient.mealPlan.create.mockResolvedValue(mockMealPlan as any);
+          mockTransactionClient.mealPlanRecipe.create.mockResolvedValue({
+            id: 'plan-recipe-1',
+          } as any);
 
-        return callback(mockTransactionClient as any);
-      });
+          return callback(mockTransactionClient as any);
+        },
+      );
 
       await seeder.seedAll(options);
 
@@ -294,17 +300,19 @@ describe('DatabaseSeeder', () => {
 
       const mockMealPlan = { mealPlanId: BigInt(1), name: 'Test Plan' };
 
-      transactionService.executeTransaction.mockImplementation(async (fn) => {
-        const mockTx = {
-          mealPlan: {
-            create: mock(() => Promise.resolve(mockMealPlan)),
-          },
-          mealPlanRecipe: {
-            create: mock(() => Promise.resolve({ id: 'plan-recipe-1' })),
-          },
-        };
-        return fn(mockTx as any);
-      });
+      transactionService.executeTransaction.mockImplementation(
+        async (fn: (tx: TransactionClient) => Promise<unknown>) => {
+          const mockTx = {
+            mealPlan: {
+              create: mock(() => Promise.resolve(mockMealPlan)),
+            },
+            mealPlanRecipe: {
+              create: mock(() => Promise.resolve({ id: 'plan-recipe-1' })),
+            },
+          };
+          return fn(mockTx as any);
+        },
+      );
 
       const result = await seeder.seedMealPlanForUser(userId, recipeIds, options);
 

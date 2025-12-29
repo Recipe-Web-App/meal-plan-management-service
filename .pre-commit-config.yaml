@@ -36,8 +36,8 @@ repos:
     hooks:
       - id: eslint
         name: ESLint
-        entry: npx eslint --fix
-        language: node
+        entry: bunx eslint --fix
+        language: system
         types: [javascript, ts]
         files: \.(js|ts|jsx|tsx)$
         exclude: node_modules/
@@ -47,8 +47,8 @@ repos:
     hooks:
       - id: tsc
         name: TypeScript Compiler
-        entry: npx tsc --noEmit
-        language: node
+        entry: bunx tsc --noEmit -p tsconfig.build.json
+        language: system
         types: [ts]
         exclude: node_modules/
         pass_filenames: false
@@ -130,50 +130,40 @@ repos:
     hooks:
       - id: prisma-format
         name: Prisma Format
-        entry: npx prisma format
-        language: node
+        entry: bunx prisma format
+        language: system
         files: schema\.prisma$
-        pass_filenames: false
-
-  # Node.js dependency security audit
-  - repo: local
-    hooks:
-      - id: npm-audit
-        name: NPM Security Audit
-        entry: npm audit --audit-level moderate
-        language: node
-        files: package(-lock)?\.json$
         pass_filenames: false
 
   # Build verification
   - repo: local
     hooks:
-      - id: npm-build
-        name: NestJS Build
-        entry: npm run build
-        language: node
+      - id: bun-build
+        name: Bun Build
+        entry: bun run build
+        language: system
         pass_filenames: false
         stages: [pre-commit]
 
   # Unit tests
   - repo: local
     hooks:
-      - id: jest-tests
-        name: Jest Unit Tests
-        entry: npm test
-        language: node
+      - id: bun-tests
+        name: Bun Unit Tests
+        entry: bun test
+        language: system
         pass_filenames: false
         stages: [pre-commit]
-        # Note: Use SKIP=jest-tests to skip tests during commit for faster workflow
+        # Note: Use SKIP=bun-tests to skip tests during commit for faster workflow
         # Tests with coverage will still run on pre-push
 
   # Coverage tests (pre-push only)
   - repo: local
     hooks:
-      - id: jest-coverage
-        name: Jest Coverage Tests
-        entry: npm run test:cov
-        language: node
+      - id: bun-coverage
+        name: Bun Coverage Tests
+        entry: bun test --coverage
+        language: system
         pass_filenames: false
         stages: [pre-push]
         # Enforces coverage thresholds: branches 70%, functions/lines/statements 80%
@@ -183,8 +173,8 @@ repos:
     hooks:
       - id: commitlint
         name: Commitlint
-        entry: npx commitlint --edit
-        language: node
+        entry: bunx commitlint --edit
+        language: system
         stages: [commit-msg]
         pass_filenames: false
 
@@ -193,8 +183,8 @@ repos:
     hooks:
       - id: license-check
         name: License Check
-        entry: npm run license:check
-        language: node
+        entry: bun run license:check
+        language: system
         files: package\.json$
         pass_filenames: false
 
@@ -208,14 +198,13 @@ ci:
   autoupdate_commit_msg: 'chore(pre-commit-ci): pre-commit autoupdate'
   autoupdate_schedule: weekly
   skip:
-    # Skip all local hooks - these require Node.js/npm and other system dependencies
+    # Skip all local hooks - these require Bun and other system dependencies
     - eslint
     - tsc
     - prisma-format
-    - npm-audit
-    - npm-build
-    - jest-tests
-    - jest-coverage
+    - bun-build
+    - bun-tests
+    - bun-coverage
     - commitlint
     - license-check
     - kube-score

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { validate } from 'class-validator';
 import {
   SimpleSanitizer,

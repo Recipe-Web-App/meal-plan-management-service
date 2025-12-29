@@ -39,7 +39,7 @@ describe('ResponseInterceptor', () => {
     expect(interceptor).toBeDefined();
   });
 
-  it('should wrap response data in ApiResponse format', (done) => {
+  it('should wrap response data in ApiResponse format', (done: () => void) => {
     const testData = { id: 1, name: 'Test' };
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of(testData));
 
@@ -56,7 +56,7 @@ describe('ResponseInterceptor', () => {
     });
   });
 
-  it('should handle null data', (done) => {
+  it('should handle null data', (done: () => void) => {
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of(null));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
@@ -72,7 +72,7 @@ describe('ResponseInterceptor', () => {
     });
   });
 
-  it('should handle undefined data', (done) => {
+  it('should handle undefined data', (done: () => void) => {
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of(undefined));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
@@ -88,7 +88,7 @@ describe('ResponseInterceptor', () => {
     });
   });
 
-  it('should handle array data', (done) => {
+  it('should handle array data', (done: () => void) => {
     const testData = [{ id: 1 }, { id: 2 }];
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of(testData));
 
@@ -105,7 +105,7 @@ describe('ResponseInterceptor', () => {
     });
   });
 
-  it('should use correct request path', (done) => {
+  it('should use correct request path', (done: () => void) => {
     mockRequest.url = '/api/v1/meal-plans';
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of({}));
 

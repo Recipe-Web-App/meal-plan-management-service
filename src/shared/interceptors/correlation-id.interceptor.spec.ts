@@ -84,7 +84,7 @@ describe('CorrelationIdInterceptor', () => {
     expect(interceptor).toBeDefined();
   });
 
-  it('should generate correlation ID when not provided', (done) => {
+  it('should generate correlation ID when not provided', (done: () => void) => {
     // Override the interceptor's uuid generation
     const originalUuid = require('uuid');
     const mockUuidModule = { ...originalUuid, v4: mockUuidv4 };
@@ -110,7 +110,7 @@ describe('CorrelationIdInterceptor', () => {
     });
   });
 
-  it('should use existing correlation ID from header', (done) => {
+  it('should use existing correlation ID from header', (done: () => void) => {
     const existingId = 'existing-correlation-id';
     mockRequest.headers['x-correlation-id'] = existingId;
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of('test data'));
@@ -132,7 +132,7 @@ describe('CorrelationIdInterceptor', () => {
     });
   });
 
-  it('should include user agent in request context', (done) => {
+  it('should include user agent in request context', (done: () => void) => {
     const userAgent = 'Mozilla/5.0';
     mockRequest.headers['user-agent'] = userAgent;
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of('test data'));
@@ -150,8 +150,8 @@ describe('CorrelationIdInterceptor', () => {
     });
   });
 
-  it('should use socket remote address when request.ip is undefined', (done) => {
-    mockRequest.ip = undefined;
+  it('should use socket remote address when request.ip is undefined', (done: () => void) => {
+    delete mockRequest.ip;
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);
@@ -167,7 +167,7 @@ describe('CorrelationIdInterceptor', () => {
     });
   });
 
-  it('should handle errors in the request pipeline', (done) => {
+  it('should handle errors in the request pipeline', (done: () => void) => {
     const error = new Error('Test error');
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(
       new Observable((subscriber) => {
@@ -186,7 +186,7 @@ describe('CorrelationIdInterceptor', () => {
     });
   });
 
-  it('should complete the observable', (done) => {
+  it('should complete the observable', (done: () => void) => {
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of('test data'));
 
     const result$ = interceptor.intercept(mockExecutionContext, mockCallHandler);

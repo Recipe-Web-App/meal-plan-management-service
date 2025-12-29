@@ -2,6 +2,7 @@ import { describe, it, expect, spyOn } from 'bun:test';
 import { MealPlanTransformationUtil, CustomTransformers } from './transformation.util';
 import { CreateMealPlanDto } from '../dto/create-meal-plan.dto';
 import { UpdateMealPlanDto } from '../dto/update-meal-plan.dto';
+import type { DatabaseMealPlan } from '../types/validation.types';
 
 describe('MealPlanTransformationUtil', () => {
   describe('toCreateMealPlanDto', () => {
@@ -496,7 +497,7 @@ describe('MealPlanTransformationUtil - Branch Coverage Tests', () => {
       const fromDatabaseModelSpy = spyOn(
         MealPlanTransformationUtil,
         'fromDatabaseModel',
-      ).mockImplementation((model) => {
+      ).mockImplementation((model: DatabaseMealPlan | null) => {
         if (model === null) return null;
         return {
           mealPlanId: model.mealPlanId,
