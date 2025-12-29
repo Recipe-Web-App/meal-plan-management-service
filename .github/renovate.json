@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices", ":preserveSemverRanges"],
+  "description": "Renovate configuration for automated dependency updates",
+  "timezone": "US/Eastern",
+  "schedule": ["before 10am on Monday"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 100,
+  "assignees": ["jsamuelsen11"],
+  "labels": ["dependencies"],
+  "semanticCommits": "enabled",
+  "semanticCommitScope": null,
+  "rebaseWhen": "auto",
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "description": "Production dependencies - minor and patch updates",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "production-minor-patch",
+      "semanticCommitType": "deps",
+      "addLabels": ["bun"]
+    },
+    {
+      "description": "Development dependencies - minor and patch updates",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "development-minor-patch",
+      "semanticCommitType": "deps-dev",
+      "addLabels": ["bun"]
+    },
+    {
+      "description": "Production dependencies - major updates",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["major"],
+      "semanticCommitType": "deps",
+      "addLabels": ["bun"]
+    },
+    {
+      "description": "Development dependencies - major updates",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["major"],
+      "semanticCommitType": "deps-dev",
+      "addLabels": ["bun"]
+    },
+    {
+      "description": "Docker base images",
+      "matchManagers": ["dockerfile"],
+      "semanticCommitType": "docker",
+      "addLabels": ["docker"],
+      "groupName": "docker-dependencies"
+    },
+    {
+      "description": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci",
+      "addLabels": ["github-actions"],
+      "groupName": "github-actions"
+    }
+  ],
+  "bun": {
+    "enabled": true
+  }
+}
