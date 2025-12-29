@@ -22,26 +22,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build application
-        run: npm run build
+        run: bun run build
 
       - name: Install documentation tools
         run: |
-          npm install -g @compodoc/compodoc
-          npm install -g swagger-jsdoc swagger-ui-express
+          bun add -g @compodoc/compodoc
+          bun add -g swagger-jsdoc swagger-ui-express
 
       - name: Generate TypeDoc documentation
         run: |
-          npx compodoc -p tsconfig.json -d docs/compodoc --theme material
+          bunx compodoc -p tsconfig.json -d docs/compodoc --theme material
 
       - name: Generate OpenAPI/Swagger docs
         run: |
@@ -71,7 +70,7 @@ jobs:
           bootstrap().catch(console.error);
           EOF
 
-          node generate-swagger.js || echo "Swagger generation skipped - ensure @nestjs/swagger is installed"
+          bun generate-swagger.js || echo "Swagger generation skipped - ensure @nestjs/swagger is installed"
 
       - name: Deploy documentation to GitHub Pages
         if: github.ref == 'refs/heads/main'
