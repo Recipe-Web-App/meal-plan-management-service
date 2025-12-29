@@ -6,37 +6,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build & Start
 
-- `npm run build` - Build the NestJS application
-- `npm run start` - Start the application
-- `npm run start:dev` - Start in development mode with watch
-- `npm run start:debug` - Start in debug mode with watch
-- `npm run start:prod` - Start in production mode
+- `bun run build` - Build the NestJS application (includes path alias resolution via tsc-alias)
+- `bun run start` - Start the application
+- `bun run start:dev` - Start in development mode with watch
+- `bun run start:debug` - Start in debug mode with watch
+- `bun run start:prod` - Start in production mode (uses Bun runtime)
 
 ### Testing
 
-- `npm run test` - Run unit tests
-- `npm run test -- <test-file-path>` - Run a single test file (e.g., `npm run test -- meal-plans.service.spec`)
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:cov` - Run tests with coverage (must meet 80% threshold)
-- `npm run test:e2e` - Run end-to-end tests
-- `npm run test:debug` - Run tests in debug mode
+- `bun test` - Run unit tests
+- `bun test <test-file-path>` - Run a single test file (e.g., `bun test meal-plans.service.spec`)
+- `bun test --watch` - Run tests in watch mode
+- `bun test --coverage` - Run tests with coverage (must meet 80% threshold)
+- `bun test test/**/*.e2e-spec.ts` - Run end-to-end tests
+- `bun --inspect-brk test` - Run tests in debug mode
 
 ### Code Quality
 
-- `npm run lint` - Run ESLint with auto-fix
-- `npm run format` - Format code with Prettier
-- `npm run markdown:lint` - Lint markdown files
-- `npm run security:secrets` - Scan for secrets using detect-secrets
-- `npm run security:audit` - Run npm security audit
-- `npm run license:check` - Check dependency licenses
+- `bun run lint` - Run ESLint with auto-fix
+- `bun run format` - Format code with Prettier
+- `bun run markdown:lint` - Lint markdown files
+- `bun run security:secrets` - Scan for secrets using detect-secrets
+- `bun run license:check` - Check dependency licenses
 
 ### Database (Prisma)
 
-- `npx prisma migrate dev` - Create and apply migrations in development
-- `npx prisma migrate deploy` - Apply migrations in production
-- `npx prisma generate` - Generate Prisma Client
-- `npx prisma studio` - Open Prisma Studio GUI
-- `npx prisma db seed` - Seed the database with test data
+- `bunx prisma migrate dev` - Create and apply migrations in development
+- `bunx prisma migrate deploy` - Apply migrations in production
+- `bunx prisma generate` - Generate Prisma Client
+- `bunx prisma studio` - Open Prisma Studio GUI
+- `bunx prisma db seed` - Seed the database with test data
 
 ### Git Hooks
 
@@ -45,8 +44,8 @@ This repository uses **pre-commit** for automated code quality checks:
 - **Pre-commit hooks**: Automatically run on every commit
   - Code formatting (Prettier) and linting (ESLint)
   - TypeScript type checking
-  - Build verification (`npm run build`)
-  - Unit tests (`npm test`)
+  - Build verification (`bun run build`)
+  - Unit tests (`bun test`)
   - Markdown, YAML, shell script linting
   - Secret scanning (detect-secrets, gitleaks)
   - Security analysis (semgrep)
@@ -56,20 +55,21 @@ This repository uses **pre-commit** for automated code quality checks:
 - **Commit-msg hook**: Validates commit messages using commitlint (conventional commits)
 
 - **Pre-push hook**: Runs before pushing to remote
-  - Full test suite with coverage (`npm run test:cov`)
+  - Full test suite with coverage (`bun test --coverage`)
   - Coverage thresholds: 70% branches, 80% functions/lines/statements
 
 **Installation**: Run `pre-commit install` to set up hooks after cloning
 
-**Manual execution**: Run `npm run pre-commit` to execute all hooks on all files
+**Manual execution**: Run `bun run pre-commit` to execute all hooks on all files
 
-**Skip tests during commit**: Use `SKIP=jest-tests git commit` for faster commits (tests still run on push)
+**Skip tests during commit**: Use `SKIP=bun-tests git commit` for faster commits (tests still run on push)
 
 ## Architecture
 
 ### Framework & Structure
 
 - **NestJS** TypeScript framework with modular architecture
+- **Bun** runtime and package manager (replaces Node.js/npm)
 - **PostgreSQL** database with Prisma ORM
 - **Microservice** designed for meal plan management within a larger Recipe Web App ecosystem
 - **Global prefix**: All API endpoints use `api/v1` prefix

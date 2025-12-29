@@ -352,7 +352,7 @@ OAUTH2_SERVICE_TO_SERVICE_ENABLED=false
 The authentication system includes comprehensive unit tests:
 
 ```bash
-npm run test -- --testPathPattern=auth
+bun test --test-name-pattern auth
 ```
 
 #### Manual Testing
@@ -443,7 +443,7 @@ export class CustomTokenValidationService extends TokenValidationService {
 #### Enable Debug Logging
 
 ```bash
-LOG_LEVEL=debug npm run start:dev
+LOG_LEVEL=debug bun run start:dev
 ```
 
 #### Token Introspection Debugging

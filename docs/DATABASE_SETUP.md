@@ -7,7 +7,7 @@ Step-by-step guide for setting up the database from scratch.
 ## Prerequisites
 
 - PostgreSQL 12+ installed and running
-- Node.js 18+ installed
+- Bun runtime installed (or Node.js 18+)
 - Git repository cloned
 - Terminal access
 
@@ -91,7 +91,7 @@ psql -h localhost -p 5432 -U meal_plan_user -d meal_plan_management -c "SELECT v
 
 ```bash
 cd meal-plan-management-service
-npm install
+bun install
 ```
 
 ### Environment Configuration
@@ -134,19 +134,19 @@ npm install
 1. **Generate Prisma Client:**
 
    ```bash
-   npx prisma generate
+   bunx prisma generate
    ```
 
 2. **Push schema to database:**
 
    ```bash
-   npx prisma db push
+   bunx prisma db push
    ```
 
 3. **Verify schema creation:**
 
    ```bash
-   npx prisma studio
+   bunx prisma studio
    ```
 
    Open <http://localhost:5555> to view database tables
@@ -156,7 +156,7 @@ npm install
 ### Run Application
 
 ```bash
-npm run start:dev
+bun run start:dev
 ```
 
 The application should start without database connection errors.
@@ -187,7 +187,7 @@ Expected response:
 ### Run Tests
 
 ```bash
-npm run test
+bun test
 ```
 
 All database-related tests should pass.
@@ -200,7 +200,7 @@ Create a simple seeding script or use the built-in seeder:
 
 ```bash
 # If you have a seeding script
-npm run db:seed
+bun run db:seed
 
 # Or create a one-time seeder
 node -e "
@@ -225,7 +225,7 @@ const { AppModule } = require('./dist/app.module');
 ### Verify Seeded Data
 
 ```bash
-npx prisma studio
+bunx prisma studio
 ```
 
 You should see users, recipes, and meal plans in the database.
@@ -257,10 +257,10 @@ For production deployments:
 
 ```bash
 # Deploy migrations
-npx prisma migrate deploy
+bunx prisma migrate deploy
 
 # Generate client
-npx prisma generate
+bunx prisma generate
 ```
 
 ### SSL Configuration
