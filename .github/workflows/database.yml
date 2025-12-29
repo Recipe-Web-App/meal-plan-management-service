@@ -19,23 +19,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Prisma generate
-        run: npx prisma generate
+        run: bunx prisma generate
 
       - name: Prisma format check
-        run: npx prisma format --check
+        run: bunx prisma format --check
 
       - name: Prisma validate
-        run: npx prisma validate
+        run: bunx prisma validate
 
   migration-test:
     name: Migration Test
@@ -59,27 +58,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Prisma generate
-        run: npx prisma generate
+        run: bunx prisma generate
 
       - name: Run migrations
-        run: npx prisma migrate deploy
+        run: bunx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db # pragma: allowlist secret
 
       - name: Seed database (if seed script exists)
         run: |
-          if npm run | grep -q "db:seed"; then
-            npm run db:seed
+          if bun run 2>&1 | grep -q "db:seed"; then
+            bun run db:seed
           else
             echo "No seed script found, skipping..."
           fi
@@ -116,22 +114,20 @@ jobs:
         with:
           path: pr
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20.x'
-          cache: 'npm'
-          cache-dependency-path: pr/package-lock.json
+          bun-version: latest
 
       - name: Install dependencies
         run: |
           cd pr
-          npm ci
+          bun install --frozen-lockfile
 
       - name: Generate schema diff
         run: |
           cd pr
-          npx prisma generate
+          bunx prisma generate
           # Compare schema files
           if ! diff -u ../base/prisma/schema.prisma prisma/schema.prisma > schema-diff.txt; then
             echo "Schema changes detected:"

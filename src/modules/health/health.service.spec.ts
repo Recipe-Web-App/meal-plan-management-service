@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -11,9 +12,12 @@ import { PrismaService } from '@/config/database.config';
 
 describe('HealthService', () => {
   let service: HealthService;
-  let healthCheckService: jest.Mocked<HealthCheckService>;
-  let prismaService: jest.Mocked<PrismaService>;
-  let configService: jest.Mocked<ConfigService>;
+  let healthCheckService: { check: Mock<(...args: unknown[]) => Promise<unknown>> };
+  let prismaService: {
+    performHealthCheck: Mock<() => Promise<unknown>>;
+    getConnectionStatus: Mock<() => unknown>;
+  };
+  let configService: { get: Mock<(key: string) => unknown> };
 
   const mockHealthResult: HealthCheckResult = {
     status: 'ok',
@@ -24,24 +28,24 @@ describe('HealthService', () => {
 
   beforeEach(async () => {
     const mockHealthCheckService = {
-      check: jest.fn(),
+      check: mock(() => Promise.resolve()),
     };
 
     const mockMemoryIndicator = {
-      checkHeap: jest.fn(),
+      checkHeap: mock(() => Promise.resolve()),
     };
 
     const mockDiskIndicator = {
-      checkStorage: jest.fn(),
+      checkStorage: mock(() => Promise.resolve()),
     };
 
     const mockPrismaService = {
-      performHealthCheck: jest.fn(),
-      getConnectionStatus: jest.fn(),
+      performHealthCheck: mock(() => Promise.resolve()),
+      getConnectionStatus: mock(() => ({})),
     };
 
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => null),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,9 +60,9 @@ describe('HealthService', () => {
     }).compile();
 
     service = module.get<HealthService>(HealthService);
-    healthCheckService = module.get(HealthCheckService);
-    prismaService = module.get(PrismaService);
-    configService = module.get(ConfigService);
+    healthCheckService = module.get(HealthCheckService) as typeof healthCheckService;
+    prismaService = module.get(PrismaService) as typeof prismaService;
+    configService = module.get(ConfigService) as typeof configService;
   });
 
   it('should be defined', () => {

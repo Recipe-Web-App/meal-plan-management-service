@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { SystemService } from './system.service';
@@ -6,11 +7,14 @@ describe('SystemService', () => {
   let service: SystemService;
   let configService: ConfigService;
 
-  const mockConfigService = {
-    get: jest.fn(),
+  let mockConfigService: {
+    get: Mock<(key: string) => unknown>;
   };
 
   beforeEach(async () => {
+    mockConfigService = {
+      get: mock(() => null),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SystemService,
@@ -26,7 +30,7 @@ describe('SystemService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mockConfigService.get.mockClear();
   });
 
   describe('getServiceInfo', () => {
@@ -43,18 +47,18 @@ describe('SystemService', () => {
       const originalPid = process.pid;
       const originalMemoryUsage = process.memoryUsage;
 
-      process.uptime = jest.fn().mockReturnValue(3600.5);
+      process.uptime = mock(() => 3600.5);
       Object.defineProperty(process, 'version', { value: 'v18.17.0', configurable: true });
       Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
       Object.defineProperty(process, 'arch', { value: 'x64', configurable: true });
       Object.defineProperty(process, 'pid', { value: 12345, configurable: true });
-      (process.memoryUsage as any) = jest.fn().mockReturnValue({
+      (process.memoryUsage as any) = mock(() => ({
         heapUsed: 47185920, // 45MB
         heapTotal: 134217728, // 128MB
         external: 12582912, // 12MB
         arrayBuffers: 0,
         rss: 0,
-      });
+      }));
 
       const result = service.getServiceInfo();
 
@@ -101,13 +105,13 @@ describe('SystemService', () => {
       mockConfigService.get.mockReturnValue('test');
 
       const originalMemoryUsage = process.memoryUsage;
-      (process.memoryUsage as any) = jest.fn().mockReturnValue({
+      (process.memoryUsage as any) = mock(() => ({
         heapUsed: 1048576, // 1MB
         heapTotal: 2097152, // 2MB
         external: 524288, // 0.5MB
         arrayBuffers: 0,
         rss: 0,
-      });
+      }));
 
       const result = service.getServiceInfo();
 

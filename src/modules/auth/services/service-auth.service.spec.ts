@@ -1,17 +1,13 @@
+import { describe, it, expect, beforeEach, mock, spyOn, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
 import { ServiceAuthService } from './service-auth.service';
 import { OAuth2Config } from '../../../config/configuration';
 
-// Mock axios
-jest.mock('axios');
-const mockedAxios = jest.mocked(axios);
-
 describe('ServiceAuthService', () => {
   let service: ServiceAuthService;
-  let configService: jest.Mocked<ConfigService>;
-  let mockAxiosInstance: any;
+  let configService: { get: Mock<(...args: unknown[]) => unknown> };
+  let mockAxiosInstance: { post: Mock<(...args: unknown[]) => unknown> };
 
   const mockOAuth2Config: OAuth2Config = {
     enabled: true,
@@ -31,13 +27,12 @@ describe('ServiceAuthService', () => {
 
   beforeEach(async () => {
     const mockConfigService = {
-      get: jest.fn(),
+      get: mock(() => {}),
     };
 
     mockAxiosInstance = {
-      post: jest.fn(),
+      post: mock(() => {}),
     };
-    mockedAxios.create = jest.fn().mockReturnValue(mockAxiosInstance);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -50,13 +45,17 @@ describe('ServiceAuthService', () => {
     }).compile();
 
     service = module.get<ServiceAuthService>(ServiceAuthService);
-    configService = module.get(ConfigService);
+    configService = module.get(ConfigService) as typeof configService;
+
+    // Replace the axios instance created in constructor with our mock
+    (service as any).httpClient = mockAxiosInstance;
 
     // Mock logger to avoid console output during tests
-    jest.spyOn(service['logger'], 'debug').mockImplementation();
-    jest.spyOn(service['logger'], 'error').mockImplementation();
+    spyOn(service['logger'], 'debug').mockImplementation(() => {});
+    spyOn(service['logger'], 'error').mockImplementation(() => {});
 
-    jest.clearAllMocks();
+    configService.get.mockClear();
+    mockAxiosInstance.post.mockClear();
   });
 
   describe('getServiceToken', () => {
@@ -123,7 +122,8 @@ describe('ServiceAuthService', () => {
           },
         );
 
-        const postCallArgs = mockAxiosInstance.post.mock.calls[0];
+        const postCallArgs = (mockAxiosInstance.post as Mock<(...args: unknown[]) => unknown>).mock
+          .calls[0];
         const urlParams = postCallArgs[1] as URLSearchParams;
         expect(urlParams.get('grant_type')).toBe('client_credentials');
         expect(urlParams.get('scope')).toBe('read write');
@@ -399,7 +399,7 @@ describe('ServiceAuthService', () => {
 
     it('should return correct expiration info', async () => {
       const fixedTime = Date.now();
-      jest.spyOn(Date, 'now').mockReturnValue(fixedTime);
+      const dateNowSpy = spyOn(Date, 'now').mockReturnValue(fixedTime);
 
       mockAxiosInstance.post.mockResolvedValue({ data: mockTokenResponse });
 
@@ -409,6 +409,8 @@ describe('ServiceAuthService', () => {
       // Should have approximately 3600 seconds remaining (minus buffer)
       expect(info.expiresIn).toBeLessThan(3600);
       expect(info.expiresIn).toBeGreaterThan(3500); // Account for 60-second buffer
+
+      dateNowSpy.mockRestore();
     });
 
     it('should return 0 for expired tokens', async () => {
@@ -435,7 +437,7 @@ describe('ServiceAuthService', () => {
 
     it('should apply token refresh buffer', async () => {
       const mockTime = Date.now();
-      jest.spyOn(Date, 'now').mockReturnValue(mockTime);
+      const dateNowSpy = spyOn(Date, 'now').mockReturnValue(mockTime);
 
       mockAxiosInstance.post.mockResolvedValue({ data: mockTokenResponse });
 
@@ -445,16 +447,20 @@ describe('ServiceAuthService', () => {
       // Token should expire 30 seconds before the actual expiry (buffer)
       const expectedExpiryTime = mockTime + mockTokenResponse.expires_in * 1000 - 30000;
       expect(new Date(info.expiresAt!).getTime()).toBe(expectedExpiryTime);
+
+      dateNowSpy.mockRestore();
     });
   });
 
   describe('logging', () => {
+    let loggerDebugSpy: ReturnType<typeof spyOn>;
+    let loggerErrorSpy: ReturnType<typeof spyOn>;
+
     beforeEach(() => {
       configService.get.mockReturnValue(mockOAuth2Config);
       // Restore logger mocks to verify logging calls
-      jest.restoreAllMocks();
-      jest.spyOn(service['logger'], 'debug').mockImplementation();
-      jest.spyOn(service['logger'], 'error').mockImplementation();
+      loggerDebugSpy = spyOn(service['logger'], 'debug').mockImplementation(() => {});
+      loggerErrorSpy = spyOn(service['logger'], 'error').mockImplementation(() => {});
     });
 
     it('should log token acquisition', async () => {
@@ -462,10 +468,10 @@ describe('ServiceAuthService', () => {
 
       await service.getServiceToken();
 
-      expect(service['logger'].debug).toHaveBeenCalledWith(
+      expect(loggerDebugSpy).toHaveBeenCalledWith(
         'Fetching new service token using client credentials flow',
       );
-      expect(service['logger'].debug).toHaveBeenCalledWith(
+      expect(loggerDebugSpy).toHaveBeenCalledWith(
         expect.stringContaining('Service token obtained, expires at'),
       );
     });
@@ -473,7 +479,7 @@ describe('ServiceAuthService', () => {
     it('should log cache clearing', () => {
       service.clearTokenCache();
 
-      expect(service['logger'].debug).toHaveBeenCalledWith('Clearing service token cache');
+      expect(loggerDebugSpy).toHaveBeenCalledWith('Clearing service token cache');
     });
 
     it('should log errors', async () => {
@@ -482,7 +488,7 @@ describe('ServiceAuthService', () => {
 
       await expect(service.getServiceToken()).rejects.toThrow();
 
-      expect(service['logger'].error).toHaveBeenCalledWith(
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
         'Failed to obtain service token: Test error',
         expect.stringContaining('Error: Test error'),
       );

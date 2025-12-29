@@ -1,36 +1,87 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MealPlansRepository } from './meal-plans.repository';
 import { PrismaService } from '@/config/database.config';
-import { MealType, PrismaClient } from '@generated/prisma/client';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { MealType } from '@generated/prisma/client';
 
 describe('MealPlansRepository - Transaction Methods', () => {
   let repository: MealPlansRepository;
-  let prisma: DeepMockProxy<PrismaClient>;
-  let mockTx: DeepMockProxy<PrismaClient>;
+  let prisma: {
+    mealPlan: {
+      create: Mock<(...args: unknown[]) => unknown>;
+      findUnique: Mock<(...args: unknown[]) => unknown>;
+    };
+    mealPlanRecipe: {
+      createMany: Mock<(...args: unknown[]) => unknown>;
+      findMany: Mock<(...args: unknown[]) => unknown>;
+      deleteMany: Mock<(...args: unknown[]) => unknown>;
+    };
+  };
+  let mockTx: {
+    mealPlan: {
+      create: Mock<(...args: unknown[]) => unknown>;
+      findUnique: Mock<(...args: unknown[]) => unknown>;
+    };
+    mealPlanRecipe: {
+      createMany: Mock<(...args: unknown[]) => unknown>;
+      findMany: Mock<(...args: unknown[]) => unknown>;
+      deleteMany: Mock<(...args: unknown[]) => unknown>;
+    };
+  };
 
   const testUserId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
   const testRecipeId = BigInt(1);
   const testMealPlanId = BigInt(1);
 
+  const mockPrismaService = {
+    mealPlan: {
+      create: mock(() => {}),
+      findUnique: mock(() => {}),
+    },
+    mealPlanRecipe: {
+      createMany: mock(() => {}),
+      findMany: mock(() => {}),
+      deleteMany: mock(() => {}),
+    },
+  };
+
   beforeEach(async () => {
+    // Reset all mocks
+    mockPrismaService.mealPlan.create.mockReset();
+    mockPrismaService.mealPlan.findUnique.mockReset();
+    mockPrismaService.mealPlanRecipe.createMany.mockReset();
+    mockPrismaService.mealPlanRecipe.findMany.mockReset();
+    mockPrismaService.mealPlanRecipe.deleteMany.mockReset();
+
+    // Create a separate mock for transaction
+    mockTx = {
+      mealPlan: {
+        create: mock(() => {}),
+        findUnique: mock(() => {}),
+      },
+      mealPlanRecipe: {
+        createMany: mock(() => {}),
+        findMany: mock(() => {}),
+        deleteMany: mock(() => {}),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MealPlansRepository,
         {
           provide: PrismaService,
-          useValue: mockDeep<PrismaClient>(),
+          useValue: mockPrismaService,
         },
       ],
     }).compile();
 
     repository = module.get<MealPlansRepository>(MealPlansRepository);
-    prisma = module.get(PrismaService);
-    mockTx = mockDeep<PrismaClient>();
+    prisma = module.get(PrismaService) as typeof prisma;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Mocks are reset in beforeEach
   });
 
   describe('createWithRecipes', () => {
@@ -105,7 +156,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
       // Mock final query with recipes
       mockTx.mealPlan.findUnique.mockResolvedValue(expectedResult);
 
-      const result = await repository.createWithRecipes(createData, mockTx);
+      const result = await repository.createWithRecipes(createData, mockTx as any);
 
       expect(result).toEqual(expectedResult);
       expect(mockTx.mealPlan.create).toHaveBeenCalledWith({
@@ -163,7 +214,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
       mockTx.mealPlan.create.mockResolvedValue(createdMealPlan);
       mockTx.mealPlan.findUnique.mockResolvedValue(expectedResult);
 
-      const result = await repository.createWithRecipes(createData, mockTx);
+      const result = await repository.createWithRecipes(createData, mockTx as any);
 
       expect(result).toEqual(expectedResult);
       expect(mockTx.mealPlanRecipe.createMany).not.toHaveBeenCalled();
@@ -229,7 +280,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
       mockTx.mealPlanRecipe.createMany.mockResolvedValue({ count: 2 });
       mockTx.mealPlanRecipe.findMany.mockResolvedValue(expectedRecipes);
 
-      const result = await repository.addMultipleRecipes(testMealPlanId, recipes, mockTx);
+      const result = await repository.addMultipleRecipes(testMealPlanId, recipes, mockTx as any);
 
       expect(result).toEqual(expectedRecipes);
       expect(mockTx.mealPlanRecipe.createMany).toHaveBeenCalledWith({
@@ -259,7 +310,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
       const result = await repository.removeMultipleRecipes(
         testMealPlanId,
         recipesToRemove,
-        mockTx,
+        mockTx as any,
       );
 
       expect(result).toBe(2);
@@ -308,7 +359,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
         testMealPlanId,
         mealDate,
         newRecipes,
-        mockTx,
+        mockTx as any,
       );
 
       expect(result).toEqual(expectedRecipes);
@@ -332,7 +383,12 @@ describe('MealPlansRepository - Transaction Methods', () => {
 
       mockTx.mealPlanRecipe.deleteMany.mockResolvedValue({ count: 2 });
 
-      const result = await repository.replaceRecipesForDate(testMealPlanId, mealDate, [], mockTx);
+      const result = await repository.replaceRecipesForDate(
+        testMealPlanId,
+        mealDate,
+        [],
+        mockTx as any,
+      );
 
       expect(result).toEqual([]);
       expect(mockTx.mealPlanRecipe.createMany).not.toHaveBeenCalled();
@@ -419,7 +475,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
         testMealPlanId,
         targetData,
         7, // 7 day offset
-        mockTx,
+        mockTx as any,
       );
 
       expect(result).toEqual(expectedResult);
@@ -455,9 +511,9 @@ describe('MealPlansRepository - Transaction Methods', () => {
 
       mockTx.mealPlan.findUnique.mockResolvedValue(null);
 
-      await expect(repository.cloneMealPlan(BigInt(999), targetData, 0, mockTx)).rejects.toThrow(
-        'Source meal plan not found',
-      );
+      await expect(
+        repository.cloneMealPlan(BigInt(999), targetData, 0, mockTx as any),
+      ).rejects.toThrow('Source meal plan not found');
     });
 
     it('should clone meal plan without recipes when source has none', async () => {
@@ -497,7 +553,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
       mockTx.mealPlan.create.mockResolvedValue(clonedMealPlan);
       mockTx.mealPlan.findUnique.mockResolvedValueOnce(expectedResult);
 
-      const result = await repository.cloneMealPlan(testMealPlanId, targetData, 0, mockTx);
+      const result = await repository.cloneMealPlan(testMealPlanId, targetData, 0, mockTx as any);
 
       expect(result).toEqual(expectedResult);
       expect(mockTx.mealPlanRecipe.createMany).not.toHaveBeenCalled();

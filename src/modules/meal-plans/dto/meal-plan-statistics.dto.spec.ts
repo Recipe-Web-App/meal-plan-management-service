@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { MealPlanStatisticsDto, MealTypeBreakdownDto } from './meal-plan-statistics.dto';

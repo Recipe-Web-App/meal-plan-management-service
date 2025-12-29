@@ -8,16 +8,16 @@ Quick commands and code snippets for common database operations.
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Generate Prisma client
-npx prisma generate
+bunx prisma generate
 
 # Run migrations
-npx prisma migrate deploy
+bunx prisma migrate deploy
 
 # Development with test data
-npm run db:seed  # if available
+bun run db:seed  # if available
 ```
 
 ## Environment Variables

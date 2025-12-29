@@ -34,8 +34,7 @@ The service uses **Prisma ORM** with **PostgreSQL** and implements the following
 ### Prerequisites
 
 - PostgreSQL 12+ running locally or accessible remotely
-- Node.js 18+
-- npm or yarn package manager
+- Bun runtime (or Node.js 18+)
 
 ### Required Environment Variables
 
@@ -198,7 +197,7 @@ enum MealType {
 After schema changes, regenerate the Prisma client:
 
 ```bash
-npx prisma generate
+bunx prisma generate
 ```
 
 ### Database Migrations
@@ -206,13 +205,13 @@ npx prisma generate
 For production deployments:
 
 ```bash
-npx prisma migrate deploy
+bunx prisma migrate deploy
 ```
 
 For development with migration files:
 
 ```bash
-npx prisma migrate dev --name migration_name
+bunx prisma migrate dev --name migration_name
 ```
 
 ## Repository Pattern
@@ -481,7 +480,7 @@ describe('MealPlan Integration Tests', () => {
 1. **Install Dependencies**
 
    ```bash
-   npm install
+   bun install
    ```
 
 2. **Set Environment Variables**
@@ -494,13 +493,13 @@ describe('MealPlan Integration Tests', () => {
 3. **Generate Prisma Client**
 
    ```bash
-   npx prisma generate
+   bunx prisma generate
    ```
 
 4. **Run Database Migrations** (if using migrations)
 
    ```bash
-   npx prisma migrate deploy
+   bunx prisma migrate deploy
    ```
 
 ### Development Data Seeding
@@ -508,8 +507,8 @@ describe('MealPlan Integration Tests', () => {
 For development with test data:
 
 ```bash
-# Using npm scripts (if available)
-npm run db:seed
+# Using bun scripts (if available)
+bun run db:seed
 
 # Or using the seeder service directly
 node -e "
@@ -528,13 +527,13 @@ const { AppModule } = require('./dist/app.module');
 
 ```bash
 # Unit tests
-npm run test
+bun test
 
 # Integration tests
-npm run test:e2e
+bun test test/**/*.e2e-spec.ts
 
 # Test coverage
-npm run test:cov
+bun test --coverage
 ```
 
 ### Database Schema Changes
@@ -548,19 +547,19 @@ npm run test:cov
 2. **Generate Migration** (optional)
 
    ```bash
-   npx prisma migrate dev --name add_new_field
+   bunx prisma migrate dev --name add_new_field
    ```
 
 3. **Regenerate Client**
 
    ```bash
-   npx prisma generate
+   bunx prisma generate
    ```
 
 4. **Update TypeScript Types**
 
    ```bash
-   npm run build
+   bun run build
    ```
 
 ## Troubleshooting
@@ -583,10 +582,10 @@ npm run test:cov
 
 ```bash
 # Reset database (development only)
-npx prisma migrate reset
+bunx prisma migrate reset
 
 # Or manually resolve conflicts
-npx prisma db push --force-reset
+bunx prisma db push --force-reset
 ```
 
 #### Schema Generation Issues
@@ -597,7 +596,7 @@ npx prisma db push --force-reset
 ```bash
 # Clear Prisma cache
 rm -rf node_modules/.prisma
-npx prisma generate --force
+bunx prisma generate --force
 ```
 
 ### Performance Optimization

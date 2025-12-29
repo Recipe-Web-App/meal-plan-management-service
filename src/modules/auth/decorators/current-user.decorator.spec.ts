@@ -1,3 +1,4 @@
+import { describe, it, expect, mock } from 'bun:test';
 import { ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { CurrentUser } from './current-user.decorator';
@@ -34,17 +35,17 @@ describe('CurrentUser Decorator', () => {
       // Create a proper execution context mock
       const mockRequest = { user: mockUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       // Test the decorator implementation directly
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
@@ -55,18 +56,18 @@ describe('CurrentUser Decorator', () => {
     it('should call the correct context methods', () => {
       const mockRequest = { user: mockUser } as AuthenticatedRequest;
       const httpContextMock = {
-        getRequest: jest.fn().mockReturnValue(mockRequest),
+        getRequest: mock(() => mockRequest),
       };
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue(httpContextMock),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => httpContextMock),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -85,17 +86,17 @@ describe('CurrentUser Decorator', () => {
 
       const mockRequest = { user: serviceUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -115,17 +116,17 @@ describe('CurrentUser Decorator', () => {
 
       const mockRequest = { user: minimalUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -147,17 +148,17 @@ describe('CurrentUser Decorator', () => {
 
       const mockRequest = { user: guardSetUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -168,17 +169,17 @@ describe('CurrentUser Decorator', () => {
     it('should maintain type safety with TypeScript', () => {
       const mockRequest = { user: mockUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -209,17 +210,17 @@ describe('CurrentUser Decorator', () => {
       } as AuthenticatedRequest;
 
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(requestWithExtras),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => requestWithExtras),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result = getCurrentUserImpl(undefined, mockExecutionContext);
 
@@ -229,17 +230,17 @@ describe('CurrentUser Decorator', () => {
     it('should work consistently across multiple calls', () => {
       const mockRequest = { user: mockUser } as AuthenticatedRequest;
       const mockExecutionContext: ExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-        }),
-        getClass: jest.fn(),
-        getHandler: jest.fn(),
-        getArgs: jest.fn(),
-        getArgByIndex: jest.fn(),
-        switchToRpc: jest.fn(),
-        switchToWs: jest.fn(),
-        getType: jest.fn(),
-      };
+        switchToHttp: mock(() => ({
+          getRequest: mock(() => mockRequest),
+        })),
+        getClass: mock(() => {}),
+        getHandler: mock(() => {}),
+        getArgs: mock(() => []),
+        getArgByIndex: mock(() => null),
+        switchToRpc: mock(() => ({})),
+        switchToWs: mock(() => ({})),
+        getType: mock(() => 'http'),
+      } as unknown as ExecutionContext;
 
       const result1 = getCurrentUserImpl(undefined, mockExecutionContext);
       const result2 = getCurrentUserImpl(undefined, mockExecutionContext);

@@ -1,8 +1,9 @@
+import { describe, it, expect, beforeEach, mock, spyOn, type Mock } from 'bun:test';
 import { NoOverlappingMealPlansConstraint } from './meal-plan-overlap.validator';
 
 const mockPrismaService = {
   mealPlan: {
-    findFirst: jest.fn(),
+    findFirst: mock(() => {}),
   },
 };
 
@@ -10,7 +11,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
   let constraint: NoOverlappingMealPlansConstraint;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.mealPlan.findFirst.mockReset();
     constraint = new NoOverlappingMealPlansConstraint(mockPrismaService as any);
   });
 
@@ -420,7 +421,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
       const error = new Error('Database connection failed');
       mockPrismaService.mealPlan.findFirst.mockRejectedValueOnce(error);
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = spyOn(console, 'error').mockImplementation(() => {});
 
       const isValid = await constraint.validate(true, {
         constraints: [
@@ -442,11 +443,11 @@ describe('NoOverlappingMealPlansConstraint', () => {
       expect(isValid).toBe(true);
 
       // Verify that the error was logged (may fail due to test timing)
-      if (consoleSpy.mock.calls.length > 0) {
+      if ((consoleSpy as any).mock.calls.length > 0) {
         expect(consoleSpy).toHaveBeenCalledWith('MealPlanOverlap validation error:', error);
       }
 
-      consoleSpy.mockRestore();
+      (consoleSpy as any).mockRestore();
     });
   });
 
@@ -473,7 +474,7 @@ describe('NoOverlappingMealPlansConstraint', () => {
 
 describe('decorator variations', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.mealPlan.findFirst.mockReset();
   });
 
   describe('NoMealPlanOverlap', () => {
@@ -565,7 +566,7 @@ describe('edge cases', () => {
   let constraint: NoOverlappingMealPlansConstraint;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPrismaService.mealPlan.findFirst.mockReset();
     constraint = new NoOverlappingMealPlansConstraint(mockPrismaService as any);
   });
 

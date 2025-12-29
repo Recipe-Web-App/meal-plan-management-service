@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { plainToClass } from 'class-transformer';
 import { MealPlanResponseDto, MealPlanRecipeResponseDto } from './meal-plan-response.dto';
 

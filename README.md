@@ -26,33 +26,33 @@ OAuth2 authentication, PostgreSQL database integration, and comprehensive monito
 ## Project setup
 
 ```bash
-npm install
+bun install
 ```
 
 ## Compile and run the project
 
 ```bash
 # development
-$ npm run start
+$ bun run start
 
 # watch mode
-$ npm run start:dev
+$ bun run start:dev
 
 # production mode
-$ npm run start:prod
+$ bun run start:prod
 ```
 
 ## Run tests
 
 ```bash
 # unit tests
-$ npm run test
+$ bun test
 
 # e2e tests
-$ npm run test:e2e
+$ bun test test/**/*.e2e-spec.ts
 
 # test coverage
-$ npm run test:cov
+$ bun test --coverage
 ```
 
 ## 🤖 Automated Dependency Management
@@ -90,7 +90,7 @@ If you are looking for a cloud-based platform to deploy your NestJS application,
 straightforward and fast, requiring just a few simple steps:
 
 ```bash
-npm install -g @nestjs/mau
+bun add -g @nestjs/mau
 mau deploy
 ```
 
@@ -138,6 +138,7 @@ Interactive API documentation is available at `/docs` when running the service:
 
 ### 🏗️ Core Technologies
 
+- **Runtime**: Bun (replaces Node.js for faster performance)
 - **Framework**: NestJS with TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: OAuth2 + JWT with Passport.js

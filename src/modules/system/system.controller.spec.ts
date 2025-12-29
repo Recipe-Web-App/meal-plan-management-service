@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemController } from './system.controller';
 import { SystemService } from './system.service';
@@ -6,12 +7,16 @@ describe('SystemController', () => {
   let controller: SystemController;
   let service: SystemService;
 
-  const mockSystemService = {
-    getServiceInfo: jest.fn(),
-    getConfiguration: jest.fn(),
+  let mockSystemService: {
+    getServiceInfo: Mock<() => unknown>;
+    getConfiguration: Mock<() => unknown>;
   };
 
   beforeEach(async () => {
+    mockSystemService = {
+      getServiceInfo: mock(() => ({})),
+      getConfiguration: mock(() => ({})),
+    };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SystemController],
       providers: [
@@ -27,7 +32,8 @@ describe('SystemController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mockSystemService.getServiceInfo.mockClear();
+    mockSystemService.getConfiguration.mockClear();
   });
 
   describe('getInfo', () => {

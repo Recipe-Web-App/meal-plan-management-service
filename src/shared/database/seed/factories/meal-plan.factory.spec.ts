@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { MealPlanFactory } from './meal-plan.factory';
 import { MealType } from '@generated/prisma/client';
 

@@ -1,26 +1,67 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn, type Mock } from 'bun:test';
 import { TestDatabase } from './test-database';
 import { PrismaService } from '@/config/database.config';
 import { LoggerService } from '@/shared/services/logger.service';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { MealType } from '@generated/prisma/client';
 
 describe('TestDatabase', () => {
   let testDb: TestDatabase;
-  let prismaService: DeepMockProxy<PrismaService>;
-  let loggerService: DeepMockProxy<LoggerService>;
+  let prismaService: {
+    mealPlanRecipe: { deleteMany: Mock<() => Promise<{ count: number }>> };
+    mealPlan: { deleteMany: Mock<() => Promise<{ count: number }>> };
+    recipe: {
+      deleteMany: Mock<() => Promise<{ count: number }>>;
+      create: Mock<() => Promise<unknown>>;
+    };
+    user: {
+      deleteMany: Mock<() => Promise<{ count: number }>>;
+      create: Mock<() => Promise<unknown>>;
+    };
+  };
+  let loggerService: {
+    log: Mock<() => void>;
+    error: Mock<() => void>;
+    warn: Mock<() => void>;
+    debug: Mock<() => void>;
+    info: Mock<() => void>;
+  };
 
   beforeEach(() => {
-    prismaService = mockDeep<PrismaService>();
-    loggerService = mockDeep<LoggerService>();
+    prismaService = {
+      mealPlanRecipe: { deleteMany: mock(() => Promise.resolve({ count: 0 })) },
+      mealPlan: {
+        deleteMany: mock(() => Promise.resolve({ count: 0 })),
+        create: mock(() => Promise.resolve({})),
+      },
+      recipe: {
+        deleteMany: mock(() => Promise.resolve({ count: 0 })),
+        create: mock(() => Promise.resolve({})),
+      },
+      user: {
+        deleteMany: mock(() => Promise.resolve({ count: 0 })),
+        create: mock(() => Promise.resolve({})),
+      },
+    } as unknown as typeof prismaService;
+
+    loggerService = {
+      log: mock(() => {}),
+      error: mock(() => {}),
+      warn: mock(() => {}),
+      debug: mock(() => {}),
+      info: mock(() => {}),
+    };
 
     testDb = new TestDatabase({
-      prisma: prismaService,
-      logger: loggerService,
+      prisma: prismaService as unknown as PrismaService,
+      logger: loggerService as unknown as LoggerService,
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    prismaService.mealPlanRecipe.deleteMany.mockClear();
+    prismaService.mealPlan.deleteMany.mockClear();
+    prismaService.recipe.deleteMany.mockClear();
+    prismaService.user.deleteMany.mockClear();
   });
 
   describe('setup', () => {
@@ -209,11 +250,11 @@ describe('TestDatabase', () => {
         updatedAt: new Date(),
       };
 
-      prismaService.mealPlan.create.mockResolvedValue(mockMealPlan);
+      (prismaService as any).mealPlan.create = mock(() => Promise.resolve(mockMealPlan));
 
       const result = await testDb.createMealPlan();
 
-      expect(prismaService.mealPlan.create).toHaveBeenCalledWith({
+      expect((prismaService as any).mealPlan.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           mealPlanId: expect.any(BigInt),
           userId: expect.any(String),
@@ -239,7 +280,10 @@ describe('TestDatabase', () => {
         recipesAdded: 2,
       };
 
-      jest.spyOn(testDb['seeder'], 'seedMealPlanForUser').mockResolvedValue(mockResult);
+      const seedMealPlanForUserSpy = spyOn(
+        testDb['seeder'],
+        'seedMealPlanForUser',
+      ).mockResolvedValue(mockResult as any);
 
       const result = await testDb.createMealPlanWithRecipes(userId, recipeIds, options);
 
@@ -249,6 +293,8 @@ describe('TestDatabase', () => {
         options,
       );
       expect(result).toEqual(mockResult);
+
+      seedMealPlanForUserSpy.mockRestore();
     });
   });
 
@@ -261,11 +307,13 @@ describe('TestDatabase', () => {
         mealType: MealType.DINNER,
       };
 
-      prismaService.mealPlanRecipe.create.mockResolvedValue(mockMealPlanRecipe);
+      (prismaService as any).mealPlanRecipe.create = mock(() =>
+        Promise.resolve(mockMealPlanRecipe),
+      );
 
       const result = await testDb.createMealPlanRecipe();
 
-      expect(prismaService.mealPlanRecipe.create).toHaveBeenCalledWith({
+      expect((prismaService as any).mealPlanRecipe.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           mealPlanId: expect.any(BigInt),
           recipeId: expect.any(BigInt),
@@ -290,11 +338,13 @@ describe('TestDatabase', () => {
         mealType: MealType.BREAKFAST,
       };
 
-      prismaService.mealPlanRecipe.create.mockResolvedValue(mockMealPlanRecipe);
+      (prismaService as any).mealPlanRecipe.create = mock(() =>
+        Promise.resolve(mockMealPlanRecipe),
+      );
 
       await testDb.createMealPlanRecipe(overrides);
 
-      expect(prismaService.mealPlanRecipe.create).toHaveBeenCalledWith({
+      expect((prismaService as any).mealPlanRecipe.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           mealPlanId: BigInt(12345),
           recipeId: BigInt(67890),
@@ -314,7 +364,7 @@ describe('TestDatabase', () => {
         duration: 100,
       };
 
-      jest.spyOn(testDb['seeder'], 'seedAll').mockResolvedValue(mockResult);
+      const seedAllSpy = spyOn(testDb['seeder'], 'seedAll').mockResolvedValue(mockResult);
 
       const result = await testDb.seedTestData();
 
@@ -326,6 +376,8 @@ describe('TestDatabase', () => {
         cleanFirst: false,
       });
       expect(result).toEqual(mockResult);
+
+      seedAllSpy.mockRestore();
     });
 
     it('should accept custom options', async () => {
@@ -342,7 +394,7 @@ describe('TestDatabase', () => {
         duration: 100,
       };
 
-      jest.spyOn(testDb['seeder'], 'seedAll').mockResolvedValue(mockResult);
+      const seedAllSpy = spyOn(testDb['seeder'], 'seedAll').mockResolvedValue(mockResult);
 
       await testDb.seedTestData(customOptions);
 
@@ -353,6 +405,8 @@ describe('TestDatabase', () => {
         recipesPerPlan: 5,
         cleanFirst: true,
       });
+
+      seedAllSpy.mockRestore();
     });
   });
 
@@ -380,7 +434,7 @@ describe('TestDatabase', () => {
   describe('logger fallback', () => {
     it('should work without logger provided', () => {
       const testDbWithoutLogger = new TestDatabase({
-        prisma: prismaService,
+        prisma: prismaService as unknown as PrismaService,
       });
 
       expect(testDbWithoutLogger).toBeDefined();

@@ -1,24 +1,42 @@
+import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerService } from './logger.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { RequestContextService } from './request-context.service';
 import { Logger } from 'winston';
 
-jest.mock('./request-context.service');
+// Mock RequestContextService
+const mockGetContext = mock(() => null);
+const mockGetCorrelationId = mock(() => undefined);
+
+// Store original methods to restore later
+const originalGetContext = RequestContextService.getContext;
+const originalGetCorrelationId = RequestContextService.getCorrelationId;
 
 describe('LoggerService', () => {
   let service: LoggerService;
-  let mockWinstonLogger: jest.Mocked<Logger>;
+  let mockWinstonLogger: {
+    info: Mock<() => void>;
+    error: Mock<() => void>;
+    warn: Mock<() => void>;
+    debug: Mock<() => void>;
+    verbose: Mock<() => void>;
+    log: Mock<() => void>;
+  };
 
   beforeEach(async () => {
+    // Setup mocks for RequestContextService static methods
+    (RequestContextService as any).getContext = mockGetContext;
+    (RequestContextService as any).getCorrelationId = mockGetCorrelationId;
+
     mockWinstonLogger = {
-      info: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
-      log: jest.fn(),
-    } as any;
+      info: mock(() => {}),
+      error: mock(() => {}),
+      warn: mock(() => {}),
+      debug: mock(() => {}),
+      verbose: mock(() => {}),
+      log: mock(() => {}),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,12 +52,23 @@ describe('LoggerService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Restore original methods
+    (RequestContextService as any).getContext = originalGetContext;
+    (RequestContextService as any).getCorrelationId = originalGetCorrelationId;
+
+    mockWinstonLogger.info.mockClear();
+    mockWinstonLogger.error.mockClear();
+    mockWinstonLogger.warn.mockClear();
+    mockWinstonLogger.debug.mockClear();
+    mockWinstonLogger.verbose.mockClear();
+    mockWinstonLogger.log.mockClear();
+    mockGetContext.mockClear();
+    mockGetCorrelationId.mockClear();
   });
 
   describe('formatMessage', () => {
     it('should format message with context only', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.log('test message', 'TestContext');
 
@@ -49,7 +78,7 @@ describe('LoggerService', () => {
     });
 
     it('should format message with correlation ID', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         correlationId: 'test-correlation-id',
       });
 
@@ -62,7 +91,7 @@ describe('LoggerService', () => {
     });
 
     it('should format message with user ID and correlation ID', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         correlationId: 'test-correlation-id',
         userId: 'user123',
         ip: '127.0.0.1',
@@ -82,7 +111,7 @@ describe('LoggerService', () => {
     });
 
     it('should format message without context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.log('test message');
 
@@ -92,7 +121,7 @@ describe('LoggerService', () => {
 
   describe('log', () => {
     it('should call winston info with formatted message', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.log('test message', 'TestContext');
 
@@ -104,7 +133,7 @@ describe('LoggerService', () => {
 
   describe('error', () => {
     it('should call winston error with formatted message and trace', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.error('error message', 'stack trace', 'TestContext');
 
@@ -115,7 +144,7 @@ describe('LoggerService', () => {
     });
 
     it('should call winston error without trace', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.error('error message', undefined, 'TestContext');
 
@@ -128,7 +157,7 @@ describe('LoggerService', () => {
 
   describe('warn', () => {
     it('should call winston warn with meta object', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
       const meta = { customField: 'value' };
 
       service.warn('warning message', meta, 'TestContext');
@@ -140,7 +169,7 @@ describe('LoggerService', () => {
     });
 
     it('should handle string meta as context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.warn('warning message', 'TestContext' as any);
 
@@ -152,7 +181,7 @@ describe('LoggerService', () => {
 
   describe('debug', () => {
     it('should call winston debug with meta object', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
       const meta = { debugInfo: 'debug data' };
 
       service.debug('debug message', meta, 'TestContext');
@@ -164,7 +193,7 @@ describe('LoggerService', () => {
     });
 
     it('should handle string meta as context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.debug('debug message', 'TestContext' as any);
 
@@ -176,7 +205,7 @@ describe('LoggerService', () => {
 
   describe('verbose', () => {
     it('should call winston verbose with formatted message', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.verbose('verbose message', 'TestContext');
 
@@ -188,7 +217,7 @@ describe('LoggerService', () => {
 
   describe('info', () => {
     it('should call winston info with meta object', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
       const meta = { infoData: 'info value' };
 
       service.info('info message', meta, 'TestContext');
@@ -202,16 +231,16 @@ describe('LoggerService', () => {
 
   describe('getCorrelationId', () => {
     it('should return correlation ID from request context', () => {
-      (RequestContextService.getCorrelationId as jest.Mock).mockReturnValue('test-correlation-id');
+      mockGetCorrelationId.mockReturnValue('test-correlation-id');
 
       const result = service.getCorrelationId();
 
       expect(result).toBe('test-correlation-id');
-      expect(RequestContextService.getCorrelationId).toHaveBeenCalled();
+      expect(mockGetCorrelationId).toHaveBeenCalled();
     });
 
     it('should return undefined when no correlation ID', () => {
-      (RequestContextService.getCorrelationId as jest.Mock).mockReturnValue(undefined);
+      mockGetCorrelationId.mockReturnValue(undefined);
 
       const result = service.getCorrelationId();
 
@@ -221,7 +250,7 @@ describe('LoggerService', () => {
 
   describe('logWithMeta', () => {
     it('should call winston log with custom level', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
       const meta = { customField: 'value' };
 
       service.logWithMeta('silly', 'custom message', meta, 'TestContext');
@@ -235,7 +264,7 @@ describe('LoggerService', () => {
 
   describe('logRequest', () => {
     it('should log HTTP request with all parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         correlationId: 'test-id',
       });
 
@@ -252,7 +281,7 @@ describe('LoggerService', () => {
     });
 
     it('should log HTTP request with minimal parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logRequest('POST', '/api/create');
 
@@ -268,7 +297,7 @@ describe('LoggerService', () => {
 
   describe('logDatabaseOperation', () => {
     it('should log database operation with all parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logDatabaseOperation('SELECT', 'users', 25, 5);
 
@@ -285,7 +314,7 @@ describe('LoggerService', () => {
     });
 
     it('should log database operation with minimal parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logDatabaseOperation('INSERT', 'users');
 
@@ -299,7 +328,7 @@ describe('LoggerService', () => {
     });
 
     it('should handle affected rows of 0', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logDatabaseOperation('UPDATE', 'users', 10, 0);
 
@@ -318,7 +347,7 @@ describe('LoggerService', () => {
 
   describe('logExternalCall', () => {
     it('should log external service call with all parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logExternalCall('recipe-service', 'GET', '/api/recipes', 200, 300);
 
@@ -336,7 +365,7 @@ describe('LoggerService', () => {
     });
 
     it('should log external service call with minimal parameters', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logExternalCall('user-service', 'POST', '/api/users');
 
@@ -356,7 +385,7 @@ describe('LoggerService', () => {
 
   describe('logSecurityEvent', () => {
     it('should log security event with details', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         userId: 'user123',
         ip: '192.168.1.1',
       });
@@ -374,7 +403,7 @@ describe('LoggerService', () => {
     });
 
     it('should log security event without details', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.logSecurityEvent('unauthorized_access');
 
@@ -387,7 +416,7 @@ describe('LoggerService', () => {
 
   describe('enrichMeta', () => {
     it('should enrich meta with request context data', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         correlationId: 'test-id',
         userId: 'user123',
         ip: '127.0.0.1',
@@ -405,7 +434,7 @@ describe('LoggerService', () => {
     });
 
     it('should handle empty meta with request context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue({
+      mockGetContext.mockReturnValue({
         correlationId: 'test-id',
       });
 
@@ -418,7 +447,7 @@ describe('LoggerService', () => {
     });
 
     it('should handle null request context', () => {
-      (RequestContextService.getContext as jest.Mock).mockReturnValue(null);
+      mockGetContext.mockReturnValue(null);
 
       service.info('test', { field: 'value' });
 

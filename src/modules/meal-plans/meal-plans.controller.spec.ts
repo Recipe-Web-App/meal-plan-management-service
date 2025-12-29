@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MealPlansController } from './meal-plans.controller';
 import { MealPlansService } from './meal-plans.service';
@@ -16,14 +17,20 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 
 describe('MealPlansController', () => {
   let controller: MealPlansController;
-  let service: jest.Mocked<MealPlansService>;
+  let service: {
+    findMealPlans: Mock<(...args: unknown[]) => unknown>;
+    findMealPlanById: Mock<(...args: unknown[]) => unknown>;
+    createMealPlan: Mock<(...args: unknown[]) => unknown>;
+    updateMealPlan: Mock<(...args: unknown[]) => unknown>;
+    deleteMealPlan: Mock<(...args: unknown[]) => unknown>;
+  };
 
   const mockService = {
-    findMealPlans: jest.fn(),
-    findMealPlanById: jest.fn(),
-    createMealPlan: jest.fn(),
-    updateMealPlan: jest.fn(),
-    deleteMealPlan: jest.fn(),
+    findMealPlans: mock(() => {}),
+    findMealPlanById: mock(() => {}),
+    createMealPlan: mock(() => {}),
+    updateMealPlan: mock(() => {}),
+    deleteMealPlan: mock(() => {}),
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
@@ -76,6 +83,13 @@ describe('MealPlansController', () => {
   };
 
   beforeEach(async () => {
+    // Reset all mocks
+    mockService.findMealPlans.mockReset();
+    mockService.findMealPlanById.mockReset();
+    mockService.createMealPlan.mockReset();
+    mockService.updateMealPlan.mockReset();
+    mockService.deleteMealPlan.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MealPlansController],
       providers: [
@@ -87,9 +101,7 @@ describe('MealPlansController', () => {
     }).compile();
 
     controller = module.get<MealPlansController>(MealPlansController);
-    service = module.get(MealPlansService);
-
-    jest.clearAllMocks();
+    service = module.get(MealPlansService) as typeof service;
   });
 
   it('should be defined', () => {
@@ -778,7 +790,7 @@ describe('MealPlansController', () => {
     };
 
     beforeEach(() => {
-      service.updateMealPlan.mockClear();
+      service.updateMealPlan.mockReset();
     });
 
     describe('successful updates', () => {
@@ -997,7 +1009,7 @@ describe('MealPlansController', () => {
     const mockUserId = 'temp-user-id';
 
     beforeEach(() => {
-      service.deleteMealPlan.mockClear();
+      service.deleteMealPlan.mockReset();
     });
 
     describe('successful deletion', () => {
@@ -1014,7 +1026,7 @@ describe('MealPlansController', () => {
         const testIds = ['1', '123', '999999', '9999999999999'];
 
         for (const testId of testIds) {
-          service.deleteMealPlan.mockClear();
+          service.deleteMealPlan.mockReset();
           service.deleteMealPlan.mockResolvedValue(undefined);
 
           const result = await controller.deleteMealPlan(testId, mockUser);
@@ -1100,7 +1112,7 @@ describe('MealPlansController', () => {
         ];
 
         for (const testId of testCases) {
-          service.deleteMealPlan.mockClear();
+          service.deleteMealPlan.mockReset();
           service.deleteMealPlan.mockResolvedValue(undefined);
 
           await controller.deleteMealPlan(testId, mockUser);

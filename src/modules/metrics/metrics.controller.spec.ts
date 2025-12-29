@@ -1,22 +1,33 @@
+import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MetricsController } from './metrics.controller';
 import { MetricsService } from './metrics.service';
 
 describe('MetricsController', () => {
   let controller: MetricsController;
-  let metricsService: jest.Mocked<MetricsService>;
+  let metricsService: {
+    getMetrics: Mock<() => Promise<string>>;
+    recordHttpRequest: Mock<() => void>;
+    recordMealPlanCreated: Mock<() => void>;
+    recordMealPlanUpdated: Mock<() => void>;
+    recordMealPlanDeleted: Mock<() => void>;
+    updateActiveMealPlans: Mock<() => void>;
+    recordDatabaseQuery: Mock<() => void>;
+    updateDatabaseConnections: Mock<() => void>;
+    getRegistry: Mock<() => unknown>;
+  };
 
   beforeEach(async () => {
     const mockMetricsService = {
-      getMetrics: jest.fn(),
-      recordHttpRequest: jest.fn(),
-      recordMealPlanCreated: jest.fn(),
-      recordMealPlanUpdated: jest.fn(),
-      recordMealPlanDeleted: jest.fn(),
-      updateActiveMealPlans: jest.fn(),
-      recordDatabaseQuery: jest.fn(),
-      updateDatabaseConnections: jest.fn(),
-      getRegistry: jest.fn(),
+      getMetrics: mock(() => Promise.resolve('')),
+      recordHttpRequest: mock(() => {}),
+      recordMealPlanCreated: mock(() => {}),
+      recordMealPlanUpdated: mock(() => {}),
+      recordMealPlanDeleted: mock(() => {}),
+      updateActiveMealPlans: mock(() => {}),
+      recordDatabaseQuery: mock(() => {}),
+      updateDatabaseConnections: mock(() => {}),
+      getRegistry: mock(() => ({})),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +41,7 @@ describe('MetricsController', () => {
     }).compile();
 
     controller = module.get<MetricsController>(MetricsController);
-    metricsService = module.get(MetricsService);
+    metricsService = module.get(MetricsService) as typeof metricsService;
   });
 
   it('should be defined', () => {
