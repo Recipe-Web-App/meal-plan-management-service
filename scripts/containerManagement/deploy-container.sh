@@ -76,12 +76,7 @@ if ! minikube status >/dev/null 2>&1; then
   print_separator "-"
   echo -e "${YELLOW}🚀 Starting Minikube...${NC}"
   minikube start
-
-  if ! minikube addons list | grep -q 'ingress *enabled'; then
-    echo -e "${YELLOW}🔌 Enabling Minikube ingress addon...${NC}"
-    minikube addons enable ingress
-    print_status "ok" "Minikube started."
-  fi
+  print_status "ok" "Minikube started."
 else
   print_status "ok" "Minikube is already running."
 fi
@@ -118,7 +113,7 @@ else
 fi
 
 print_separator "="
-echo -e "${CYAN}🟢 Building Node.js Docker image: ${FULL_IMAGE_NAME} (inside Minikube Docker daemon)${NC}"
+echo -e "${CYAN}🟢 Building Bun Docker image: ${FULL_IMAGE_NAME} (inside Minikube Docker daemon)${NC}"
 print_separator '-'
 
 eval "$(minikube docker-env)"
@@ -169,24 +164,6 @@ print_separator "-"
 kubectl apply -f "${CONFIG_DIR}/horizontalpodautoscaler.yaml"
 
 print_separator "="
-echo -e "${CYAN}⏳ Waiting for Ingress controller to be ready...${NC}"
-print_separator "-"
-
-kubectl wait --namespace ingress-nginx \
-    --for=condition=Ready pod \
-    --selector=app.kubernetes.io/component=controller \
-    --timeout=90s
-
-print_separator "-"
-print_status "ok" "Ingress controller is running."
-
-print_separator "="
-echo -e "${CYAN}📥 Applying Ingress resource...${NC}"
-print_separator "-"
-
-kubectl apply -f "${CONFIG_DIR}/ingress.yaml"
-
-print_separator "="
 echo -e "${CYAN}⏳ Waiting for Meal Plan Management Service pod to be ready...${NC}"
 print_separator "-"
 
@@ -219,13 +196,11 @@ POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=meal-plan-management-service 
 SERVICE_JSON=$(kubectl get svc meal-plan-management-service -n "$NAMESPACE" -o json)
 SERVICE_IP=$(echo "$SERVICE_JSON" | jq -r '.spec.clusterIP')
 SERVICE_PORT=$(echo "$SERVICE_JSON" | jq -r '.spec.ports[0].port')
-INGRESS_HOSTS=$(kubectl get ingress -n "$NAMESPACE" -o jsonpath='{.items[*].spec.rules[*].host}' | tr ' ' '\n' | sort -u | paste -sd ',' -)
 
 print_separator "="
 echo -e "${CYAN}🛰️  Access info:${NC}"
 echo "  Pod: $POD_NAME"
 echo "  Service: $SERVICE_IP:$SERVICE_PORT"
-echo "  Ingress Hosts: $INGRESS_HOSTS"
 echo "  Health Check: http://meal-plan-management.local/api/v1/meal-plan-management/health"
 echo "  Readiness Check: http://meal-plan-management.local/api/v1/meal-plan-management/ready"
 print_separator "="
