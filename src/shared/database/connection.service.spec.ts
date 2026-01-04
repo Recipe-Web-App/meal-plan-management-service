@@ -51,8 +51,8 @@ describe('ConnectionService', () => {
     }).compile();
 
     service = module.get<ConnectionService>(ConnectionService);
-    prismaService = module.get(PrismaService) as typeof prismaService;
-    loggerService = module.get(LoggerService) as typeof loggerService;
+    prismaService = module.get(PrismaService);
+    loggerService = module.get(LoggerService);
   });
 
   afterEach(() => {

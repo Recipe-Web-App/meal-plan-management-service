@@ -81,7 +81,7 @@ describe('TokenValidationService', () => {
     }).compile();
 
     service = module.get<TokenValidationService>(TokenValidationService);
-    configService = module.get(ConfigService) as typeof configService;
+    configService = module.get(ConfigService);
 
     // Replace the axios instance created in constructor with our mock
     (service as any).httpClient = mockAxiosInstance;

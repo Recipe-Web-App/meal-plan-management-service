@@ -58,7 +58,7 @@ describe('JwtAuthGuard', () => {
     }).compile();
 
     guard = module.get<JwtAuthGuard>(JwtAuthGuard);
-    configService = module.get(ConfigService) as typeof configService;
+    configService = module.get(ConfigService);
   });
 
   describe('canActivate', () => {

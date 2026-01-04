@@ -28,7 +28,7 @@ describe('TransactionService', () => {
     }).compile();
 
     transactionService = module.get<TransactionService>(TransactionService);
-    prisma = module.get(PrismaService) as typeof prisma;
+    prisma = module.get(PrismaService);
   });
 
   afterEach(() => {

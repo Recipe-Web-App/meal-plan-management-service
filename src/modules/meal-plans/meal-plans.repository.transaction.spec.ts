@@ -77,7 +77,7 @@ describe('MealPlansRepository - Transaction Methods', () => {
     }).compile();
 
     repository = module.get<MealPlansRepository>(MealPlansRepository);
-    prisma = module.get(PrismaService) as typeof prisma;
+    prisma = module.get(PrismaService);
   });
 
   afterEach(() => {
@@ -175,14 +175,14 @@ describe('MealPlansRepository - Transaction Methods', () => {
           {
             mealPlanId: testMealPlanId,
             recipeId: testRecipeId,
-            mealDate: createData.recipes![0]!.mealDate,
-            mealType: createData.recipes![0]!.mealType,
+            mealDate: createData.recipes[0]!.mealDate,
+            mealType: createData.recipes[0]!.mealType,
           },
           {
             mealPlanId: testMealPlanId,
             recipeId: BigInt(2),
-            mealDate: createData.recipes![1]!.mealDate,
-            mealType: createData.recipes![1]!.mealType,
+            mealDate: createData.recipes[1]!.mealDate,
+            mealType: createData.recipes[1]!.mealType,
           },
         ],
       });

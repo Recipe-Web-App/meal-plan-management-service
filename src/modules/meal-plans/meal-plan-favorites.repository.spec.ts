@@ -53,7 +53,7 @@ describe('MealPlanFavoritesRepository', () => {
     }).compile();
 
     repository = module.get<MealPlanFavoritesRepository>(MealPlanFavoritesRepository);
-    prisma = module.get(PrismaService) as typeof prisma;
+    prisma = module.get(PrismaService);
   });
 
   describe('create', () => {

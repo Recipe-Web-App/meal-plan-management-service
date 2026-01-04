@@ -1,4 +1,12 @@
-import { IsString, IsDate, IsOptional, IsBoolean, Length } from 'class-validator';
+import {
+  IsString,
+  IsDate,
+  IsOptional,
+  IsBoolean,
+  Length,
+  IsArray,
+  MaxLength,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsMealPlanDateRangeValid } from '../validators/date-range.validator';
@@ -91,6 +99,17 @@ export class UpdateMealPlanDto {
     return value;
   })
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Updated list of tag names (replaces existing tags when provided)',
+    type: [String],
+    example: ['Monthly', 'Budget'],
+  })
+  @IsOptional()
+  @IsArray({ message: 'Tags must be an array' })
+  @IsString({ each: true, message: 'Each tag must be a string' })
+  @MaxLength(50, { each: true, message: 'Each tag name must be at most 50 characters' })
+  tags?: string[];
 
   // Internal fields for validation - set by service layer, not by client
   // These fields are not exposed in API documentation

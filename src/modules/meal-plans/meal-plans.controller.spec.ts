@@ -101,7 +101,7 @@ describe('MealPlansController', () => {
     }).compile();
 
     controller = module.get<MealPlansController>(MealPlansController);
-    service = module.get(MealPlansService) as typeof service;
+    service = module.get(MealPlansService);
   });
 
   it('should be defined', () => {

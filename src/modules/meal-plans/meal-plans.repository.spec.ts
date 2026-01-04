@@ -71,7 +71,7 @@ describe('MealPlansRepository', () => {
     }).compile();
 
     repository = module.get<MealPlansRepository>(MealPlansRepository);
-    prisma = module.get(PrismaService) as typeof prisma;
+    prisma = module.get(PrismaService);
   });
 
   afterEach(() => {
