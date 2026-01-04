@@ -29,9 +29,10 @@ enum MealType {
 
 // Minimal User model - only fields needed for meal plan relationships
 model User {
-  userId    String     @id @map("user_id") @db.Uuid
-  username  String     @unique @db.VarChar(50)
-  mealPlans MealPlan[]
+  userId            String             @id @map("user_id") @db.Uuid
+  username          String             @unique @db.VarChar(50)
+  mealPlans         MealPlan[]
+  mealPlanFavorites MealPlanFavorite[]
 
   @@map("users")
   @@schema("recipe_manager")
@@ -59,8 +60,9 @@ model MealPlan {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  user            User             @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  mealPlanRecipes MealPlanRecipe[]
+  user              User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlanRecipes   MealPlanRecipe[]
+  mealPlanFavorites MealPlanFavorite[]
 
   @@map("meal_plans")
   @@schema("recipe_manager")
@@ -78,5 +80,19 @@ model MealPlanRecipe {
 
   @@id([mealPlanId, recipeId, mealDate])
   @@map("meal_plan_recipes")
+  @@schema("recipe_manager")
+}
+
+// MealPlanFavorite junction model - maps to existing meal_plan_favorites table
+model MealPlanFavorite {
+  userId      String   @map("user_id") @db.Uuid
+  mealPlanId  BigInt   @map("meal_plan_id")
+  favoritedAt DateTime @default(now()) @map("favorited_at") @db.Timestamptz(6)
+
+  user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+
+  @@id([userId, mealPlanId])
+  @@map("meal_plan_favorites")
   @@schema("recipe_manager")
 }
