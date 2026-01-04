@@ -415,6 +415,58 @@ export class MealPlansService {
     return response;
   }
 
+  /**
+   * Get trending meal plans based on time-decayed engagement score.
+   * Returns at most 100 trending meal plans, paginated by the client.
+   *
+   * @param paginationDto Pagination parameters (page, limit)
+   * @returns Paginated list of trending meal plans
+   */
+  async getTrendingMealPlans(paginationDto: PaginationDto): Promise<PaginatedMealPlansResponseDto> {
+    // Get total count (capped at 100)
+    const total = await this.repository.countTrendingMealPlans();
+
+    // Get paginated trending meal plans
+    const mealPlans = await this.repository.findTrendingMealPlans(
+      paginationDto.offset,
+      paginationDto.limit!,
+    );
+
+    // Fetch tags for each meal plan
+    const mealPlanDtos = await Promise.all(
+      mealPlans.map(async (mealPlan) => {
+        const dto = plainToInstance(MealPlanResponseDto, mealPlan, {
+          excludeExtraneousValues: true,
+        });
+
+        // Add tags to the response
+        const tagsData = await this.tagsRepository.findTagsByMealPlanId(mealPlan.mealPlanId);
+        dto.tags = tagsData.map((tag) => ({
+          tagId: tag.tagId.toString(),
+          name: tag.name,
+        }));
+
+        return dto;
+      }),
+    );
+
+    // Calculate pagination metadata with capped total
+    const totalPages = Math.ceil(total / paginationDto.limit!);
+
+    return {
+      success: true,
+      data: mealPlanDtos,
+      meta: {
+        page: paginationDto.page!,
+        limit: paginationDto.limit!,
+        total,
+        totalPages,
+        hasNext: paginationDto.page! < totalPages,
+        hasPrevious: paginationDto.page! > 1,
+      },
+    };
+  }
+
   private buildMealPlanFilters(
     queryDto: MealPlanQueryDto,
     userId: string,

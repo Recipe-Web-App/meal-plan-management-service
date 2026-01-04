@@ -953,4 +953,72 @@ export class MealPlansRepository {
       where: { mealPlanId },
     });
   }
+
+  // Trending Meal Plans Methods
+
+  /**
+   * Find trending meal plans based on a time-decayed scoring algorithm.
+   * Score = Sum(3.0 * exp(-0.23 * AgeInDays))
+   * - Weight: Favorites = 3.0
+   * - Decay Rate: 0.23 (half-life of ~3 days)
+   * - Time Window: 30 days for engagement activity
+   *
+   * Returns at most 100 trending meal plans, paginated by skip/take.
+   * Meal plans with zero engagement are included and ordered by createdAt.
+   *
+   * @param skip Number of items to skip (for pagination within 100)
+   * @param take Number of items to take (for pagination within 100)
+   * @returns Array of meal plans ordered by trending score
+   */
+  async findTrendingMealPlans(skip: number, take: number): Promise<MealPlan[]> {
+    // Use raw SQL for the time-decay trending score calculation
+    // The CTE limits to 100 total, then we apply client pagination
+    const result = await this.prisma.$queryRaw<MealPlan[]>`
+      WITH trending AS (
+        SELECT
+          mp.meal_plan_id,
+          COALESCE(
+            SUM(3.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - mpf.favorited_at)) / 86400)),
+            0
+          ) as trending_score
+        FROM recipe_manager.meal_plans mp
+        LEFT JOIN recipe_manager.meal_plan_favorites mpf
+          ON mp.meal_plan_id = mpf.meal_plan_id
+          AND mpf.favorited_at > NOW() - INTERVAL '30 days'
+        GROUP BY mp.meal_plan_id, mp.created_at
+        ORDER BY trending_score DESC, mp.created_at DESC
+        LIMIT 100
+      )
+      SELECT
+        mp.meal_plan_id as "mealPlanId",
+        mp.user_id as "userId",
+        mp.name,
+        mp.description,
+        mp.start_date as "startDate",
+        mp.end_date as "endDate",
+        mp.created_at as "createdAt",
+        mp.updated_at as "updatedAt"
+      FROM trending t
+      JOIN recipe_manager.meal_plans mp ON t.meal_plan_id = mp.meal_plan_id
+      ORDER BY t.trending_score DESC, mp.created_at DESC
+      OFFSET ${skip} LIMIT ${take}
+    `;
+
+    return result;
+  }
+
+  /**
+   * Count trending meal plans (capped at 100).
+   * Returns the minimum of actual meal plan count and 100.
+   *
+   * @returns Count of trending meal plans (max 100)
+   */
+  async countTrendingMealPlans(): Promise<number> {
+    const result = await this.prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT LEAST(COUNT(*), 100) as count
+      FROM recipe_manager.meal_plans
+    `;
+
+    return Number(result[0].count);
+  }
 }

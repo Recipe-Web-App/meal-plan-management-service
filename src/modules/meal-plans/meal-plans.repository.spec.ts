@@ -1004,4 +1004,96 @@ describe('MealPlansRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('findTrendingMealPlans', () => {
+    it('should return trending meal plans with pagination', async () => {
+      const mockTrendingMealPlans = [
+        {
+          mealPlanId: BigInt(1),
+          userId: testUserId,
+          name: 'Trending Plan 1',
+          description: 'Description 1',
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-07'),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          mealPlanId: BigInt(2),
+          userId: testUserId,
+          name: 'Trending Plan 2',
+          description: 'Description 2',
+          startDate: new Date('2024-01-08'),
+          endDate: new Date('2024-01-14'),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      // Mock $queryRaw for the trending query
+      (mockPrismaService as any).$queryRaw = mock(() => Promise.resolve(mockTrendingMealPlans));
+
+      const result = await repository.findTrendingMealPlans(0, 20);
+
+      expect(result).toEqual(mockTrendingMealPlans);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should return empty array when no meal plans exist', async () => {
+      (mockPrismaService as any).$queryRaw = mock(() => Promise.resolve([]));
+
+      const result = await repository.findTrendingMealPlans(0, 20);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should apply skip and take for pagination', async () => {
+      const mockTrendingMealPlans = [
+        {
+          mealPlanId: BigInt(3),
+          userId: testUserId,
+          name: 'Trending Plan 3',
+          description: 'Description 3',
+          startDate: new Date('2024-01-15'),
+          endDate: new Date('2024-01-21'),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      const queryRawMock = mock(() => Promise.resolve(mockTrendingMealPlans));
+      (mockPrismaService as any).$queryRaw = queryRawMock;
+
+      const result = await repository.findTrendingMealPlans(20, 10);
+
+      expect(result).toEqual(mockTrendingMealPlans);
+      expect(queryRawMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('countTrendingMealPlans', () => {
+    it('should return count capped at 100', async () => {
+      (mockPrismaService as any).$queryRaw = mock(() => Promise.resolve([{ count: BigInt(50) }]));
+
+      const result = await repository.countTrendingMealPlans();
+
+      expect(result).toBe(50);
+    });
+
+    it('should return 100 when actual count exceeds 100', async () => {
+      (mockPrismaService as any).$queryRaw = mock(() => Promise.resolve([{ count: BigInt(100) }]));
+
+      const result = await repository.countTrendingMealPlans();
+
+      expect(result).toBe(100);
+    });
+
+    it('should return 0 when no meal plans exist', async () => {
+      (mockPrismaService as any).$queryRaw = mock(() => Promise.resolve([{ count: BigInt(0) }]));
+
+      const result = await repository.countTrendingMealPlans();
+
+      expect(result).toBe(0);
+    });
+  });
 });

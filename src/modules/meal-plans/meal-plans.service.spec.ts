@@ -26,6 +26,8 @@ describe('MealPlansService', () => {
     findByIdWithRecipes: Mock<(...args: unknown[]) => unknown>;
     update: Mock<(...args: unknown[]) => unknown>;
     delete: Mock<(...args: unknown[]) => unknown>;
+    findTrendingMealPlans: Mock<(...args: unknown[]) => unknown>;
+    countTrendingMealPlans: Mock<(...args: unknown[]) => unknown>;
   };
 
   const mockRepository = {
@@ -44,6 +46,8 @@ describe('MealPlansService', () => {
     findByIdWithRecipes: mock(() => {}),
     update: mock(() => {}),
     delete: mock(() => {}),
+    findTrendingMealPlans: mock(() => {}),
+    countTrendingMealPlans: mock(() => {}),
   };
 
   const mockValidationService = {
@@ -105,6 +109,8 @@ describe('MealPlansService', () => {
     mockRepository.findByIdWithRecipes.mockReset();
     mockRepository.update.mockReset();
     mockRepository.delete.mockReset();
+    mockRepository.findTrendingMealPlans.mockReset();
+    mockRepository.countTrendingMealPlans.mockReset();
     mockValidationService.validateMealPlanAccess.mockReset();
     mockValidationService.validateCreateMealPlan.mockReset();
     mockValidationService.validateUpdateMealPlan.mockReset();
@@ -1416,6 +1422,140 @@ describe('MealPlansService', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toEqual(mockRecipes);
+    });
+  });
+
+  describe('getTrendingMealPlans', () => {
+    const paginationDto: PaginationDto = {
+      page: 1,
+      limit: 20,
+      offset: 0,
+    };
+
+    const mockTrendingMealPlan = {
+      mealPlanId: BigInt(123),
+      userId: 'test-user-id',
+      name: 'Trending Meal Plan',
+      description: 'A popular meal plan',
+      startDate: new Date('2024-03-01'),
+      endDate: new Date('2024-03-07'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should return paginated trending meal plans', async () => {
+      const mockMealPlans = [mockTrendingMealPlan];
+
+      repository.countTrendingMealPlans.mockResolvedValue(1);
+      repository.findTrendingMealPlans.mockResolvedValue(mockMealPlans);
+      mockTagsRepository.findTagsByMealPlanId.mockResolvedValue([]);
+
+      const result = await service.getTrendingMealPlans(paginationDto);
+
+      expect(repository.countTrendingMealPlans).toHaveBeenCalled();
+      expect(repository.findTrendingMealPlans).toHaveBeenCalledWith(0, 20);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      expect(result.meta).toEqual({
+        page: 1,
+        limit: 20,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      });
+    });
+
+    it('should handle empty results', async () => {
+      repository.countTrendingMealPlans.mockResolvedValue(0);
+      repository.findTrendingMealPlans.mockResolvedValue([]);
+
+      const result = await service.getTrendingMealPlans(paginationDto);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
+      expect(result.meta.totalPages).toBe(0);
+    });
+
+    it('should include tags for meal plans', async () => {
+      const mockMealPlans = [mockTrendingMealPlan];
+      const mockTags = [
+        { tagId: BigInt(1), name: 'healthy' },
+        { tagId: BigInt(2), name: 'quick' },
+      ];
+
+      repository.countTrendingMealPlans.mockResolvedValue(1);
+      repository.findTrendingMealPlans.mockResolvedValue(mockMealPlans);
+      mockTagsRepository.findTagsByMealPlanId.mockResolvedValue(mockTags);
+
+      const result = await service.getTrendingMealPlans(paginationDto);
+
+      expect(mockTagsRepository.findTagsByMealPlanId).toHaveBeenCalledWith(BigInt(123));
+      expect(result.data[0]?.tags).toHaveLength(2);
+      expect(result.data[0]?.tags?.[0]).toEqual({ tagId: '1', name: 'healthy' });
+    });
+
+    it('should calculate pagination correctly for multiple pages', async () => {
+      const page2Pagination: PaginationDto = {
+        page: 2,
+        limit: 10,
+        offset: 10,
+      };
+
+      repository.countTrendingMealPlans.mockResolvedValue(25);
+      repository.findTrendingMealPlans.mockResolvedValue([mockTrendingMealPlan]);
+      mockTagsRepository.findTagsByMealPlanId.mockResolvedValue([]);
+
+      const result = await service.getTrendingMealPlans(page2Pagination);
+
+      expect(repository.findTrendingMealPlans).toHaveBeenCalledWith(10, 10);
+      expect(result.meta).toEqual({
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+        hasNext: true,
+        hasPrevious: true,
+      });
+    });
+
+    it('should handle last page correctly', async () => {
+      const lastPagePagination: PaginationDto = {
+        page: 5,
+        limit: 20,
+        offset: 80,
+      };
+
+      repository.countTrendingMealPlans.mockResolvedValue(100);
+      repository.findTrendingMealPlans.mockResolvedValue([mockTrendingMealPlan]);
+      mockTagsRepository.findTagsByMealPlanId.mockResolvedValue([]);
+
+      const result = await service.getTrendingMealPlans(lastPagePagination);
+
+      expect(result.meta.hasNext).toBe(false);
+      expect(result.meta.hasPrevious).toBe(true);
+    });
+
+    it('should handle multiple meal plans with different tags', async () => {
+      const mockMealPlans = [
+        { ...mockTrendingMealPlan, mealPlanId: BigInt(1) },
+        { ...mockTrendingMealPlan, mealPlanId: BigInt(2), name: 'Another Plan' },
+      ];
+
+      repository.countTrendingMealPlans.mockResolvedValue(2);
+      repository.findTrendingMealPlans.mockResolvedValue(mockMealPlans);
+      mockTagsRepository.findTagsByMealPlanId.mockImplementation((mealPlanId: bigint) => {
+        if (mealPlanId === BigInt(1)) {
+          return Promise.resolve([{ tagId: BigInt(1), name: 'healthy' }]);
+        }
+        return Promise.resolve([{ tagId: BigInt(2), name: 'budget' }]);
+      });
+
+      const result = await service.getTrendingMealPlans(paginationDto);
+
+      expect(result.data).toHaveLength(2);
+      expect(mockTagsRepository.findTagsByMealPlanId).toHaveBeenCalledTimes(2);
     });
   });
 

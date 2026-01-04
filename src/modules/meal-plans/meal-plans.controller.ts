@@ -270,6 +270,55 @@ export class MealPlansController {
     return this.mealPlansService.updateMealPlan(id, updateMealPlanDto, userId);
   }
 
+  @Get('trending')
+  @ApiTags('search')
+  @ApiOperation({
+    summary: 'Get trending meal plans',
+    description: `Retrieves the most trending meal plans with pagination support.
+
+Meal plans are ordered by trending score in descending order, so the first
+item in the response is the "most trending" meal plan.
+
+**Trending Factors:**
+Trending score considers recent engagement metrics including favorites,
+with time-decay to prioritize recent activity.`,
+    operationId: 'getTrendingMealPlans',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Trending meal plans retrieved successfully',
+    type: PaginatedMealPlansResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - authentication required',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 20,
+  })
+  async getTrendingMealPlans(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedMealPlansResponseDto> {
+    return this.mealPlansService.getTrendingMealPlans(paginationDto);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get meal plan by ID',
