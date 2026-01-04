@@ -9,6 +9,7 @@ export * from './meal-plan-view-responses.dto';
 export * from './meal-plan-statistics.dto';
 export * from './api-responses.dto';
 export * from './pagination.dto';
+export * from './meal-plan-favorite.dto';
 
 // Export enums
 export * from '../enums/meal-type.enum';
