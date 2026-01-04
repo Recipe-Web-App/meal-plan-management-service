@@ -20,6 +20,8 @@ tags:
     description: Prometheus metrics for monitoring and alerting
   - name: system
     description: System information and documentation endpoints
+  - name: favorites
+    description: Meal plan favorites management operations
 
 security:
   - bearerAuth: []
@@ -226,6 +228,96 @@ paths:
       responses:
         '204':
           description: Meal plan deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/favorites:
+    get:
+      tags:
+        - favorites
+      summary: List favorite meal plans
+      description: Retrieve a paginated list of the authenticated user's favorite meal plans
+      operationId: listFavoriteMealPlans
+      parameters:
+        - $ref: '#/components/parameters/IncludeMealPlanDetails'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of favorite meal plans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMealPlanFavoritesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/favorites/{mealPlanId}:
+    post:
+      tags:
+        - favorites
+      summary: Add meal plan to favorites
+      description: Add a meal plan to the authenticated user's favorites
+      operationId: addMealPlanToFavorites
+      parameters:
+        - $ref: '#/components/parameters/FavoriteMealPlanId'
+      responses:
+        '201':
+          description: Meal plan added to favorites successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanFavoriteApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      tags:
+        - favorites
+      summary: Check if meal plan is favorited
+      description: Check if a specific meal plan is in the authenticated user's favorites
+      operationId: checkMealPlanFavorite
+      parameters:
+        - $ref: '#/components/parameters/FavoriteMealPlanId'
+      responses:
+        '200':
+          description: Favorite status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanFavoriteCheckApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - favorites
+      summary: Remove meal plan from favorites
+      description: Remove a meal plan from the authenticated user's favorites
+      operationId: removeMealPlanFromFavorites
+      parameters:
+        - $ref: '#/components/parameters/FavoriteMealPlanId'
+      responses:
+        '204':
+          description: Meal plan removed from favorites successfully
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -508,6 +600,23 @@ components:
         minimum: 1
         maximum: 100
         default: 20
+
+    FavoriteMealPlanId:
+      name: mealPlanId
+      in: path
+      required: true
+      description: Meal plan ID to favorite/unfavorite
+      schema:
+        type: string
+        example: '123'
+
+    IncludeMealPlanDetails:
+      name: includeMealPlan
+      in: query
+      description: Include full meal plan details in response
+      schema:
+        type: boolean
+        default: false
 
   schemas:
     MealType:
@@ -944,6 +1053,72 @@ components:
         message:
           type: string
           example: Meal plan created successfully
+
+    MealPlanFavoriteResponseDto:
+      type: object
+      properties:
+        mealPlanId:
+          type: string
+          description: Meal plan ID
+          example: '123'
+        userId:
+          type: string
+          format: uuid
+          description: User ID who favorited the meal plan
+        favoritedAt:
+          type: string
+          format: date-time
+          description: When the meal plan was added to favorites
+        mealPlan:
+          $ref: '#/components/schemas/MealPlanResponseDto'
+          description: Full meal plan details (included when includeMealPlan=true)
+
+    MealPlanFavoriteCheckResponseDto:
+      type: object
+      properties:
+        isFavorited:
+          type: boolean
+          description: Whether the meal plan is favorited by the user
+          example: true
+        favoritedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the meal plan was favorited (null if not favorited)
+
+    PaginatedMealPlanFavoritesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanFavoriteResponseDto'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    MealPlanFavoriteApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/MealPlanFavoriteResponseDto'
+        message:
+          type: string
+          example: Meal plan added to favorites successfully
+
+    MealPlanFavoriteCheckApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/MealPlanFavoriteCheckResponseDto'
 
     ErrorResponse:
       type: object
