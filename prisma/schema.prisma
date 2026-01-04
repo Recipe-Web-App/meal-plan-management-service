@@ -60,9 +60,10 @@ model MealPlan {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  user              User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  mealPlanRecipes   MealPlanRecipe[]
-  mealPlanFavorites MealPlanFavorite[]
+  user                 User                  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlanRecipes      MealPlanRecipe[]
+  mealPlanFavorites    MealPlanFavorite[]
+  mealPlanTagJunctions MealPlanTagJunction[]
 
   @@map("meal_plans")
   @@schema("recipe_manager")
@@ -94,5 +95,29 @@ model MealPlanFavorite {
 
   @@id([userId, mealPlanId])
   @@map("meal_plan_favorites")
+  @@schema("recipe_manager")
+}
+
+// MealPlanTag model - maps to existing meal_plan_tags table
+model MealPlanTag {
+  tagId BigInt @id @default(autoincrement()) @map("tag_id")
+  name  String @unique @db.VarChar(50)
+
+  mealPlanTagJunctions MealPlanTagJunction[]
+
+  @@map("meal_plan_tags")
+  @@schema("recipe_manager")
+}
+
+// MealPlanTagJunction model - maps to existing meal_plan_tag_junction table
+model MealPlanTagJunction {
+  mealPlanId BigInt @map("meal_plan_id")
+  tagId      BigInt @map("tag_id")
+
+  mealPlan MealPlan    @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+  tag      MealPlanTag @relation(fields: [tagId], references: [tagId], onDelete: Cascade)
+
+  @@id([mealPlanId, tagId])
+  @@map("meal_plan_tag_junction")
   @@schema("recipe_manager")
 }

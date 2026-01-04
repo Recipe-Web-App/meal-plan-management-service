@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseSeeder } from './database-seeder';
@@ -89,8 +89,8 @@ describe('DatabaseSeeder', () => {
     }).compile();
 
     seeder = module.get<DatabaseSeeder>(DatabaseSeeder);
-    prismaService = module.get(PrismaService) as typeof prismaService;
-    transactionService = module.get(TransactionService) as typeof transactionService;
+    prismaService = module.get(PrismaService);
+    transactionService = module.get(TransactionService);
     loggerService = {
       log: mock(() => {}),
       error: mock(() => {}),

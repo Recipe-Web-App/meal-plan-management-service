@@ -33,7 +33,7 @@ describe('HealthController', () => {
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    healthService = module.get(HealthService) as typeof healthService;
+    healthService = module.get(HealthService);
   });
 
   it('should be defined', () => {

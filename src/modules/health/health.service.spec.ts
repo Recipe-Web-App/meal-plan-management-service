@@ -60,9 +60,9 @@ describe('HealthService', () => {
     }).compile();
 
     service = module.get<HealthService>(HealthService);
-    healthCheckService = module.get(HealthCheckService) as typeof healthCheckService;
-    prismaService = module.get(PrismaService) as typeof prismaService;
-    configService = module.get(ConfigService) as typeof configService;
+    healthCheckService = module.get(HealthCheckService);
+    prismaService = module.get(PrismaService);
+    configService = module.get(ConfigService);
   });
 
   it('should be defined', () => {

@@ -6,16 +6,21 @@ import { MealPlanValidationService } from './services/meal-plan-validation.servi
 import { MealPlanFavoritesController } from './meal-plan-favorites.controller';
 import { MealPlanFavoritesService } from './meal-plan-favorites.service';
 import { MealPlanFavoritesRepository } from './meal-plan-favorites.repository';
+import { MealPlanTagsController } from './meal-plan-tags.controller';
+import { MealPlanTagsService } from './meal-plan-tags.service';
+import { MealPlanTagsRepository } from './meal-plan-tags.repository';
 
 @Module({
-  controllers: [MealPlansController, MealPlanFavoritesController],
+  controllers: [MealPlansController, MealPlanFavoritesController, MealPlanTagsController],
   providers: [
     MealPlansService,
     MealPlansRepository,
     MealPlanValidationService,
     MealPlanFavoritesService,
     MealPlanFavoritesRepository,
+    MealPlanTagsService,
+    MealPlanTagsRepository,
   ],
-  exports: [MealPlansService, MealPlansRepository],
+  exports: [MealPlansService, MealPlansRepository, MealPlanTagsService, MealPlanTagsRepository],
 })
 export class MealPlansModule {}

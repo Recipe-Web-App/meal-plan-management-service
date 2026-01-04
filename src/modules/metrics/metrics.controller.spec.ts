@@ -41,7 +41,7 @@ describe('MetricsController', () => {
     }).compile();
 
     controller = module.get<MetricsController>(MetricsController);
-    metricsService = module.get(MetricsService) as typeof metricsService;
+    metricsService = module.get(MetricsService);
   });
 
   it('should be defined', () => {

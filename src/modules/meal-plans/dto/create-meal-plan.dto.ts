@@ -7,6 +7,7 @@ import {
   Length,
   IsArray,
   ValidateNested,
+  MaxLength,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -118,6 +119,17 @@ export class CreateMealPlanDto {
   @ValidateNested({ each: true, message: 'Each recipe must be valid' })
   @Type(() => CreateMealPlanRecipeDto)
   recipes?: CreateMealPlanRecipeDto[];
+
+  @ApiPropertyOptional({
+    description: 'Optional list of tag names to add when creating the meal plan',
+    type: [String],
+    example: ['Weekly', 'Diet'],
+  })
+  @IsOptional()
+  @IsArray({ message: 'Tags must be an array' })
+  @IsString({ each: true, message: 'Each tag must be a string' })
+  @MaxLength(50, { each: true, message: 'Each tag name must be at most 50 characters' })
+  tags?: string[];
 
   // Internal field for validation - set by service layer, not by client
   // This field is not exposed in API documentation

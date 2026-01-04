@@ -57,8 +57,8 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    configService = module.get(ConfigService) as typeof configService;
-    tokenValidationService = module.get(TokenValidationService) as typeof tokenValidationService;
+    configService = module.get(ConfigService);
+    tokenValidationService = module.get(TokenValidationService);
 
     // Mock logger to avoid console output during tests
     spyOn(service['logger'], 'debug').mockImplementation(() => {});

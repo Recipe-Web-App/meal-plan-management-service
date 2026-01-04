@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsString, IsNumber, IsOptional, IsEnum, IsDate, Min, Max } from 'class-validator';
 import { MealType, MEAL_TYPE_VALUES } from '../enums/meal-type.enum';
+import { MealPlanTagResponseDto } from './meal-plan-tag.dto';
 
 export class MealPlanRecipeResponseDto {
   @ApiProperty({
@@ -227,4 +228,12 @@ export class MealPlanResponseDto {
   })
   @Expose()
   durationDays?: number;
+
+  @ApiPropertyOptional({
+    description: 'Tags associated with this meal plan',
+    type: [MealPlanTagResponseDto],
+  })
+  @Expose()
+  @Type(() => MealPlanTagResponseDto)
+  tags?: MealPlanTagResponseDto[];
 }

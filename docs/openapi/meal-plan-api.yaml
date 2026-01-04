@@ -22,6 +22,8 @@ tags:
     description: System information and documentation endpoints
   - name: favorites
     description: Meal plan favorites management operations
+  - name: tags
+    description: Meal plan tag management operations
 
 security:
   - bearerAuth: []
@@ -73,6 +75,7 @@ paths:
         - $ref: '#/components/parameters/SortOrder'
         - $ref: '#/components/parameters/IncludeRecipes'
         - $ref: '#/components/parameters/IncludeArchived'
+        - $ref: '#/components/parameters/TagsFilter'
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -318,6 +321,136 @@ paths:
       responses:
         '204':
           description: Meal plan removed from favorites successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/tags:
+    get:
+      tags:
+        - tags
+      summary: List all tags
+      description: Retrieve a paginated list of all available meal plan tags
+      operationId: listMealPlanTags
+      parameters:
+        - $ref: '#/components/parameters/TagNameSearch'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTagsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/{id}/tags:
+    get:
+      tags:
+        - tags
+      summary: Get meal plan tags
+      description: Retrieve all tags associated with a specific meal plan
+      operationId: getMealPlanTags
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanTagsApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - tags
+      summary: Add tags to meal plan
+      description: >-
+        Add tags to a meal plan. This is additive - existing tags are kept.
+        New tags are created if they don't exist.
+      operationId: addMealPlanTags
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMealPlanTagsDto'
+      responses:
+        '200':
+          description: Tags added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanTagsApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - tags
+      summary: Replace meal plan tags
+      description: Replace all tags on a meal plan. Existing tags are removed and replaced with the provided tags.
+      operationId: replaceMealPlanTags
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMealPlanTagsDto'
+      responses:
+        '200':
+          description: Tags replaced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealPlanTagsApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/{id}/tags/{tagId}:
+    delete:
+      tags:
+        - tags
+      summary: Remove tag from meal plan
+      description: Remove a specific tag from a meal plan
+      operationId: removeMealPlanTag
+      parameters:
+        - $ref: '#/components/parameters/MealPlanId'
+        - $ref: '#/components/parameters/TagId'
+      responses:
+        '204':
+          description: Tag removed successfully
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -618,6 +751,30 @@ components:
         type: boolean
         default: false
 
+    TagId:
+      name: tagId
+      in: path
+      required: true
+      description: Tag ID
+      schema:
+        type: string
+        example: '1'
+
+    TagNameSearch:
+      name: nameSearch
+      in: query
+      description: Search term for tag name
+      schema:
+        type: string
+
+    TagsFilter:
+      name: tags
+      in: query
+      description: Filter by tag names (comma-separated)
+      schema:
+        type: string
+        example: 'Weekly,Budget'
+
   schemas:
     MealType:
       type: string
@@ -669,6 +826,13 @@ components:
           description: Optional list of recipes to add when creating the meal plan
           items:
             $ref: '#/components/schemas/CreateMealPlanRecipeDto'
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          description: Optional list of tag names to add when creating the meal plan
+          example: ['Weekly', 'Diet']
 
     UpdateMealPlanDto:
       type: object
@@ -690,6 +854,13 @@ components:
           type: string
           format: date
           description: Updated end date
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          description: Updated list of tag names (replaces existing tags when provided)
+          example: ['Monthly', 'Budget']
 
     CreateMealPlanRecipeDto:
       type: object
@@ -773,6 +944,11 @@ components:
           type: integer
           description: Duration of the meal plan in days
           example: 7
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanTagDto'
+          description: Tags associated with this meal plan
 
     MealPlanRecipeResponseDto:
       type: object
@@ -1119,6 +1295,61 @@ components:
           example: true
         data:
           $ref: '#/components/schemas/MealPlanFavoriteCheckResponseDto'
+
+    MealPlanTagDto:
+      type: object
+      properties:
+        tagId:
+          type: string
+          description: Tag ID
+          example: '1'
+        name:
+          type: string
+          maxLength: 50
+          description: Tag name
+          example: 'Weekly'
+
+    AddMealPlanTagsDto:
+      type: object
+      required:
+        - tags
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          minItems: 1
+          maxItems: 20
+          description: List of tag names to add
+          example: ['Weekly', 'Budget']
+
+    MealPlanTagsApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanTagDto'
+        message:
+          type: string
+          example: Tags updated successfully
+
+    PaginatedTagsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MealPlanTagDto'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
 
     ErrorResponse:
       type: object

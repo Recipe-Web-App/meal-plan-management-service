@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { MealPlansService } from './meal-plans.service';
 import { MealPlansRepository } from './meal-plans.repository';
+import { MealPlanTagsRepository } from './meal-plan-tags.repository';
 import { MealPlanValidationService } from './services/meal-plan-validation.service';
 import { MealPlanQueryDto, PaginationDto, MealPlanByIdQueryDto } from './dto';
 import { MealType } from './enums/meal-type.enum';
@@ -49,6 +50,13 @@ describe('MealPlansService', () => {
     validateMealPlanAccess: mock(() => {}),
     validateCreateMealPlan: mock(() => {}),
     validateUpdateMealPlan: mock(() => {}),
+  };
+
+  const mockTagsRepository = {
+    findTagsByMealPlanId: mock(() => {}),
+    findOrCreateTagsByName: mock(() => {}),
+    addTagsToMealPlan: mock(() => {}),
+    replaceTagsOnMealPlan: mock(() => {}),
   };
 
   const mockMealPlan = {
@@ -100,6 +108,13 @@ describe('MealPlansService', () => {
     mockValidationService.validateMealPlanAccess.mockReset();
     mockValidationService.validateCreateMealPlan.mockReset();
     mockValidationService.validateUpdateMealPlan.mockReset();
+    mockTagsRepository.findTagsByMealPlanId.mockReset();
+    mockTagsRepository.findOrCreateTagsByName.mockReset();
+    mockTagsRepository.addTagsToMealPlan.mockReset();
+    mockTagsRepository.replaceTagsOnMealPlan.mockReset();
+
+    // Set default mock values for tags repository
+    mockTagsRepository.findTagsByMealPlanId.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -112,11 +127,15 @@ describe('MealPlansService', () => {
           provide: MealPlanValidationService,
           useValue: mockValidationService,
         },
+        {
+          provide: MealPlanTagsRepository,
+          useValue: mockTagsRepository,
+        },
       ],
     }).compile();
 
     service = module.get<MealPlansService>(MealPlansService);
-    repository = module.get(MealPlansRepository) as typeof repository;
+    repository = module.get(MealPlansRepository);
   });
 
   describe('findMealPlans', () => {
@@ -239,12 +258,12 @@ describe('MealPlansService', () => {
 
       mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
       mockRepository.create.mockResolvedValue(mockMealPlan);
+      mockRepository.findByIdWithRecipes.mockResolvedValue(mockMealPlan);
 
       const result = await service.createMealPlan(createMealPlanDtoWithoutRecipes as any, userId);
 
       expect(mockRepository.create).toHaveBeenCalled();
       expect(mockRepository.addRecipeToMealPlan).not.toHaveBeenCalled();
-      expect(mockRepository.findByIdWithRecipes).not.toHaveBeenCalled();
       expect(result).toBeDefined();
     });
 

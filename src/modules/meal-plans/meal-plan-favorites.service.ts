@@ -65,8 +65,8 @@ export class MealPlanFavoritesService {
               mealPlan: plainToInstance(
                 MealPlanResponseDto,
                 {
-                  ...(favorite as MealPlanFavoriteWithMealPlan).mealPlan,
-                  id: (favorite as MealPlanFavoriteWithMealPlan).mealPlan.mealPlanId.toString(),
+                  ...favorite.mealPlan,
+                  id: favorite.mealPlan.mealPlanId.toString(),
                 },
                 { excludeExtraneousValues: true },
               ),

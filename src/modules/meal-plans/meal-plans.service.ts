@@ -11,6 +11,7 @@ import {
   CreateMealPlanData,
   UpdateMealPlanData,
 } from './meal-plans.repository';
+import { MealPlanTagsRepository } from './meal-plan-tags.repository';
 import { MealPlanValidationService } from './services/meal-plan-validation.service';
 import {
   MealPlanQueryDto,
@@ -92,6 +93,7 @@ export class MealPlansService {
   constructor(
     private readonly repository: MealPlansRepository,
     private readonly validationService: MealPlanValidationService,
+    private readonly tagsRepository: MealPlanTagsRepository,
   ) {}
 
   async createMealPlan(
@@ -146,15 +148,27 @@ export class MealPlansService {
         }
       }
 
-      // Return the created meal plan with recipes if they were added
-      const createdMealPlan =
-        createMealPlanDto.recipes && createMealPlanDto.recipes.length > 0
-          ? await this.repository.findByIdWithRecipes(mealPlan.mealPlanId)
-          : mealPlan;
+      // If tags are provided, add them to the meal plan
+      if (createMealPlanDto.tags && createMealPlanDto.tags.length > 0) {
+        const tags = await this.tagsRepository.findOrCreateTagsByName(createMealPlanDto.tags);
+        const tagIds = tags.map((tag) => tag.tagId);
+        await this.tagsRepository.addTagsToMealPlan(mealPlan.mealPlanId, tagIds);
+      }
 
-      return plainToInstance(MealPlanResponseDto, createdMealPlan, {
+      // Return the created meal plan with recipes and tags if they were added
+      const createdMealPlan = await this.repository.findByIdWithRecipes(mealPlan.mealPlanId);
+
+      // Add tags to the response
+      const tagsData = await this.tagsRepository.findTagsByMealPlanId(mealPlan.mealPlanId);
+      const response = plainToInstance(MealPlanResponseDto, createdMealPlan, {
         excludeExtraneousValues: true,
       });
+      response.tags = tagsData.map((tag) => ({
+        tagId: tag.tagId.toString(),
+        name: tag.name,
+      }));
+
+      return response;
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -216,19 +230,40 @@ export class MealPlansService {
         updateData.endDate = validationResult.sanitizedData!.endDate;
       }
 
-      // If no fields to update, return the existing meal plan
-      if (Object.keys(updateData).length === 0) {
-        return plainToInstance(MealPlanResponseDto, existingMealPlan, {
-          excludeExtraneousValues: true,
-        });
+      // Handle tags update (replace semantics) - do this even if no other fields are updated
+      if (updateMealPlanDto.tags !== undefined) {
+        if (updateMealPlanDto.tags.length > 0) {
+          const tags = await this.tagsRepository.findOrCreateTagsByName(updateMealPlanDto.tags);
+          const tagIds = tags.map((tag) => tag.tagId);
+          await this.tagsRepository.replaceTagsOnMealPlan(BigInt(mealPlanId), tagIds);
+        } else {
+          // Empty array means remove all tags
+          await this.tagsRepository.replaceTagsOnMealPlan(BigInt(mealPlanId), []);
+        }
       }
 
-      // Update the meal plan
-      const updatedMealPlan = await this.repository.update(BigInt(mealPlanId), updateData);
+      // If no fields to update (excluding tags), just fetch and return the meal plan
+      let mealPlanToReturn;
+      if (Object.keys(updateData).length === 0) {
+        mealPlanToReturn = existingMealPlan;
+      } else {
+        // Update the meal plan
+        mealPlanToReturn = await this.repository.update(BigInt(mealPlanId), updateData);
+      }
 
-      return plainToInstance(MealPlanResponseDto, updatedMealPlan, {
+      // Build response with tags
+      const response = plainToInstance(MealPlanResponseDto, mealPlanToReturn, {
         excludeExtraneousValues: true,
       });
+
+      // Add tags to response
+      const tagsData = await this.tagsRepository.findTagsByMealPlanId(BigInt(mealPlanId));
+      response.tags = tagsData.map((tag) => ({
+        tagId: tag.tagId.toString(),
+        name: tag.name,
+      }));
+
+      return response;
     } catch (error) {
       if (
         error instanceof BadRequestException ||
@@ -355,6 +390,15 @@ export class MealPlansService {
         break;
       default:
         responseData = this.transformToFullView(mealPlan);
+    }
+
+    // Add tags to the response for full view mode
+    if (viewMode === 'full' || !viewMode) {
+      const tagsData = await this.tagsRepository.findTagsByMealPlanId(mealPlanId);
+      (responseData as MealPlanResponseDto).tags = tagsData.map((tag) => ({
+        tagId: tag.tagId.toString(),
+        name: tag.name,
+      }));
     }
 
     const response: MealPlanQueryResponseDto = {

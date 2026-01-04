@@ -48,7 +48,7 @@ describe('MealPlanFavoritesController', () => {
     }).compile();
 
     controller = module.get<MealPlanFavoritesController>(MealPlanFavoritesController);
-    service = module.get(MealPlanFavoritesService) as typeof service;
+    service = module.get(MealPlanFavoritesService);
   });
 
   describe('listFavorites', () => {

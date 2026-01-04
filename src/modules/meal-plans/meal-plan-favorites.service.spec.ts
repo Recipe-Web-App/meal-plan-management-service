@@ -47,7 +47,7 @@ describe('MealPlanFavoritesService', () => {
     }).compile();
 
     service = module.get<MealPlanFavoritesService>(MealPlanFavoritesService);
-    repository = module.get(MealPlanFavoritesRepository) as typeof repository;
+    repository = module.get(MealPlanFavoritesRepository);
   });
 
   describe('listFavorites', () => {
