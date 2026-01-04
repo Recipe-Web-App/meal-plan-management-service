@@ -23,6 +23,7 @@ describe('MealPlansController', () => {
     createMealPlan: Mock<(...args: unknown[]) => unknown>;
     updateMealPlan: Mock<(...args: unknown[]) => unknown>;
     deleteMealPlan: Mock<(...args: unknown[]) => unknown>;
+    getTrendingMealPlans: Mock<(...args: unknown[]) => unknown>;
   };
 
   const mockService = {
@@ -31,6 +32,7 @@ describe('MealPlansController', () => {
     createMealPlan: mock(() => {}),
     updateMealPlan: mock(() => {}),
     deleteMealPlan: mock(() => {}),
+    getTrendingMealPlans: mock(() => {}),
   };
 
   const mockPaginatedResponse: PaginatedMealPlansResponseDto = {
@@ -89,6 +91,7 @@ describe('MealPlansController', () => {
     mockService.createMealPlan.mockReset();
     mockService.updateMealPlan.mockReset();
     mockService.deleteMealPlan.mockReset();
+    mockService.getTrendingMealPlans.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MealPlansController],
@@ -252,6 +255,143 @@ describe('MealPlansController', () => {
       await controller.getMealPlanById('123', filteredQuery, mockUser);
 
       expect(service.findMealPlanById).toHaveBeenCalledWith('123', filteredQuery, 'temp-user-id');
+    });
+  });
+
+  describe('getTrendingMealPlans', () => {
+    const paginationDto: PaginationDto = {
+      page: 1,
+      limit: 20,
+      offset: 0,
+    };
+
+    const mockTrendingResponse: PaginatedMealPlansResponseDto = {
+      success: true,
+      data: [
+        {
+          id: '123',
+          name: 'Trending Meal Plan',
+          description: 'A popular meal plan',
+          userId: 'test-user-id',
+          startDate: new Date('2024-03-01'),
+          endDate: new Date('2024-03-07'),
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      meta: {
+        page: 1,
+        limit: 20,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      },
+    };
+
+    it('should return paginated trending meal plans', async () => {
+      service.getTrendingMealPlans.mockResolvedValue(mockTrendingResponse);
+
+      const result = await controller.getTrendingMealPlans(paginationDto);
+
+      expect(service.getTrendingMealPlans).toHaveBeenCalledWith(paginationDto);
+      expect(result).toEqual(mockTrendingResponse);
+    });
+
+    it('should handle empty results', async () => {
+      const emptyResponse: PaginatedMealPlansResponseDto = {
+        success: true,
+        data: [],
+        meta: {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrevious: false,
+        },
+      };
+
+      service.getTrendingMealPlans.mockResolvedValue(emptyResponse);
+
+      const result = await controller.getTrendingMealPlans(paginationDto);
+
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
+    });
+
+    it('should handle custom pagination parameters', async () => {
+      const customPagination: PaginationDto = {
+        page: 2,
+        limit: 10,
+        offset: 10,
+      };
+
+      const page2Response: PaginatedMealPlansResponseDto = {
+        ...mockTrendingResponse,
+        meta: {
+          page: 2,
+          limit: 10,
+          total: 25,
+          totalPages: 3,
+          hasNext: true,
+          hasPrevious: true,
+        },
+      };
+
+      service.getTrendingMealPlans.mockResolvedValue(page2Response);
+
+      const result = await controller.getTrendingMealPlans(customPagination);
+
+      expect(service.getTrendingMealPlans).toHaveBeenCalledWith(customPagination);
+      expect(result.meta.page).toBe(2);
+      expect(result.meta.hasNext).toBe(true);
+      expect(result.meta.hasPrevious).toBe(true);
+    });
+
+    it('should handle maximum results (100 cap)', async () => {
+      const maxPagination: PaginationDto = {
+        page: 1,
+        limit: 100,
+        offset: 0,
+      };
+
+      const maxResponse: PaginatedMealPlansResponseDto = {
+        ...mockTrendingResponse,
+        meta: {
+          page: 1,
+          limit: 100,
+          total: 100,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        },
+      };
+
+      service.getTrendingMealPlans.mockResolvedValue(maxResponse);
+
+      const result = await controller.getTrendingMealPlans(maxPagination);
+
+      expect(result.meta.total).toBe(100);
+    });
+
+    describe('error handling', () => {
+      it('should handle service errors', async () => {
+        const error = new Error('Database connection failed');
+        error.name = 'InternalServerErrorException';
+        service.getTrendingMealPlans.mockRejectedValue(error);
+
+        await expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
+      });
+
+      it('should propagate BadRequestException from service', async () => {
+        const error = new Error('Invalid pagination parameters');
+        error.name = 'BadRequestException';
+        service.getTrendingMealPlans.mockRejectedValue(error);
+
+        await expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
+      });
     });
   });
 

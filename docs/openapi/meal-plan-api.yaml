@@ -24,6 +24,8 @@ tags:
     description: Meal plan favorites management operations
   - name: tags
     description: Meal plan tag management operations
+  - name: search
+    description: Meal plan search and discovery endpoints
 
 security:
   - bearerAuth: []
@@ -325,6 +327,36 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /meal-plans/trending:
+    get:
+      tags:
+        - search
+      summary: Get trending meal plans
+      description: |
+        Retrieves the most trending meal plans with pagination support.
+
+        Meal plans are ordered by trending score in descending order, so the first
+        item in the response is the "most trending" meal plan.
+
+        **Trending Factors:**
+        Trending score considers recent engagement metrics including favorites,
+        shares, and user interactions.
+      operationId: getTrendingMealPlans
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Trending meal plans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMealPlansResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
