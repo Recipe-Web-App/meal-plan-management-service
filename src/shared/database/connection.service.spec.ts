@@ -120,7 +120,7 @@ describe('ConnectionService', () => {
       const error = new Error('Reconnection failed');
       prismaService.reconnect.mockRejectedValue(error);
 
-      await expect(service.forceReconnect()).rejects.toThrow('Reconnection failed');
+      expect(service.forceReconnect()).rejects.toThrow('Reconnection failed');
 
       expect(loggerService.error).toHaveBeenCalledWith(
         'Database reconnection failed: Reconnection failed',
@@ -211,7 +211,7 @@ describe('ConnectionService', () => {
       const mockQuery = mock(() => Promise.reject(new Error('Persistent error')));
       const sleepSpy = spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
-      await expect(service.executeWithRetry(mockQuery, 2, 100)).rejects.toThrow('Persistent error');
+      expect(service.executeWithRetry(mockQuery, 2, 100)).rejects.toThrow('Persistent error');
 
       expect(mockQuery).toHaveBeenCalledTimes(2);
       expect(loggerService.warn).toHaveBeenCalledTimes(2);

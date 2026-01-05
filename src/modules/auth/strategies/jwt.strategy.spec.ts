@@ -189,32 +189,32 @@ describe('JwtStrategy', () => {
     it('should throw UnauthorizedException when no token is provided in request', async () => {
       const mockRequest = createMockRequest(); // No authorization header
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
       expect(tokenValidationService.validateToken).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when authorization header is empty', async () => {
       const mockRequest = createMockRequest(''); // Empty authorization header
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
       expect(tokenValidationService.validateToken).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when authorization header does not contain Bearer token', async () => {
       const mockRequest = createMockRequest('Basic some-basic-auth'); // Not Bearer token
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
       expect(tokenValidationService.validateToken).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when Bearer token is empty', async () => {
       const mockRequest = createMockRequest('Bearer '); // Bearer with no token
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
       expect(tokenValidationService.validateToken).not.toHaveBeenCalled();
     });
 
@@ -223,7 +223,7 @@ describe('JwtStrategy', () => {
       const validationError = new UnauthorizedException('Invalid token');
       tokenValidationService.validateToken.mockRejectedValue(validationError);
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(validationError);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(validationError);
       expect(tokenValidationService.validateToken).toHaveBeenCalledWith('invalid-token');
     });
 
@@ -232,7 +232,7 @@ describe('JwtStrategy', () => {
       const genericError = new Error('Token validation failed');
       tokenValidationService.validateToken.mockRejectedValue(genericError);
 
-      await expect(strategy.validate(mockRequest, {})).rejects.toThrow(genericError);
+      expect(strategy.validate(mockRequest, {})).rejects.toThrow(genericError);
       expect(tokenValidationService.validateToken).toHaveBeenCalledWith('error-token');
     });
 
@@ -338,8 +338,8 @@ describe('JwtStrategy', () => {
       it('should handle ExtractJwt returning null', async () => {
         const mockRequest = createMockRequest('Not-Bearer invalid-format');
 
-        await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-        await expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
+        expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+        expect(strategy.validate(mockRequest, {})).rejects.toThrow('No token provided');
       });
     });
 
@@ -349,8 +349,8 @@ describe('JwtStrategy', () => {
         const unauthorizedError = new UnauthorizedException('Token expired');
         tokenValidationService.validateToken.mockRejectedValue(unauthorizedError);
 
-        await expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
-        await expect(strategy.validate(mockRequest, {})).rejects.toThrow('Token expired');
+        expect(strategy.validate(mockRequest, {})).rejects.toThrow(UnauthorizedException);
+        expect(strategy.validate(mockRequest, {})).rejects.toThrow('Token expired');
       });
 
       it('should propagate custom errors from token validation service', async () => {
@@ -358,7 +358,7 @@ describe('JwtStrategy', () => {
         const customError = new Error('Custom validation error');
         tokenValidationService.validateToken.mockRejectedValue(customError);
 
-        await expect(strategy.validate(mockRequest, {})).rejects.toThrow('Custom validation error');
+        expect(strategy.validate(mockRequest, {})).rejects.toThrow('Custom validation error');
       });
     });
 

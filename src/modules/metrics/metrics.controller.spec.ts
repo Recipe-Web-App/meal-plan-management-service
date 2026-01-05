@@ -80,7 +80,7 @@ meal_plan_service_meal_plans_created_total{user_id="user123"} 5`;
       const error = new Error('Metrics collection failed');
       metricsService.getMetrics.mockRejectedValue(error);
 
-      await expect(controller.getMetrics()).rejects.toThrow('Metrics collection failed');
+      expect(controller.getMetrics()).rejects.toThrow('Metrics collection failed');
       expect(metricsService.getMetrics).toHaveBeenCalledTimes(1);
     });
 

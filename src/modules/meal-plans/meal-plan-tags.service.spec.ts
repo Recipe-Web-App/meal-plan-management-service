@@ -136,7 +136,7 @@ describe('MealPlanTagsService', () => {
     it('should throw NotFoundException when meal plan does not exist', async () => {
       repository.getMealPlanOwner.mockResolvedValue(null as never);
 
-      await expect(service.getMealPlanTags(testUserId, testMealPlanId)).rejects.toThrow(
+      expect(service.getMealPlanTags(testUserId, testMealPlanId)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -144,7 +144,7 @@ describe('MealPlanTagsService', () => {
     it('should throw ForbiddenException when user does not own meal plan', async () => {
       repository.getMealPlanOwner.mockResolvedValue('other-user-id' as never);
 
-      await expect(service.getMealPlanTags(testUserId, testMealPlanId)).rejects.toThrow(
+      expect(service.getMealPlanTags(testUserId, testMealPlanId)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -177,7 +177,7 @@ describe('MealPlanTagsService', () => {
     it('should throw NotFoundException when meal plan does not exist', async () => {
       repository.getMealPlanOwner.mockResolvedValue(null as never);
 
-      await expect(
+      expect(
         service.addTagsToMealPlan(testUserId, testMealPlanId, { tags: ['Test'] }),
       ).rejects.toThrow(NotFoundException);
     });
@@ -185,7 +185,7 @@ describe('MealPlanTagsService', () => {
     it('should throw ForbiddenException when user does not own meal plan', async () => {
       repository.getMealPlanOwner.mockResolvedValue('other-user-id' as never);
 
-      await expect(
+      expect(
         service.addTagsToMealPlan(testUserId, testMealPlanId, { tags: ['Test'] }),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -218,7 +218,7 @@ describe('MealPlanTagsService', () => {
     it('should throw NotFoundException when meal plan does not exist', async () => {
       repository.getMealPlanOwner.mockResolvedValue(null as never);
 
-      await expect(
+      expect(
         service.replaceTagsOnMealPlan(testUserId, testMealPlanId, { tags: ['Test'] }),
       ).rejects.toThrow(NotFoundException);
     });
@@ -230,7 +230,7 @@ describe('MealPlanTagsService', () => {
       repository.tagExistsOnMealPlan.mockResolvedValue(true as never);
       repository.removeTagFromMealPlan.mockResolvedValue(undefined as never);
 
-      await expect(
+      expect(
         service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId),
       ).resolves.toBeUndefined();
 
@@ -243,34 +243,32 @@ describe('MealPlanTagsService', () => {
     it('should throw NotFoundException when meal plan does not exist', async () => {
       repository.getMealPlanOwner.mockResolvedValue(null as never);
 
-      await expect(
-        service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId),
-      ).rejects.toThrow(NotFoundException);
+      expect(service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException when user does not own meal plan', async () => {
       repository.getMealPlanOwner.mockResolvedValue('other-user-id' as never);
 
-      await expect(
-        service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId),
-      ).rejects.toThrow(ForbiddenException);
+      expect(service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw NotFoundException when tag is not on meal plan', async () => {
       repository.getMealPlanOwner.mockResolvedValue(testUserId as never);
       repository.tagExistsOnMealPlan.mockResolvedValue(false as never);
 
-      await expect(
-        service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId),
-      ).rejects.toThrow(NotFoundException);
+      expect(service.removeTagFromMealPlan(testUserId, testMealPlanId, testTagId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('parseMealPlanId (via public methods)', () => {
     it('should throw NotFoundException for invalid meal plan ID', async () => {
-      await expect(service.getMealPlanTags(testUserId, 'invalid')).rejects.toThrow(
-        NotFoundException,
-      );
+      expect(service.getMealPlanTags(testUserId, 'invalid')).rejects.toThrow(NotFoundException);
     });
 
     it('should handle valid BigInt string IDs', async () => {
@@ -287,9 +285,9 @@ describe('MealPlanTagsService', () => {
     it('should throw NotFoundException for invalid tag ID', async () => {
       repository.getMealPlanOwner.mockResolvedValue(testUserId as never);
 
-      await expect(
-        service.removeTagFromMealPlan(testUserId, testMealPlanId, 'invalid'),
-      ).rejects.toThrow(NotFoundException);
+      expect(service.removeTagFromMealPlan(testUserId, testMealPlanId, 'invalid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Prisma } from '@generated/prisma/client';
-import {
-  MealPlanFavoritesRepository,
-  MealPlanFavoriteWithMealPlan,
-} from './meal-plan-favorites.repository';
+import { MealPlanFavoritesRepository } from './meal-plan-favorites.repository';
 import {
   PaginationDto,
   MealPlanFavoriteResponseDto,

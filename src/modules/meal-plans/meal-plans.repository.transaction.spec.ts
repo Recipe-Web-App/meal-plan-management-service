@@ -511,9 +511,9 @@ describe('MealPlansRepository - Transaction Methods', () => {
 
       mockTx.mealPlan.findUnique.mockResolvedValue(null);
 
-      await expect(
-        repository.cloneMealPlan(BigInt(999), targetData, 0, mockTx as any),
-      ).rejects.toThrow('Source meal plan not found');
+      expect(repository.cloneMealPlan(BigInt(999), targetData, 0, mockTx as any)).rejects.toThrow(
+        'Source meal plan not found',
+      );
     });
 
     it('should clone meal plan without recipes when source has none', async () => {

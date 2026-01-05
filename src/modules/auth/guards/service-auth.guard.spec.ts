@@ -162,8 +162,8 @@ describe('ServiceAuthGuard', () => {
             headers: {},
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Missing or invalid authorization header',
           );
         });
@@ -173,8 +173,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: undefined },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Missing or invalid authorization header',
           );
         });
@@ -184,8 +184,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Basic token123' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Missing or invalid authorization header',
           );
         });
@@ -195,8 +195,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Missing or invalid authorization header',
           );
         });
@@ -206,8 +206,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer ' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Missing or invalid authorization header',
           );
         });
@@ -263,8 +263,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer valid-token' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Insufficient permissions for service access',
           );
           expect(tokenValidationService.validateToken).toHaveBeenCalledWith('valid-token');
@@ -281,8 +281,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer valid-token' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow(
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow(
             'Insufficient permissions for service access',
           );
         });
@@ -296,8 +296,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer invalid-token' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
           expect(tokenValidationService.validateToken).toHaveBeenCalledWith('invalid-token');
         });
 
@@ -310,8 +310,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer expired-token' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
         });
 
         it('should throw UnauthorizedException for any validation service error', async () => {
@@ -321,8 +321,8 @@ describe('ServiceAuthGuard', () => {
             headers: { authorization: 'Bearer network-error-token' },
           });
 
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
+          expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+          expect(guard.canActivate(context)).rejects.toThrow('Service authentication failed');
         });
       });
 

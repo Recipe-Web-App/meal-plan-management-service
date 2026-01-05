@@ -79,7 +79,7 @@ describe('AuthService', () => {
       const validationError = new Error('Token validation failed');
       tokenValidationService.validateToken.mockRejectedValue(validationError);
 
-      await expect(service.validateAccessToken('invalid-token')).rejects.toThrow(validationError);
+      expect(service.validateAccessToken('invalid-token')).rejects.toThrow(validationError);
       expect(tokenValidationService.validateToken).toHaveBeenCalledWith('invalid-token');
     });
 
@@ -98,7 +98,7 @@ describe('AuthService', () => {
       const validationError = new Error('Empty token');
       tokenValidationService.validateToken.mockRejectedValue(validationError);
 
-      await expect(service.validateAccessToken('')).rejects.toThrow(validationError);
+      expect(service.validateAccessToken('')).rejects.toThrow(validationError);
       expect(tokenValidationService.validateToken).toHaveBeenCalledWith('');
     });
 

@@ -1,6 +1,8 @@
 import { PrismaClient } from '@generated/prisma/client';
 import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
 
+declare const beforeEach: (fn: () => void) => void;
+
 export type MockPrismaClient = DeepMockProxy<PrismaClient>;
 
 export const createMockPrismaClient = (): MockPrismaClient => {

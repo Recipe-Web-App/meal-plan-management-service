@@ -102,9 +102,7 @@ describe('MealPlanFavoritesService', () => {
     it('should throw NotFoundException when meal plan does not exist', async () => {
       repository.mealPlanExists.mockResolvedValue(false as never);
 
-      await expect(service.addFavorite(testUserId, testMealPlanId)).rejects.toThrow(
-        NotFoundException,
-      );
+      expect(service.addFavorite(testUserId, testMealPlanId)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when already favorited', async () => {
@@ -115,9 +113,7 @@ describe('MealPlanFavoritesService', () => {
         favoritedAt: new Date(),
       } as never);
 
-      await expect(service.addFavorite(testUserId, testMealPlanId)).rejects.toThrow(
-        ConflictException,
-      );
+      expect(service.addFavorite(testUserId, testMealPlanId)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -158,7 +154,7 @@ describe('MealPlanFavoritesService', () => {
       } as never);
       repository.delete.mockResolvedValue(undefined as never);
 
-      await expect(service.removeFavorite(testUserId, testMealPlanId)).resolves.toBeUndefined();
+      expect(service.removeFavorite(testUserId, testMealPlanId)).resolves.toBeUndefined();
 
       expect(repository.delete).toHaveBeenCalledWith(testUserId, testMealPlanIdBigInt);
     });
@@ -166,15 +162,13 @@ describe('MealPlanFavoritesService', () => {
     it('should throw NotFoundException when favorite does not exist', async () => {
       repository.findByUserAndMealPlan.mockResolvedValue(null as never);
 
-      await expect(service.removeFavorite(testUserId, testMealPlanId)).rejects.toThrow(
-        NotFoundException,
-      );
+      expect(service.removeFavorite(testUserId, testMealPlanId)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('parseMealPlanId (via public methods)', () => {
     it('should throw NotFoundException for invalid meal plan ID', async () => {
-      await expect(service.checkFavorite(testUserId, 'invalid')).rejects.toThrow(NotFoundException);
+      expect(service.checkFavorite(testUserId, 'invalid')).rejects.toThrow(NotFoundException);
     });
 
     it('should handle valid BigInt string IDs', async () => {

@@ -57,7 +57,7 @@ describe('MealPlansService', () => {
   };
 
   const mockTagsRepository = {
-    findTagsByMealPlanId: mock(() => {}),
+    findTagsByMealPlanId: mock(() => Promise.resolve([] as { tagId: bigint; name: string }[])),
     findOrCreateTagsByName: mock(() => {}),
     addTagsToMealPlan: mock(() => {}),
     replaceTagsOnMealPlan: mock(() => {}),
@@ -282,7 +282,7 @@ describe('MealPlansService', () => {
 
       mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
 
-      await expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
+      expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
         BadRequestException,
       );
 
@@ -312,7 +312,7 @@ describe('MealPlansService', () => {
         startDate: null,
       });
 
-      await expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
+      expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -343,7 +343,7 @@ describe('MealPlansService', () => {
       mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
       mockRepository.create.mockResolvedValue(mockMealPlan);
 
-      await expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
+      expect(service.createMealPlan(invalidDto as any, userId)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -363,7 +363,7 @@ describe('MealPlansService', () => {
       mockValidationService.validateCreateMealPlan.mockResolvedValue(validationResult);
       mockRepository.create.mockRejectedValue(new Error('Database error'));
 
-      await expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
+      expect(service.createMealPlan(createMealPlanDto as any, userId)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -567,7 +567,7 @@ describe('MealPlansService', () => {
       it('should throw NotFoundException when meal plan does not exist', async () => {
         mockRepository.findById.mockResolvedValue(null);
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(NotFoundException);
 
@@ -582,7 +582,7 @@ describe('MealPlansService', () => {
 
         mockRepository.findById.mockResolvedValue(differentUserMealPlan);
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(ForbiddenException);
       });
@@ -597,7 +597,7 @@ describe('MealPlansService', () => {
         mockRepository.findById.mockResolvedValue(existingMealPlan);
         mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(BadRequestException);
       });
@@ -613,7 +613,7 @@ describe('MealPlansService', () => {
         mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
         mockRepository.update.mockRejectedValue(new Error('Database error'));
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(BadRequestException);
       });
@@ -629,7 +629,7 @@ describe('MealPlansService', () => {
         mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
         mockRepository.update.mockRejectedValue(new NotFoundException('Record not found'));
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(NotFoundException);
       });
@@ -645,7 +645,7 @@ describe('MealPlansService', () => {
         mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
         mockRepository.update.mockRejectedValue(new ForbiddenException('Access denied'));
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(ForbiddenException);
       });
@@ -661,7 +661,7 @@ describe('MealPlansService', () => {
         mockValidationService.validateUpdateMealPlan.mockResolvedValue(validationResult);
         mockRepository.update.mockRejectedValue(new BadRequestException('Invalid data'));
 
-        await expect(
+        expect(
           service.updateMealPlan(mealPlanId, updateMealPlanDto as any, userId),
         ).rejects.toThrow(BadRequestException);
       });
@@ -754,7 +754,7 @@ describe('MealPlansService', () => {
       it('should throw NotFoundException when meal plan does not exist', async () => {
         mockRepository.findById.mockResolvedValue(null);
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
 
         expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
         expect(mockRepository.delete).not.toHaveBeenCalled();
@@ -768,9 +768,7 @@ describe('MealPlansService', () => {
 
         mockRepository.findById.mockResolvedValue(differentUserMealPlan);
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
-          ForbiddenException,
-        );
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(ForbiddenException);
 
         expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
         expect(mockRepository.delete).not.toHaveBeenCalled();
@@ -780,9 +778,7 @@ describe('MealPlansService', () => {
         mockRepository.findById.mockResolvedValue(existingMealPlan);
         mockRepository.delete.mockRejectedValue(new Error('Database error'));
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
-          BadRequestException,
-        );
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(BadRequestException);
 
         expect(mockRepository.findById).toHaveBeenCalledWith(BigInt(123));
         expect(mockRepository.delete).toHaveBeenCalledWith(BigInt(123));
@@ -794,7 +790,7 @@ describe('MealPlansService', () => {
           new NotFoundException('Record not found during deletion'),
         );
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(NotFoundException);
       });
 
       it('should propagate ForbiddenException from repository operations', async () => {
@@ -803,18 +799,14 @@ describe('MealPlansService', () => {
           new ForbiddenException('Access denied during deletion'),
         );
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
-          ForbiddenException,
-        );
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(ForbiddenException);
       });
 
       it('should wrap generic errors in BadRequestException', async () => {
         mockRepository.findById.mockResolvedValue(existingMealPlan);
         mockRepository.delete.mockRejectedValue(new Error('Generic database error'));
 
-        await expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(
-          BadRequestException,
-        );
+        expect(service.deleteMealPlan(mealPlanId, userId)).rejects.toThrow(BadRequestException);
 
         const thrownError = await service.deleteMealPlan(mealPlanId, userId).catch((err) => err);
         expect(thrownError.message).toBe('Failed to delete meal plan');
@@ -848,7 +840,7 @@ describe('MealPlansService', () => {
 
         mockRepository.findById.mockResolvedValue(mealPlan);
 
-        await expect(service.deleteMealPlan(mealPlanId, requestUserId)).rejects.toThrow(
+        expect(service.deleteMealPlan(mealPlanId, requestUserId)).rejects.toThrow(
           ForbiddenException,
         );
 
@@ -903,7 +895,7 @@ describe('MealPlansService', () => {
     it('should throw NotFoundException when meal plan not found', async () => {
       repository.checkMealPlanExists.mockResolvedValue(false);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -912,7 +904,7 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(false);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -1055,7 +1047,7 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(false);
 
-      await expect(service['verifyMealPlanAccess'](BigInt(123), 'test-user-id')).rejects.toThrow(
+      expect(service['verifyMealPlanAccess'](BigInt(123), 'test-user-id')).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -1567,7 +1559,7 @@ describe('MealPlansService', () => {
       repository.verifyMealPlanOwnership.mockResolvedValue(true);
       repository.findByIdWithRecipesFiltered.mockResolvedValue(null);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -1728,7 +1720,7 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(true);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         'filterDate is required for day view mode',
       );
     });
@@ -1741,7 +1733,7 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(true);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         'filterStartDate is required for week view mode',
       );
     });
@@ -1754,7 +1746,7 @@ describe('MealPlansService', () => {
       repository.checkMealPlanExists.mockResolvedValue(true);
       repository.verifyMealPlanOwnership.mockResolvedValue(true);
 
-      await expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
+      expect(service.findMealPlanById('123', queryDto, 'test-user-id')).rejects.toThrow(
         'filterYear and filterMonth are required for month view mode',
       );
     });

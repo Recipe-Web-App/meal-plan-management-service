@@ -382,7 +382,7 @@ describe('MealPlansController', () => {
         error.name = 'InternalServerErrorException';
         service.getTrendingMealPlans.mockRejectedValue(error);
 
-        await expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
+        expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
       });
 
       it('should propagate BadRequestException from service', async () => {
@@ -390,7 +390,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.getTrendingMealPlans.mockRejectedValue(error);
 
-        await expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
+        expect(controller.getTrendingMealPlans(paginationDto)).rejects.toThrow(error);
       });
     });
   });
@@ -405,9 +405,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(error);
         expect(service.findMealPlans).toHaveBeenCalledWith(queryDto, paginationDto, 'temp-user-id');
       });
 
@@ -416,9 +414,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when service throws BadRequestException', async () => {
@@ -426,18 +422,14 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw InternalServerErrorException when service throws unexpected error', async () => {
         const error = new Error('Database connection failed');
         service.findMealPlans.mockRejectedValue(error);
 
-        await expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.listMealPlans(queryDto, paginationDto, mockUser)).rejects.toThrow(error);
       });
     });
 
@@ -449,7 +441,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('999', queryDto, mockUser)).rejects.toThrow(error);
+        expect(controller.getMealPlanById('999', queryDto, mockUser)).rejects.toThrow(error);
         expect(service.findMealPlanById).toHaveBeenCalledWith('999', queryDto, 'temp-user-id');
       });
 
@@ -458,7 +450,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
+        expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when meal plan ID is invalid', async () => {
@@ -466,9 +458,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('invalid-id', queryDto, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.getMealPlanById('invalid-id', queryDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when view mode parameters are invalid', async () => {
@@ -477,9 +467,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when date range is invalid', async () => {
@@ -492,9 +480,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw BadRequestException when month/year parameters are invalid', async () => {
@@ -507,9 +493,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(
-          error,
-        );
+        expect(controller.getMealPlanById('123', invalidQuery, mockUser)).rejects.toThrow(error);
       });
 
       it('should handle database timeout errors', async () => {
@@ -517,7 +501,7 @@ describe('MealPlansController', () => {
         error.name = 'TimeoutError';
         service.findMealPlanById.mockRejectedValue(error);
 
-        await expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
+        expect(controller.getMealPlanById('123', queryDto, mockUser)).rejects.toThrow(error);
       });
     });
   });
@@ -791,7 +775,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(invalidDto, mockUser)).rejects.toThrow(error);
         expect(service.createMealPlan).toHaveBeenCalledWith(invalidDto, 'temp-user-id');
       });
 
@@ -806,7 +790,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(conflictDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(conflictDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should throw ConflictException for overlapping meal plans', async () => {
@@ -820,7 +804,7 @@ describe('MealPlansController', () => {
         error.name = 'ConflictException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(overlappingDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(overlappingDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should handle database errors', async () => {
@@ -828,7 +812,7 @@ describe('MealPlansController', () => {
         error.name = 'InternalServerErrorException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(createMealPlanDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(createMealPlanDto, mockUser)).rejects.toThrow(error);
       });
     });
 
@@ -882,7 +866,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidRecipeDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(invalidRecipeDto, mockUser)).rejects.toThrow(error);
       });
 
       it('should handle invalid day numbers', async () => {
@@ -901,7 +885,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.createMealPlan.mockRejectedValue(error);
 
-        await expect(controller.createMealPlan(invalidDayDto, mockUser)).rejects.toThrow(error);
+        expect(controller.createMealPlan(invalidDayDto, mockUser)).rejects.toThrow(error);
       });
     });
   });
@@ -1050,7 +1034,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(controller.updateMealPlan('999', updateMealPlanDto, mockUser)).rejects.toThrow(
+        expect(controller.updateMealPlan('999', updateMealPlanDto, mockUser)).rejects.toThrow(
           error,
         );
       });
@@ -1060,7 +1044,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(
+        expect(
           controller.updateMealPlan(mockMealPlanId, updateMealPlanDto, mockUser),
         ).rejects.toThrow(error);
       });
@@ -1075,9 +1059,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(
-          controller.updateMealPlan(mockMealPlanId, invalidDto, mockUser),
-        ).rejects.toThrow(error);
+        expect(controller.updateMealPlan(mockMealPlanId, invalidDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should handle date overlap conflicts', async () => {
@@ -1090,9 +1074,9 @@ describe('MealPlansController', () => {
         error.name = 'ConflictException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(
-          controller.updateMealPlan(mockMealPlanId, conflictDto, mockUser),
-        ).rejects.toThrow(error);
+        expect(controller.updateMealPlan(mockMealPlanId, conflictDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should handle invalid date ranges', async () => {
@@ -1105,9 +1089,9 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(
-          controller.updateMealPlan(mockMealPlanId, invalidDateDto, mockUser),
-        ).rejects.toThrow(error);
+        expect(controller.updateMealPlan(mockMealPlanId, invalidDateDto, mockUser)).rejects.toThrow(
+          error,
+        );
       });
 
       it('should handle general service errors', async () => {
@@ -1115,7 +1099,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.updateMealPlan.mockRejectedValue(error);
 
-        await expect(
+        expect(
           controller.updateMealPlan(mockMealPlanId, updateMealPlanDto, mockUser),
         ).rejects.toThrow(error);
       });
@@ -1183,7 +1167,7 @@ describe('MealPlansController', () => {
         error.name = 'NotFoundException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan('999', mockUser)).rejects.toThrow(error);
+        expect(controller.deleteMealPlan('999', mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith('999', mockUserId);
       });
 
@@ -1192,7 +1176,7 @@ describe('MealPlansController', () => {
         error.name = 'ForbiddenException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
+        expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
       });
 
@@ -1201,7 +1185,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan('invalid-id', mockUser)).rejects.toThrow(error);
+        expect(controller.deleteMealPlan('invalid-id', mockUser)).rejects.toThrow(error);
       });
 
       it('should handle database errors during deletion', async () => {
@@ -1209,7 +1193,7 @@ describe('MealPlansController', () => {
         error.name = 'BadRequestException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
+        expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
         expect(service.deleteMealPlan).toHaveBeenCalledWith(mockMealPlanId, mockUserId);
       });
 
@@ -1218,7 +1202,7 @@ describe('MealPlansController', () => {
         error.name = 'InternalServerErrorException';
         service.deleteMealPlan.mockRejectedValue(error);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
+        expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(error);
       });
 
       it('should propagate service exceptions without modification', async () => {
@@ -1226,9 +1210,7 @@ describe('MealPlansController', () => {
         customError.name = 'CustomException';
         service.deleteMealPlan.mockRejectedValue(customError);
 
-        await expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(
-          customError,
-        );
+        expect(controller.deleteMealPlan(mockMealPlanId, mockUser)).rejects.toThrow(customError);
       });
     });
 

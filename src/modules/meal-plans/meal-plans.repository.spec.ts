@@ -705,7 +705,7 @@ describe('MealPlansRepository', () => {
       const dbError = new Error('Database connection failed');
       prisma.mealPlan.create.mockRejectedValue(dbError);
 
-      await expect(repository.create(createData)).rejects.toThrow('Database connection failed');
+      expect(repository.create(createData)).rejects.toThrow('Database connection failed');
     });
 
     it('should handle constraint violations in addRecipeToMealPlan', async () => {
@@ -720,7 +720,7 @@ describe('MealPlansRepository', () => {
       const constraintError = new Error('Unique constraint violation');
       prisma.mealPlanRecipe.create.mockRejectedValue(constraintError);
 
-      await expect(repository.addRecipeToMealPlan(addData)).rejects.toThrow(
+      expect(repository.addRecipeToMealPlan(addData)).rejects.toThrow(
         'Unique constraint violation',
       );
     });
