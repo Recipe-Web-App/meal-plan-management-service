@@ -247,7 +247,7 @@ describe('DatabaseSeeder', () => {
       const error = new Error('Database error');
       transactionService.executeTransaction.mockRejectedValue(error);
 
-      await expect(seeder.seedAll()).rejects.toThrow('Database error');
+      expect(seeder.seedAll()).rejects.toThrow('Database error');
     });
   });
 

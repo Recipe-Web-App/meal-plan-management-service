@@ -181,7 +181,7 @@ describe('PrismaService', () => {
       const connectError = new Error('Connection failed');
       mockConnect.mockImplementation(() => Promise.reject(connectError));
 
-      await expect(service.onModuleInit()).rejects.toThrow(
+      expect(service.onModuleInit()).rejects.toThrow(
         'Database connection failed after 3 attempts and continuous retry is disabled',
       );
     });
@@ -232,9 +232,10 @@ describe('PrismaService', () => {
 
   describe('error handling paths', () => {
     it('should handle non-Error exceptions in connectWithRetry', async () => {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- Intentionally testing non-Error rejection
       mockConnect.mockImplementation(() => Promise.reject('String error'));
 
-      await expect((service as any).connectWithRetry()).rejects.toThrow();
+      expect((service as any).connectWithRetry()).rejects.toThrow();
 
       expect(mockLoggerService.warn).toHaveBeenCalledWith(
         expect.stringContaining('Database connection attempt 1 failed'),
@@ -247,6 +248,7 @@ describe('PrismaService', () => {
 
     it('should handle non-Error exceptions in safeDisconnect', async () => {
       (service as any).isConnected = true;
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- Intentionally testing non-Error rejection
       mockDisconnect.mockImplementation(() => Promise.reject('String disconnect error'));
 
       await (service as any).safeDisconnect();
@@ -259,6 +261,7 @@ describe('PrismaService', () => {
     });
 
     it('should handle non-Error exceptions in performHealthCheck', async () => {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- Intentionally testing non-Error rejection
       mockQueryRaw.mockImplementation(() => Promise.reject('String query error'));
 
       const result = await service.performHealthCheck();

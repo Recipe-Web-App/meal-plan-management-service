@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { MealPlanValidationService, ValidationContext } from './meal-plan-validation.service';
@@ -270,7 +270,7 @@ describe('MealPlanValidationService', () => {
         name: '', // Invalid empty name
       };
 
-      await expect(
+      expect(
         service.validateCreateMealPlanOrThrow(invalidData, { userId: 'user-123' }),
       ).rejects.toThrow(BadRequestException);
     });
@@ -295,7 +295,7 @@ describe('MealPlanValidationService', () => {
         startDate: 'invalid-date',
       };
 
-      await expect(service.validateUpdateMealPlanOrThrow(invalidData)).rejects.toThrow(
+      expect(service.validateUpdateMealPlanOrThrow(invalidData)).rejects.toThrow(
         BadRequestException,
       );
     });

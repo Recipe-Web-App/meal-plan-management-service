@@ -2,9 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, mock, type Mock } from 'bu
 import { CorrelationIdInterceptor } from './correlation-id.interceptor';
 import { ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
-import { Request, Response } from 'express';
 import { RequestContextService } from '@/shared/services/request-context.service';
-import { v4 as uuidv4 } from 'uuid';
 
 // Mock uuid
 const mockUuidv4 = mock(() => 'generated-uuid');
@@ -85,10 +83,6 @@ describe('CorrelationIdInterceptor', () => {
   });
 
   it('should generate correlation ID when not provided', (done: () => void) => {
-    // Override the interceptor's uuid generation
-    const originalUuid = require('uuid');
-    const mockUuidModule = { ...originalUuid, v4: mockUuidv4 };
-
     const generatedId = 'generated-uuid';
     mockUuidv4.mockReturnValue(generatedId);
     (mockCallHandler.handle as Mock<() => any>).mockReturnValue(of('test data'));

@@ -100,8 +100,8 @@ describe('TokenValidationService', () => {
       it('should throw UnauthorizedException', async () => {
         configService.get.mockReturnValue({ enabled: false });
 
-        await expect(service.validateToken('any-token')).rejects.toThrow(UnauthorizedException);
-        await expect(service.validateToken('any-token')).rejects.toThrow(
+        expect(service.validateToken('any-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('any-token')).rejects.toThrow(
           'OAuth2 authentication is disabled',
         );
       });
@@ -132,32 +132,26 @@ describe('TokenValidationService', () => {
           return undefined;
         });
 
-        await expect(service.validateToken('any-token')).rejects.toThrow(UnauthorizedException);
-        await expect(service.validateToken('any-token')).rejects.toThrow(
-          'JWT secret not configured',
-        );
+        expect(service.validateToken('any-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('any-token')).rejects.toThrow('JWT secret not configured');
       });
 
       it('should throw UnauthorizedException for invalid token type', async () => {
         const invalidPayload = { ...mockJwtPayload, type: 'refresh_token' };
         jwtVerifySpy.mockReturnValue(invalidPayload);
 
-        await expect(service.validateToken('invalid-type-token')).rejects.toThrow(
-          UnauthorizedException,
-        );
-        await expect(service.validateToken('invalid-type-token')).rejects.toThrow(
-          'Invalid token type',
-        );
+        expect(service.validateToken('invalid-type-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('invalid-type-token')).rejects.toThrow('Invalid token type');
       });
 
       it('should throw UnauthorizedException for invalid issuer', async () => {
         const invalidPayload = { ...mockJwtPayload, iss: 'wrong-issuer' };
         jwtVerifySpy.mockReturnValue(invalidPayload);
 
-        await expect(service.validateToken('invalid-issuer-token')).rejects.toThrow(
+        expect(service.validateToken('invalid-issuer-token')).rejects.toThrow(
           UnauthorizedException,
         );
-        await expect(service.validateToken('invalid-issuer-token')).rejects.toThrow(
+        expect(service.validateToken('invalid-issuer-token')).rejects.toThrow(
           'Invalid token issuer',
         );
       });
@@ -166,8 +160,8 @@ describe('TokenValidationService', () => {
         const expiredPayload = { ...mockJwtPayload, exp: Math.floor(Date.now() / 1000) - 3600 };
         jwtVerifySpy.mockReturnValue(expiredPayload);
 
-        await expect(service.validateToken('expired-token')).rejects.toThrow(UnauthorizedException);
-        await expect(service.validateToken('expired-token')).rejects.toThrow('Token expired');
+        expect(service.validateToken('expired-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('expired-token')).rejects.toThrow('Token expired');
       });
 
       it('should handle JsonWebTokenError', async () => {
@@ -175,10 +169,10 @@ describe('TokenValidationService', () => {
           throw new jwt.JsonWebTokenError('Invalid token signature');
         });
 
-        await expect(service.validateToken('invalid-signature-token')).rejects.toThrow(
+        expect(service.validateToken('invalid-signature-token')).rejects.toThrow(
           UnauthorizedException,
         );
-        await expect(service.validateToken('invalid-signature-token')).rejects.toThrow(
+        expect(service.validateToken('invalid-signature-token')).rejects.toThrow(
           'Invalid token signature',
         );
       });
@@ -194,8 +188,8 @@ describe('TokenValidationService', () => {
           throw new jwt.TokenExpiredError('Token expired', new Date());
         });
 
-        await expect(service.validateToken('expired-token')).rejects.toThrow(UnauthorizedException);
-        await expect(service.validateToken('expired-token')).rejects.toThrow('Token expired');
+        expect(service.validateToken('expired-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('expired-token')).rejects.toThrow('Token expired');
       });
 
       it('should handle unexpected errors', async () => {
@@ -204,10 +198,8 @@ describe('TokenValidationService', () => {
           throw unexpectedError;
         });
 
-        await expect(service.validateToken('error-token')).rejects.toThrow(UnauthorizedException);
-        await expect(service.validateToken('error-token')).rejects.toThrow(
-          'Invalid or expired token',
-        );
+        expect(service.validateToken('error-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('error-token')).rejects.toThrow('Invalid or expired token');
       });
     });
 
@@ -254,22 +246,16 @@ describe('TokenValidationService', () => {
         const inactiveResponse = { ...mockIntrospectionResponse, active: false };
         mockAxiosInstance.post.mockResolvedValue({ data: inactiveResponse });
 
-        await expect(service.validateToken('inactive-token')).rejects.toThrow(
-          UnauthorizedException,
-        );
-        await expect(service.validateToken('inactive-token')).rejects.toThrow(
-          'Invalid or expired token',
-        );
+        expect(service.validateToken('inactive-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('inactive-token')).rejects.toThrow('Invalid or expired token');
       });
 
       it('should handle 401 HTTP error', async () => {
         const error = { response: { status: 401 } };
         mockAxiosInstance.post.mockRejectedValue(error);
 
-        await expect(service.validateToken('unauthorized-token')).rejects.toThrow(
-          UnauthorizedException,
-        );
-        await expect(service.validateToken('unauthorized-token')).rejects.toThrow(
+        expect(service.validateToken('unauthorized-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('unauthorized-token')).rejects.toThrow(
           'Invalid or expired token',
         );
       });
@@ -283,10 +269,8 @@ describe('TokenValidationService', () => {
         };
         mockAxiosInstance.post.mockRejectedValue(error);
 
-        await expect(service.validateToken('server-error-token')).rejects.toThrow(
-          UnauthorizedException,
-        );
-        await expect(service.validateToken('server-error-token')).rejects.toThrow(
+        expect(service.validateToken('server-error-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('server-error-token')).rejects.toThrow(
           'Invalid or expired token',
         );
       });
@@ -295,10 +279,8 @@ describe('TokenValidationService', () => {
         const error = new Error('Network error');
         mockAxiosInstance.post.mockRejectedValue(error);
 
-        await expect(service.validateToken('network-error-token')).rejects.toThrow(
-          UnauthorizedException,
-        );
-        await expect(service.validateToken('network-error-token')).rejects.toThrow(
+        expect(service.validateToken('network-error-token')).rejects.toThrow(UnauthorizedException);
+        expect(service.validateToken('network-error-token')).rejects.toThrow(
           'Invalid or expired token',
         );
       });
@@ -427,9 +409,7 @@ describe('TokenValidationService', () => {
           throw new Error('Config service error');
         });
 
-        await expect(service.validateToken('config-error-token')).rejects.toThrow(
-          'Config service error',
-        );
+        expect(service.validateToken('config-error-token')).rejects.toThrow('Config service error');
       });
     });
   });

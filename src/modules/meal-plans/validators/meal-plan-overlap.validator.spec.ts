@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock, spyOn, type Mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { NoOverlappingMealPlansConstraint } from './meal-plan-overlap.validator';
 
 const mockPrismaService = {

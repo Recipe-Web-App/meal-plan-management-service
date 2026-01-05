@@ -45,6 +45,7 @@ export interface MealPlanRecipe {
 }
 
 // Prisma namespace for types like Prisma.TransactionClient
+// eslint-disable-next-line @typescript-eslint/no-namespace -- Required to match Prisma's exported type structure
 export namespace Prisma {
   export type TransactionClient = PrismaClient;
   export type TransactionIsolationLevel =
@@ -97,8 +98,8 @@ export class PrismaClient {
     this.mealPlanRecipe = {};
     this.$connect = async () => {};
     this.$disconnect = async () => {};
-    this.$transaction = async (fn) => fn(this);
-    this.$queryRaw = async () => [];
+    this.$transaction = (fn) => fn(this);
+    this.$queryRaw = () => Promise.resolve([]);
     this.$on = () => {};
   }
 }

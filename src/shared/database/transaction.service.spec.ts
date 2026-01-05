@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, mock, spyOn, type Mock } f
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionService } from './transaction.service';
 import { PrismaService } from '@/config/database.config';
-import { PrismaClient } from '@generated/prisma/client';
 
 describe('TransactionService', () => {
   let transactionService: TransactionService;
@@ -108,6 +107,7 @@ describe('TransactionService', () => {
     });
 
     it('should handle non-Error rejection', async () => {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- Intentionally testing non-Error rejection
       const mockFn = mock(() => Promise.reject('String error'));
 
       prisma.$transaction.mockImplementation(async (fn: any) => {
@@ -206,9 +206,7 @@ describe('TransactionService', () => {
         return fn(prisma);
       });
 
-      await expect(transactionService.retryTransaction(mockFn, 3)).rejects.toThrow(
-        'Validation error',
-      );
+      expect(transactionService.retryTransaction(mockFn, 3)).rejects.toThrow('Validation error');
 
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
@@ -224,7 +222,7 @@ describe('TransactionService', () => {
       // Mock sleep to avoid actual delays in tests
       const sleepSpy = spyOn(transactionService as any, 'sleep').mockResolvedValue(undefined);
 
-      await expect(transactionService.retryTransaction(mockFn, 2, 100)).rejects.toThrow(
+      expect(transactionService.retryTransaction(mockFn, 2, 100)).rejects.toThrow(
         'Connection timeout',
       );
 

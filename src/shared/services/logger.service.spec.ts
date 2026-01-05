@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerService } from './logger.service';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { RequestContextService } from './request-context.service';
-import { Logger } from 'winston';
 
 // Mock RequestContextService
 const mockGetContext = mock(() => null);

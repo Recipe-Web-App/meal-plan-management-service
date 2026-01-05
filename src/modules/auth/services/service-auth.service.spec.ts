@@ -64,7 +64,7 @@ describe('ServiceAuthService', () => {
         const disabledConfig = { ...mockOAuth2Config, enabled: false };
         configService.get.mockReturnValue(disabledConfig);
 
-        await expect(service.getServiceToken()).rejects.toThrow(
+        expect(service.getServiceToken()).rejects.toThrow(
           'Service-to-service authentication is disabled',
         );
         expect(mockAxiosInstance.post).not.toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('ServiceAuthService', () => {
         const disabledConfig = { ...mockOAuth2Config, serviceToServiceEnabled: false };
         configService.get.mockReturnValue(disabledConfig);
 
-        await expect(service.getServiceToken()).rejects.toThrow(
+        expect(service.getServiceToken()).rejects.toThrow(
           'Service-to-service authentication is disabled',
         );
         expect(mockAxiosInstance.post).not.toHaveBeenCalled();
@@ -83,7 +83,7 @@ describe('ServiceAuthService', () => {
       it('should throw error when OAuth2 config is undefined', async () => {
         configService.get.mockReturnValue(undefined);
 
-        await expect(service.getServiceToken()).rejects.toThrow(
+        expect(service.getServiceToken()).rejects.toThrow(
           'Service-to-service authentication is disabled',
         );
       });
@@ -91,7 +91,7 @@ describe('ServiceAuthService', () => {
       it('should throw error when OAuth2 config is null', async () => {
         configService.get.mockReturnValue(null);
 
-        await expect(service.getServiceToken()).rejects.toThrow(
+        expect(service.getServiceToken()).rejects.toThrow(
           'Service-to-service authentication is disabled',
         );
       });
@@ -196,7 +196,7 @@ describe('ServiceAuthService', () => {
           };
           mockAxiosInstance.post.mockRejectedValue(error);
 
-          await expect(service.getServiceToken()).rejects.toThrow(
+          expect(service.getServiceToken()).rejects.toThrow(
             'Service authentication failed - invalid client credentials',
           );
         });
@@ -211,7 +211,7 @@ describe('ServiceAuthService', () => {
           };
           mockAxiosInstance.post.mockRejectedValue(error);
 
-          await expect(service.getServiceToken()).rejects.toThrow(
+          expect(service.getServiceToken()).rejects.toThrow(
             'Service token request failed with status 500: internal_server_error',
           );
         });
@@ -225,7 +225,7 @@ describe('ServiceAuthService', () => {
           };
           mockAxiosInstance.post.mockRejectedValue(error);
 
-          await expect(service.getServiceToken()).rejects.toThrow(
+          expect(service.getServiceToken()).rejects.toThrow(
             'Service token request failed with status 503: Service Unavailable',
           );
         });
@@ -234,7 +234,7 @@ describe('ServiceAuthService', () => {
           const error = new Error('Network error');
           mockAxiosInstance.post.mockRejectedValue(error);
 
-          await expect(service.getServiceToken()).rejects.toThrow(
+          expect(service.getServiceToken()).rejects.toThrow(
             'Service token request failed: Network error',
           );
         });
@@ -243,7 +243,7 @@ describe('ServiceAuthService', () => {
           const error = 'Unknown error';
           mockAxiosInstance.post.mockRejectedValue(error);
 
-          await expect(service.getServiceToken()).rejects.toThrow(
+          expect(service.getServiceToken()).rejects.toThrow(
             'Service token request failed: Unknown error',
           );
         });
@@ -252,7 +252,7 @@ describe('ServiceAuthService', () => {
           mockAxiosInstance.post.mockRejectedValue(new Error('Network error'));
 
           // First call should fail
-          await expect(service.getServiceToken()).rejects.toThrow();
+          expect(service.getServiceToken()).rejects.toThrow();
 
           // Second call should also make a new attempt (not reuse the failed promise)
           mockAxiosInstance.post.mockResolvedValue({ data: mockTokenResponse });
@@ -486,7 +486,7 @@ describe('ServiceAuthService', () => {
       const error = new Error('Test error');
       mockAxiosInstance.post.mockRejectedValue(error);
 
-      await expect(service.getServiceToken()).rejects.toThrow();
+      expect(service.getServiceToken()).rejects.toThrow();
 
       expect(loggerErrorSpy).toHaveBeenCalledWith(
         'Failed to obtain service token: Test error',

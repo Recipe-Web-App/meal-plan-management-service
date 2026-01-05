@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { RecipeExistsConstraint } from './recipe-exists.validator';
 
 const mockPrismaService = {
