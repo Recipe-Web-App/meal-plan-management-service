@@ -92,6 +92,7 @@ This repository uses **pre-commit** for automated code quality checks:
 "@modules/*": ["src/modules/*"]
 "@shared/*": ["src/shared/*"]
 "@utils/*": ["src/utils/*"]
+"@generated/*": ["src/generated/*"]
 ```
 
 #### Global Middleware & Interceptors
@@ -106,7 +107,7 @@ This repository uses **pre-commit** for automated code quality checks:
 
 #### Database
 
-- **Prisma Client** with PostgreSQL and multi-schema support
+- **Prisma Client** with PostgreSQL and multi-schema support (generated to `src/generated/prisma`)
 - **Repository Pattern** for data access abstraction (`MealPlansRepository`)
 - **Transaction Management** with retry logic and batch operations (`TransactionService`)
 - **Connection Pooling** with health monitoring and automatic reconnection (`PrismaService`)
@@ -145,8 +146,10 @@ This repository uses **pre-commit** for automated code quality checks:
 
 - `src/modules/auth/` - Complete OAuth2 authentication system with guards, strategies, and services
 - `src/modules/health/` - Health check endpoints for monitoring
-- `src/modules/meal-plans/` - Meal plan management with authentication-protected endpoints
-- Each module follows NestJS conventions with controller/service/module files
+- `src/modules/meal-plans/` - Meal plan CRUD, favorites, and tags management with authentication-protected endpoints
+- `src/modules/metrics/` - Prometheus metrics collection and endpoint
+- `src/modules/system/` - System information endpoints
+- Each module follows NestJS conventions with controller/service/repository/module files
 
 ### Security Features
 
