@@ -223,7 +223,7 @@ kubectl exec -n meal-plan-management -it deployment/meal-plan-management-service
 ## Performance Tuning
 
 1. **Resource Limits**: Adjust based on actual usage patterns
-2. **JVM Settings**: Tune Node.js memory settings if needed
+2. **Runtime Settings**: Tune Bun/Node.js memory settings if needed
 3. **Database Connections**: Optimize connection pool settings
 4. **Caching**: Implement Redis caching for frequently accessed data
 

@@ -114,80 +114,120 @@ The database schema is defined in `prisma/schema.prisma`:
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
   schemas  = ["recipe_manager"]
 }
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  mealPlans MealPlan[]
-
-  @@schema("recipe_manager")
-}
-
-model Recipe {
-  id           String    @id @default(uuid())
-  title        String
-  description  String?
-  cookingTime  Int?
-  servings     Int?
-  difficulty   String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  mealPlanRecipes MealPlanRecipe[]
-
-  @@schema("recipe_manager")
-}
-
-model MealPlan {
-  id          String   @id @default(uuid())
-  userId      String
-  name        String
-  description String?
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user    User             @relation(fields: [userId], references: [id])
-  recipes MealPlanRecipe[]
-
-  @@schema("recipe_manager")
-}
-
-model MealPlanRecipe {
-  id           String    @id @default(uuid())
-  mealPlanId   String
-  recipeId     String
-  plannedDate  DateTime
-  mealType     MealType
-  servings     Int       @default(1)
-  notes        String?
-  createdAt    DateTime  @default(now())
-
-  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id])
-  recipe   Recipe   @relation(fields: [recipeId], references: [id])
-
-  @@schema("recipe_manager")
-}
-
+// Enums
 enum MealType {
   BREAKFAST
   LUNCH
   DINNER
   SNACK
+  DESSERT
 
+  @@map("meal_type_enum")
+  @@schema("recipe_manager")
+}
+
+// Minimal User model - only fields needed for meal plan relationships
+model User {
+  userId            String             @id @map("user_id") @db.Uuid
+  username          String             @unique @db.VarChar(50)
+  mealPlans         MealPlan[]
+  mealPlanFavorites MealPlanFavorite[]
+
+  @@map("users")
+  @@schema("recipe_manager")
+}
+
+// Minimal Recipe model - only fields needed for meal plan relationships
+model Recipe {
+  recipeId        BigInt           @id @default(autoincrement()) @map("recipe_id")
+  userId          String           @map("user_id") @db.Uuid
+  title           String           @db.VarChar(255)
+  mealPlanRecipes MealPlanRecipe[]
+
+  @@map("recipes")
+  @@schema("recipe_manager")
+}
+
+// MealPlan model
+model MealPlan {
+  mealPlanId  BigInt    @id @default(autoincrement()) @map("meal_plan_id")
+  userId      String    @map("user_id") @db.Uuid
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                 User                  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlanRecipes      MealPlanRecipe[]
+  mealPlanFavorites    MealPlanFavorite[]
+  mealPlanTagJunctions MealPlanTagJunction[]
+
+  @@map("meal_plans")
+  @@schema("recipe_manager")
+}
+
+// MealPlanRecipe junction model
+model MealPlanRecipe {
+  mealPlanId BigInt   @map("meal_plan_id")
+  recipeId   BigInt   @map("recipe_id")
+  mealDate   DateTime @map("meal_date") @db.Date
+  mealType   MealType @map("meal_type")
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
+
+  @@id([mealPlanId, recipeId, mealDate])
+  @@map("meal_plan_recipes")
+  @@schema("recipe_manager")
+}
+
+// MealPlanFavorite junction model
+model MealPlanFavorite {
+  userId      String   @map("user_id") @db.Uuid
+  mealPlanId  BigInt   @map("meal_plan_id")
+  favoritedAt DateTime @default(now()) @map("favorited_at") @db.Timestamptz(6)
+
+  user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+
+  @@id([userId, mealPlanId])
+  @@map("meal_plan_favorites")
+  @@schema("recipe_manager")
+}
+
+// MealPlanTag model
+model MealPlanTag {
+  tagId BigInt @id @default(autoincrement()) @map("tag_id")
+  name  String @unique @db.VarChar(50)
+
+  mealPlanTagJunctions MealPlanTagJunction[]
+
+  @@map("meal_plan_tags")
+  @@schema("recipe_manager")
+}
+
+// MealPlanTagJunction model
+model MealPlanTagJunction {
+  mealPlanId BigInt @map("meal_plan_id")
+  tagId      BigInt @map("tag_id")
+
+  mealPlan MealPlan    @relation(fields: [mealPlanId], references: [mealPlanId], onDelete: Cascade)
+  tag      MealPlanTag @relation(fields: [tagId], references: [tagId], onDelete: Cascade)
+
+  @@id([mealPlanId, tagId])
+  @@map("meal_plan_tag_junction")
   @@schema("recipe_manager")
 }
 ```
@@ -279,12 +319,12 @@ export class MealPlanService {
   ) {}
 
   async createMealPlanWithRecipes(data: CreateMealPlanWithRecipesData) {
-    return this.transactionService.executeInTransaction(async (tx) => {
+    return this.transactionService.executeTransaction(async (tx) => {
       // Create meal plan
       const mealPlan = await this.mealPlansRepo.create(data.mealPlan, tx);
 
       // Add recipes
-      await this.mealPlansRepo.addMultipleRecipes(mealPlan.id, data.recipes, tx);
+      await this.mealPlansRepo.addMultipleRecipes(mealPlan.mealPlanId, data.recipes, tx);
 
       return mealPlan;
     });
@@ -316,15 +356,21 @@ Process multiple operations efficiently:
 
 ```typescript
 async processMealPlans(mealPlansData: any[]) {
-  return this.transactionService.batchProcess(
-    mealPlansData,
-    async (batch, tx) => {
-      return Promise.all(
-        batch.map(data => this.mealPlansRepo.create(data, tx))
-      );
-    },
-    5 // batch size
+  // Execute multiple operations in a single transaction
+  const operations = mealPlansData.map(data =>
+    (tx: TransactionClient) => this.mealPlansRepo.create(data, tx)
   );
+
+  return this.transactionService.executeBatch(operations);
+}
+
+// Or use executeParallel for concurrent execution (use with caution)
+async processMealPlansParallel(mealPlansData: any[]) {
+  const operations = mealPlansData.map(data =>
+    (tx: TransactionClient) => this.mealPlansRepo.create(data, tx)
+  );
+
+  return this.transactionService.executeParallel(operations);
 }
 ```
 

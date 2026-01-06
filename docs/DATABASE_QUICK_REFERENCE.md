@@ -44,7 +44,6 @@ const mealPlan = await this.mealPlansRepo.create({
   name: 'Weekly Plan',
   startDate: new Date(),
   endDate: new Date(),
-  isActive: true,
 });
 
 // Find by ID
@@ -97,9 +96,9 @@ import { TransactionService } from '@/shared/database/transaction.service';
 constructor(private readonly transactionService: TransactionService) {}
 
 // Execute in transaction
-const result = await this.transactionService.executeInTransaction(async (tx) => {
+const result = await this.transactionService.executeTransaction(async (tx) => {
   const mealPlan = await this.mealPlansRepo.create(planData, tx);
-  await this.mealPlansRepo.addMultipleRecipes(mealPlan.id, recipes, tx);
+  await this.mealPlansRepo.addMultipleRecipes(mealPlan.mealPlanId, recipes, tx);
   return mealPlan;
 });
 ```
@@ -121,14 +120,14 @@ const result = await this.transactionService.retryTransaction(
 ### Batch Processing
 
 ```typescript
-// Process in batches
-const results = await this.transactionService.batchProcess(
-  largeDataArray,
-  async (batch, tx) => {
-    return Promise.all(batch.map((item) => this.mealPlansRepo.create(item, tx)));
-  },
-  10, // batch size
+// Execute multiple operations in a single transaction
+const operations = largeDataArray.map(
+  (item) => (tx: TransactionClient) => this.mealPlansRepo.create(item, tx),
 );
+const results = await this.transactionService.executeBatch(operations);
+
+// Or use executeParallel for concurrent execution (use with caution)
+const parallelResults = await this.transactionService.executeParallel(operations);
 ```
 
 ## Connection Management
@@ -381,30 +380,25 @@ export class MealPlanService {
   ) {}
 
   async createCompleteMealPlan(data: CreateCompleteData) {
-    return this.transactionService.executeInTransaction(async (tx) => {
+    return this.transactionService.executeTransaction(async (tx) => {
       // Create meal plan
       const mealPlan = await this.mealPlansRepo.create(data.mealPlan, tx);
 
       // Add recipes
       if (data.recipes?.length) {
-        await this.mealPlansRepo.addMultipleRecipes(mealPlan.id, data.recipes, tx);
+        await this.mealPlansRepo.addMultipleRecipes(mealPlan.mealPlanId, data.recipes, tx);
       }
 
       // Return with recipes
-      return this.mealPlansRepo.findByIdWithRecipes(mealPlan.id, tx);
+      return this.mealPlansRepo.findByIdWithRecipes(mealPlan.mealPlanId, tx);
     });
   }
 
   async bulkUpdateMealPlans(updates: UpdateData[]) {
-    return this.transactionService.batchProcess(
-      updates,
-      async (batch, tx) => {
-        return Promise.all(
-          batch.map((update) => this.mealPlansRepo.update(update.id, update.data, tx)),
-        );
-      },
-      5, // Process 5 at a time
+    const operations = updates.map(
+      (update) => (tx: TransactionClient) => this.mealPlansRepo.update(update.id, update.data, tx),
     );
+    return this.transactionService.executeBatch(operations);
   }
 }
 ```

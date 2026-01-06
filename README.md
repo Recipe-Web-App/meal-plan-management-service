@@ -55,17 +55,17 @@ $ bun test test/**/*.e2e-spec.ts
 $ bun test --coverage
 ```
 
-## 🤖 Automated Dependency Management
+## Automated Dependency Management
 
-This project uses **GitHub Dependabot** to automatically keep dependencies up to date. Dependabot will:
+This project uses **Renovate** to automatically keep dependencies up to date. Renovate will:
 
-- 📦 Monitor npm dependencies daily
-- 🐳 Check Docker base images weekly
-- 🔄 Group related dependencies for easier management
-- 🏷️ Create well-labeled pull requests
-- 🔒 Prioritize security updates
+- Monitor npm dependencies and create update PRs
+- Check Docker base images
+- Group related dependencies for easier management
+- Create well-labeled pull requests
+- Prioritize security updates
 
-For more details, see [`.github/DEPENDABOT.md`](.github/DEPENDABOT.md).
+For more details, see [`.github/RENOVATE.md`](.github/RENOVATE.md).
 
 ## ⚡ GitHub Actions & Workflows
 
@@ -175,17 +175,6 @@ Interactive API documentation is available at `/docs` when running the service:
 - For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy)
 - Check out our official video [courses](https://courses.nestjs.com/) for hands-on experience
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If
-you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is MIT licensed.
