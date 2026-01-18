@@ -21,6 +21,8 @@ export interface JwtConfig {
 export interface RedisConfig {
   host: string;
   port: number;
+  db: number;
+  user?: string;
   password?: string;
 }
 
@@ -92,6 +94,8 @@ export default () => ({
   redis: {
     host: process.env.REDIS_HOST ?? 'localhost',
     port: parseInt(process.env.REDIS_PORT!, 10) || 6379,
+    db: parseInt(process.env.REDIS_DB!, 10) || 0,
+    user: process.env.REDIS_USER,
     password: process.env.REDIS_PASSWORD,
   } as RedisConfig,
 

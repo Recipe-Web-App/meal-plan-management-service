@@ -77,6 +77,8 @@ export JWT_SECRET="your-jwt-secret-key" # pragma: allowlist secret
 # Redis Configuration
 export REDIS_HOST="redis.cache.svc.cluster.local"
 export REDIS_PORT="6379"
+export REDIS_DB="0"
+export REDIS_USER="your-redis-username"
 export REDIS_PASSWORD="your-redis-password" # pragma: allowlist secret
 
 # CORS Configuration
