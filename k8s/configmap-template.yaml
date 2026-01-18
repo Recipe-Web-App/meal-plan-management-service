@@ -35,6 +35,8 @@ data:
   # Redis Configuration (non-sensitive)
   REDIS_HOST: '${REDIS_HOST}'
   REDIS_PORT: '${REDIS_PORT}'
+  REDIS_DB: '${REDIS_DB}'
+  REDIS_USER: '${REDIS_USER}'
 
   # External Services
   RECIPE_SERVICE_URL: '${RECIPE_SERVICE_URL}'
