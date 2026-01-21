@@ -56,6 +56,13 @@
       "semanticCommitType": "ci",
       "addLabels": ["github-actions"],
       "groupName": "github-actions"
+    },
+    {
+      "description": "Pre-commit hooks",
+      "matchManagers": ["pre-commit"],
+      "semanticCommitType": "chore",
+      "addLabels": ["pre-commit"],
+      "groupName": "pre-commit-hooks"
     }
   ],
   "bun": {
