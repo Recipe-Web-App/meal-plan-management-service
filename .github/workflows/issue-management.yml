@@ -16,7 +16,7 @@ jobs:
     if: github.event.action == 'opened'
     steps:
       - name: Auto-label based on title/content
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const { title, body } = context.payload.issue || context.payload.pull_request;
@@ -65,7 +65,7 @@ jobs:
     if: github.event.action == 'opened' && github.event.pull_request
     steps:
       - name: Auto-assign reviewers
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             // Don't assign if PR is from dependabot
@@ -94,7 +94,7 @@ jobs:
     if: github.event_name == 'schedule'
     steps:
       - name: Close stale issues and PRs
-        uses: actions/stale@v10
+        uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: |
@@ -120,7 +120,7 @@ jobs:
     if: github.event.action == 'opened'
     steps:
       - name: Welcome first-time contributors
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             // Check if this is the user's first contribution
@@ -167,7 +167,7 @@ jobs:
     if: github.event.action == 'opened' || github.event.action == 'closed'
     steps:
       - name: Add to project board
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             // Add issues/PRs to project board
