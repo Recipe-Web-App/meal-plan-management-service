@@ -25,7 +25,7 @@ Before using these scripts, ensure you have the following tools installed:
 - Loads environment variables from `.env.prod` (if present)
 - Builds Docker image inside Minikube
 - Creates/updates ConfigMap and Secret
-- Deploys all Kubernetes resources (deployment, service, ingress, network policy, pod disruption budget, HPA)
+- Deploys all Kubernetes resources (deployment, service, network policy, pod disruption budget, HPA)
 - Sets up `/etc/hosts` entry for local access
 - Provides access information
 
