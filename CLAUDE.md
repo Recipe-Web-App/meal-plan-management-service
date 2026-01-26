@@ -4,259 +4,132 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Build & Start
+### Build & Run
 
-- `bun run build` - Build the NestJS application (includes path alias resolution via tsc-alias)
-- `bun run start` - Start the application
-- `bun run start:dev` - Start in development mode with watch
-- `bun run start:debug` - Start in debug mode with watch
-- `bun run start:prod` - Start in production mode (uses Bun runtime)
+```bash
+bun run build          # Build (includes tsc-alias for path resolution)
+bun run start:dev      # Development with watch
+bun run start:prod     # Production (uses Bun runtime)
+```
 
 ### Testing
 
-- `bun test` - Run unit tests
-- `bun test <test-file-path>` - Run a single test file (e.g., `bun test meal-plans.service.spec`)
-- `bun test --watch` - Run tests in watch mode
-- `bun test --coverage` - Run tests with coverage (must meet 80% threshold)
-- `bun test test/**/*.e2e-spec.ts` - Run end-to-end tests
-- `bun --inspect-brk test` - Run tests in debug mode
-
-### Code Quality
-
-- `bun run lint` - Run ESLint with auto-fix
-- `bun run format` - Format code with Prettier
-- `bun run markdown:lint` - Lint markdown files
-- `bun run security:secrets` - Scan for secrets using detect-secrets
-- `bun run license:check` - Check dependency licenses
+```bash
+bun test                          # Run unit tests
+bun test meal-plans.service.spec  # Run single test file
+bun test --watch                  # Watch mode
+bun test --coverage               # Coverage (80% threshold)
+bun test test/**/*.e2e-spec.ts    # E2E tests
+```
 
 ### Database (Prisma)
 
-- `bunx prisma migrate dev` - Create and apply migrations in development
-- `bunx prisma migrate deploy` - Apply migrations in production
-- `bunx prisma generate` - Generate Prisma Client
-- `bunx prisma studio` - Open Prisma Studio GUI
-- `bunx prisma db seed` - Seed the database with test data
+```bash
+bunx prisma migrate dev     # Create/apply migrations
+bunx prisma generate        # Generate Prisma Client
+bunx prisma studio          # GUI for database
+bunx prisma db seed         # Seed test data
+```
 
-### Git Hooks
+### Code Quality
 
-This repository uses **pre-commit** for automated code quality checks:
+```bash
+bun run lint          # ESLint with auto-fix
+bun run format        # Prettier
+bun run pre-commit    # Run all pre-commit hooks
+```
 
-- **Pre-commit hooks**: Automatically run on every commit
-  - Code formatting (Prettier) and linting (ESLint)
-  - TypeScript type checking
-  - Build verification (`bun run build`)
-  - Unit tests (`bun test`)
-  - Markdown, YAML, shell script linting
-  - Secret scanning (detect-secrets, gitleaks)
-  - Security analysis (semgrep)
-  - Prisma schema formatting
-  - License compliance checks
+### Git Hooks (pre-commit)
 
-- **Commit-msg hook**: Validates commit messages using commitlint (conventional commits)
-
-- **Pre-push hook**: Runs before pushing to remote
-  - Full test suite with coverage (`bun test --coverage`)
-  - Coverage thresholds: 70% branches, 80% functions/lines/statements
-
-**Installation**: Run `pre-commit install` to set up hooks after cloning
-
-**Manual execution**: Run `bun run pre-commit` to execute all hooks on all files
-
-**Skip tests during commit**: Use `SKIP=bun-tests git commit` for faster commits (tests still run on push)
+Pre-commit runs formatting, linting, type checking, build, tests, and security scans. Use `SKIP=bun-tests git commit` to skip tests during commit (they still run on push).
 
 ## Architecture
 
-### Framework & Structure
+### Overview
 
-- **NestJS** TypeScript framework with modular architecture
-- **Bun** runtime and package manager (replaces Node.js/npm)
-- **PostgreSQL** database with Prisma ORM
-- **Microservice** designed for meal plan management within a larger Recipe Web App ecosystem
-- **Global prefix**: All API endpoints use `api/v1` prefix
-- **Swagger documentation** available at `/docs` endpoint
+NestJS microservice for meal plan management within the Recipe Web App ecosystem. Uses Bun runtime, PostgreSQL with Prisma, and OAuth2/JWT authentication.
 
-### Key Components
+- **API prefix**: `api/v1`
+- **Swagger docs**: `/docs`
 
-#### Configuration System
-
-- Environment-based configuration in `src/config/configuration.ts`
-- Joi validation schema for environment variables
-- TypeScript interfaces for type-safe config access
-- Supports multiple config types: app, database, JWT, OAuth2, Redis, rate limiting, external services
-
-#### Path Aliases (TypeScript)
+### Path Aliases
 
 ```typescript
-"@/*": ["src/*"]
-"@config/*": ["src/config/*"]
-"@modules/*": ["src/modules/*"]
-"@shared/*": ["src/shared/*"]
-"@utils/*": ["src/utils/*"]
-"@generated/*": ["src/generated/*"]
+"@/*"         → "src/*"
+"@config/*"   → "src/config/*"
+"@modules/*"  → "src/modules/*"
+"@shared/*"   → "src/shared/*"
+"@generated/*"→ "src/generated/*"
 ```
-
-#### Global Middleware & Interceptors
-
-- **Helmet** for security headers
-- **CORS** with configurable origins
-- **ValidationPipe** with transformation and whitelisting
-- **HttpExceptionFilter** for consistent error responses
-- **ResponseInterceptor** for standardized API response format
-- **CorrelationIdInterceptor** for request tracing
-- **ThrottlerModule** with multiple rate limiting tiers (short/medium/long)
-
-#### Database
-
-- **Prisma Client** with PostgreSQL and multi-schema support (generated to `src/generated/prisma`)
-- **Repository Pattern** for data access abstraction (`MealPlansRepository`)
-- **Transaction Management** with retry logic and batch operations (`TransactionService`)
-- **Connection Pooling** with health monitoring and automatic reconnection (`PrismaService`)
-- **Seeding Utilities** for development and testing (`DatabaseSeeder`, factories)
-- **Health Monitoring** with periodic checks and metrics collection
-- Schema references shared `recipe_manager` schema for recipes and users
-- Comprehensive error handling with connection retry logic
-- Development tools: factories, test database utilities, and migration support
-
-**Database Documentation:**
-
-- [Complete Database Guide](./docs/DATABASE.md) - Comprehensive setup and usage documentation
-- [Quick Reference](./docs/DATABASE_QUICK_REFERENCE.md) - Commands and code snippets
-- [Setup Guide](./docs/DATABASE_SETUP.md) - Step-by-step installation instructions
-
-#### Authentication System
-
-- **OAuth2 with JWT** using passport-jwt strategy
-- **Service-to-Service Authentication** with client credentials flow
-- **Token Validation** supporting both local JWT validation and remote introspection
-- **Security Guards** (`JwtAuthGuard`, `ServiceAuthGuard`) for endpoint protection
-- **Token Caching** with configurable TTL for performance optimization
-- **Flexible Configuration** for different deployment environments
-
-**Authentication Documentation:**
-
-- [Complete Authentication Guide](./docs/AUTHENTICATION.md) - Comprehensive setup and usage documentation
-
-#### Logging
-
-- Winston logger with configurable levels
-- Structured logging with correlation IDs
-- Environment-specific configuration
 
 ### Module Structure
 
-- `src/modules/auth/` - Complete OAuth2 authentication system with guards, strategies, and services
-- `src/modules/health/` - Health check endpoints for monitoring
-- `src/modules/meal-plans/` - Meal plan CRUD, favorites, and tags management with authentication-protected endpoints
-- `src/modules/metrics/` - Prometheus metrics collection and endpoint
-- `src/modules/system/` - System information endpoints
-- Each module follows NestJS conventions with controller/service/repository/module files
+Each feature module follows the pattern: `controller → service → repository`
 
-### Security Features
+- **meal-plans/** - Core CRUD with favorites and tags submodules
+- **auth/** - OAuth2 + JWT authentication (guards, strategies, token validation)
+- **health/** - Health check endpoints
+- **metrics/** - Prometheus metrics
+- **system/** - System info endpoints
 
-- **OAuth2 Authentication** with JWT tokens and service-to-service support
-- **Bearer Token Authentication** on all protected endpoints
-- **Scope-based Authorization** for service permissions
-- **Rate Limiting** with multiple tiers (default, create/update, delete)
-- **Helmet Security Headers** and CORS protection
-- **Input Validation** and sanitization with class-validator
-- **Secret Scanning** in CI/CD pipeline
-- **Request Correlation IDs** for security tracing
+### Shared Infrastructure (`src/shared/`)
 
-### Environment Variables
+The `SharedModule` is global and provides:
 
-#### Core Application
+- **PrismaService** - Database connection with pooling, health monitoring, and retry logic
+- **LoggerService** - Winston logger with correlation ID support
+- **RequestContextService** - Request context tracking
+- **HttpExceptionFilter** - Consistent error response format
+- **ResponseInterceptor** - Standardized API response wrapper
+- **CorrelationIdInterceptor** - Request tracing
+
+### Database Schema
+
+Uses PostgreSQL with multi-schema support. All tables are in the `recipe_manager` schema:
+
+- `MealPlan` - Main entity with user, date range, and description
+- `MealPlanRecipe` - Junction table linking plans to recipes (with meal type and date)
+- `MealPlanFavorite` - User favorites
+- `MealPlanTag` / `MealPlanTagJunction` - Tagging system
+
+Prisma Client is generated to `src/generated/prisma`.
+
+### Authentication
+
+- **JwtAuthGuard** - Protects endpoints requiring user authentication
+- **ServiceAuthGuard** - For service-to-service (client credentials) auth
+- **@CurrentUser()** - Decorator to extract authenticated user from request
+
+All endpoints except health checks require Bearer token authentication.
+
+### Rate Limiting
+
+Three tiers configured in `ThrottlerModule`:
+
+- **short**: 3 requests/second
+- **medium**: 20 requests/10 seconds
+- **long**: Configurable (default 100/minute)
+
+## Key Environment Variables
 
 ```bash
-NODE_ENV=development
-PORT=3000
-CORS_ORIGINS=http://localhost:3000,https://app.example.com
-LOG_LEVEL=info
-```
-
-#### Database Configuration
-
-```bash
-DATABASE_URL=postgresql://username:password@localhost:5432/database # pragma: allowlist secret
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=meal_plan_management
-MEAL_PLAN_MANAGEMENT_DB_USER=username
-MEAL_PLAN_MANAGEMENT_DB_PASSWORD=password
-DATABASE_MAX_RETRIES=5
-DATABASE_RETRY_DELAY=5000
-DATABASE_LONG_RETRY_DELAY=60000
-DATABASE_ENABLE_CONTINUOUS_RETRY=true
-DATABASE_HEALTH_CHECK_INTERVAL=30000
-DATABASE_LOG_QUERIES=false
-```
-
-#### OAuth2 Authentication
-
-```bash
-# Core OAuth2 Configuration
-OAUTH2_SERVICE_ENABLED=true
-OAUTH2_SERVICE_TO_SERVICE_ENABLED=true
-OAUTH2_INTROSPECTION_ENABLED=false
+# Required
+DATABASE_URL=postgresql://user:pass@localhost:5432/db  # pragma: allowlist secret
+JWT_SECRET=your-secret
 OAUTH2_CLIENT_ID=meal-plan-service
-OAUTH2_CLIENT_SECRET=your-secret-key
-OAUTH2_AUTH_BASE_URL=https://sous-chef-proxy.local/api/v1/auth
+OAUTH2_CLIENT_SECRET=your-secret
 
-# JWT Configuration
-JWT_SECRET=your-jwt-secret-key
-JWT_EXPIRES_IN=1d
-```
-
-#### Redis Configuration
-
-```bash
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=optional-password
-```
-
-#### Rate Limiting
-
-```bash
-RATE_LIMIT_TTL=60
-RATE_LIMIT_MAX=100
-```
-
-#### Logging Configuration
-
-```bash
+# Optional with defaults
+PORT=3000
+NODE_ENV=development
 LOG_LEVEL=info
-LOG_CONSOLE_FORMAT=pretty
-LOG_FILE_ENABLED=false
-LOG_FILE_PATH=logs
-LOG_FILE_MAX_SIZE=20m
-LOG_FILE_MAX_FILES=14d
-LOG_FILE_DATE_PATTERN=YYYY-MM-DD
 ```
 
-#### External Services
+See `src/config/configuration.ts` and `src/config/env.validation.ts` for full configuration options.
 
-```bash
-RECIPE_SERVICE_URL=https://recipe-service.local/api/v1
-USER_SERVICE_URL=https://user-service.local/api/v1
-```
+## Code Quality Standards
 
-## Quality Standards
-
-### Code Coverage
-
-Minimum coverage thresholds required:
-
-- Branches: 70%
-- Functions: 80%
-- Lines: 80%
-- Statements: 80%
-
-### ESLint Rules
-
-Strict TypeScript configuration with:
-
-- No explicit `any` types
-- Mandatory floating promise handling
-- Unsafe operation prevention
-- Nullish coalescing and optional chaining preferences
-- Console usage warnings (use Winston logger instead)
+- **Coverage thresholds**: 70% branches, 80% functions/lines/statements
+- **No explicit `any` types** - use proper TypeScript types
+- **No floating promises** - all promises must be handled
+- **Use Winston logger** - not console.log
