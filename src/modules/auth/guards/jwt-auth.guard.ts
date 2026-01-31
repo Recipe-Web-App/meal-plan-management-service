@@ -1,6 +1,7 @@
 import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
 import { OAuth2Config } from '../../../config/configuration';
 import { AuthenticatedUser } from '../interfaces/jwt-payload.interface';
 
@@ -25,18 +26,22 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     err: Error | null,
     user: AuthenticatedUser | null,
     _info: unknown,
-    _context: ExecutionContext,
+    context: ExecutionContext,
   ): TUser {
     const oauth2Config = this.configService.get<OAuth2Config>('oauth2');
 
-    // If OAuth2 is disabled, return a mock user
+    // If OAuth2 is disabled (local dev), use X-User-Id header or default mock user
     if (!oauth2Config?.enabled) {
+      const request = context.switchToHttp().getRequest<Request>();
+      const userId: string =
+        (request.headers['x-user-id'] as string | undefined) ?? 'local-dev-user';
+
       return {
-        id: 'mock-user-id',
-        sub: 'mock-user-id',
-        clientId: 'mock-client',
+        id: userId,
+        sub: userId,
+        clientId: 'local-dev-client',
         scopes: ['read', 'write'],
-        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+        exp: Math.floor(Date.now() / 1000) + 3600,
       } as TUser;
     }
 

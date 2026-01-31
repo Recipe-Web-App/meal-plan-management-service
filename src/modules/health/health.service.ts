@@ -23,6 +23,10 @@ export class HealthService {
 
   @HealthCheck()
   async check(): Promise<HealthCheckResult> {
+    const nodeEnv = this.configService.get<string>('app.nodeEnv');
+    // Use 100% threshold in local environment (effectively disabling the check)
+    const diskThreshold = nodeEnv === 'local' ? 1.0 : 0.95;
+
     return this.health.check([
       // Database health check
       () => this.checkDatabase(),
@@ -30,11 +34,11 @@ export class HealthService {
       // Memory health check (using 90% of heap limit)
       () => this.memory.checkHeap('memory_heap', v8.getHeapStatistics().heap_size_limit * 0.9),
 
-      // Disk health check (using 95% as threshold)
+      // Disk health check
       () =>
         this.disk.checkStorage('disk', {
           path: '/',
-          thresholdPercent: 0.95,
+          thresholdPercent: diskThreshold,
         }),
     ]);
   }

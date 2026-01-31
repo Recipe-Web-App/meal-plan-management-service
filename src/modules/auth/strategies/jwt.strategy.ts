@@ -14,8 +14,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly tokenValidationService: TokenValidationService,
   ) {
     const oauth2Config = configService.get<OAuth2Config>('oauth2');
+    const nodeEnv = configService.get<string>('app.nodeEnv') ?? process.env.NODE_ENV;
 
-    if (!oauth2Config?.enabled) {
+    // Only enforce OAuth2 requirement in non-local environments
+    if (!oauth2Config?.enabled && nodeEnv !== 'local') {
       throw new Error('OAuth2 configuration is required when JWT strategy is enabled');
     }
 

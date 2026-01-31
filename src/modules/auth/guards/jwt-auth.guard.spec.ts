@@ -27,10 +27,10 @@ describe('JwtAuthGuard', () => {
     exp: Math.floor(Date.now() / 1000) + 3600,
   };
 
-  const createMockExecutionContext = (): ExecutionContext =>
+  const createMockExecutionContext = (headers: Record<string, string> = {}): ExecutionContext =>
     ({
       switchToHttp: mock(() => ({
-        getRequest: mock(() => ({})),
+        getRequest: mock(() => ({ headers })),
         getResponse: mock(() => ({})),
       })),
       getClass: mock(() => {}),
@@ -124,9 +124,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(null, null, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });
@@ -138,9 +138,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(error, null, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });
@@ -150,9 +150,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(null, mockUser, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });
@@ -206,9 +206,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(null, null, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });
@@ -220,9 +220,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(null, null, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });
@@ -236,9 +236,9 @@ describe('JwtAuthGuard', () => {
         const result = guard.handleRequest(null, null, undefined, context);
 
         expect(result).toEqual({
-          id: 'mock-user-id',
-          sub: 'mock-user-id',
-          clientId: 'mock-client',
+          id: 'local-dev-user',
+          sub: 'local-dev-user',
+          clientId: 'local-dev-client',
           scopes: ['read', 'write'],
           exp: expect.any(Number),
         });

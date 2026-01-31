@@ -73,6 +73,7 @@ describe('JwtStrategy', () => {
     it('should initialize successfully with valid configuration', () => {
       configService.get
         .mockReturnValueOnce(mockOAuth2Config) // OAuth2 config
+        .mockReturnValueOnce('production') // nodeEnv
         .mockReturnValueOnce(mockJwtSecret); // JWT secret
 
       expect(() => {
@@ -86,9 +87,11 @@ describe('JwtStrategy', () => {
       expect(configService.get).toHaveBeenCalledWith('jwt.secret');
     });
 
-    it('should throw error when OAuth2 is not enabled', () => {
+    it('should throw error when OAuth2 is not enabled in non-local environment', () => {
       const disabledConfig = { ...mockOAuth2Config, enabled: false };
-      configService.get.mockReturnValueOnce(disabledConfig);
+      configService.get
+        .mockReturnValueOnce(disabledConfig) // OAuth2 config
+        .mockReturnValueOnce('production'); // nodeEnv
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -98,8 +101,25 @@ describe('JwtStrategy', () => {
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
 
-    it('should throw error when OAuth2 config is undefined', () => {
-      configService.get.mockReturnValueOnce(undefined);
+    it('should not throw error when OAuth2 is disabled in local environment', () => {
+      const disabledConfig = { ...mockOAuth2Config, enabled: false };
+      configService.get
+        .mockReturnValueOnce(disabledConfig) // OAuth2 config
+        .mockReturnValueOnce('local') // nodeEnv
+        .mockReturnValueOnce(mockJwtSecret); // JWT secret
+
+      expect(() => {
+        strategy = new JwtStrategy(
+          configService as unknown as ConfigService,
+          tokenValidationService as unknown as TokenValidationService,
+        );
+      }).not.toThrow();
+    });
+
+    it('should throw error when OAuth2 config is undefined in non-local environment', () => {
+      configService.get
+        .mockReturnValueOnce(undefined) // OAuth2 config
+        .mockReturnValueOnce('production'); // nodeEnv
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -109,8 +129,10 @@ describe('JwtStrategy', () => {
       }).toThrow('OAuth2 configuration is required when JWT strategy is enabled');
     });
 
-    it('should throw error when OAuth2 config is null', () => {
-      configService.get.mockReturnValueOnce(null);
+    it('should throw error when OAuth2 config is null in non-local environment', () => {
+      configService.get
+        .mockReturnValueOnce(null) // OAuth2 config
+        .mockReturnValueOnce('production'); // nodeEnv
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -121,7 +143,10 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw error when JWT secret is not configured', () => {
-      configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(undefined); // No JWT secret
+      configService.get
+        .mockReturnValueOnce(mockOAuth2Config) // OAuth2 config
+        .mockReturnValueOnce('production') // nodeEnv
+        .mockReturnValueOnce(undefined); // No JWT secret
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -132,7 +157,10 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw error when JWT secret is null', () => {
-      configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(null); // Null JWT secret
+      configService.get
+        .mockReturnValueOnce(mockOAuth2Config) // OAuth2 config
+        .mockReturnValueOnce('production') // nodeEnv
+        .mockReturnValueOnce(null); // Null JWT secret
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -143,7 +171,10 @@ describe('JwtStrategy', () => {
     });
 
     it('should throw error when JWT secret is empty string', () => {
-      configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(''); // Empty JWT secret
+      configService.get
+        .mockReturnValueOnce(mockOAuth2Config) // OAuth2 config
+        .mockReturnValueOnce('production') // nodeEnv
+        .mockReturnValueOnce(''); // Empty JWT secret
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -153,10 +184,12 @@ describe('JwtStrategy', () => {
       }).toThrow('JWT secret is required for JWT strategy');
     });
 
-    it('should handle OAuth2 config without enabled property', () => {
+    it('should throw error when OAuth2 config without enabled property in non-local environment', () => {
       const configWithoutEnabled = { ...mockOAuth2Config };
       delete (configWithoutEnabled as any).enabled;
-      configService.get.mockReturnValueOnce(configWithoutEnabled);
+      configService.get
+        .mockReturnValueOnce(configWithoutEnabled) // OAuth2 config
+        .mockReturnValueOnce('production'); // nodeEnv
 
       expect(() => {
         strategy = new JwtStrategy(
@@ -169,7 +202,10 @@ describe('JwtStrategy', () => {
 
   describe('validate', () => {
     beforeEach(() => {
-      configService.get.mockReturnValueOnce(mockOAuth2Config).mockReturnValueOnce(mockJwtSecret);
+      configService.get
+        .mockReturnValueOnce(mockOAuth2Config) // OAuth2 config
+        .mockReturnValueOnce('production') // nodeEnv
+        .mockReturnValueOnce(mockJwtSecret); // JWT secret
       strategy = new JwtStrategy(
         configService as unknown as ConfigService,
         tokenValidationService as unknown as TokenValidationService,
