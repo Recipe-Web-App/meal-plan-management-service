@@ -18,7 +18,8 @@ import { SharedModule } from '@/shared';
       isGlobal: true,
       load: [configuration],
       validationSchema,
-      envFilePath: ['.env.local', '.env'],
+      expandVariables: true,
+      envFilePath: process.env.ENV_FILE ? [process.env.ENV_FILE] : ['.env.local', '.env'],
     }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
