@@ -1,5 +1,5 @@
 # Multi-stage build for production optimization
-FROM oven/bun:1-alpine@sha256:b0885548002187f088af5c7e04008f852c0a30cbe4192b5d75c3266a7f0b01f5 AS base
+FROM oven/bun:1-alpine@sha256:9028ee7a60a04777190f0c3129ce49c73384d3fc918f3e5c75f5af188e431981 AS base
 
 # Set working directory
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY . .
 RUN bunx prisma generate && bun run build
 
 # Production stage
-FROM oven/bun:1-alpine@sha256:b0885548002187f088af5c7e04008f852c0a30cbe4192b5d75c3266a7f0b01f5 AS production
+FROM oven/bun:1-alpine@sha256:9028ee7a60a04777190f0c3129ce49c73384d3fc918f3e5c75f5af188e431981 AS production
 
 # Set NODE_ENV
 ENV NODE_ENV=production
