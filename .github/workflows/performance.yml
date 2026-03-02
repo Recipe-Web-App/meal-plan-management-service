@@ -131,7 +131,7 @@ jobs:
             'autocannon -c 10 -d 30 http://localhost:3000/health' -- bun dist/main.js || true
 
       - name: Upload clinic reports
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: clinic-reports
           path: .clinic/
